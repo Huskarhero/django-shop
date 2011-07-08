@@ -18,4 +18,3 @@ share/
 database.db
 *.swp
 *coverage.xml
-.idea
