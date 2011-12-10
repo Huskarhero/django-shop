@@ -21,7 +21,6 @@ CONTRIBUTORS
 * Adrien Lemaire
 * Benjamin Wohlwend
 * Mike Yumatov
-* airtonix
 
 TRANSLATORS
 ===========
