@@ -1,8 +1,5 @@
 #-*- coding: utf-8 -*-
-import sys
 from decimal import Decimal
-from django.conf import settings
-from django.db.models.loading import cache
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
 from django.test.testcases import TestCase
@@ -105,11 +102,6 @@ class LoaderTestCase(TestCase):
         res = load_class(class_to_load)
         self.assertEqual(res, Mock)
 
-    def test_loader_without_a_name_works_tuple(self):
-        class_to_load = tuple(['shop.tests.util.Mock', 'tests'])
-        res = load_class(class_to_load)
-        self.assertEqual(res, Mock)
-
     def test_loader_without_a_name_fails(self):
         class_to_load = 'shop.tests.IdontExist.IdontExistEither'
         self.assertRaises(ImproperlyConfigured, load_class, class_to_load)
@@ -121,75 +113,6 @@ class LoaderTestCase(TestCase):
     def test_loader_without_a_name_fails_when_too_short(self):
         class_to_load = 'IdontExist'
         self.assertRaises(ImproperlyConfigured, load_class, class_to_load)
-
-
-class ModelImportTestCase(TestCase):
-    def test_bases_old_import_path(self):
-        try:
-            module = __import__('shop.models.defaults.bases', globals(),
-                locals(), ['BaseProduct',])
-        except ImportError:
-            module = False
-
-        self.assertTrue(hasattr(module, 'BaseProduct'),
-            'Model bases could not be imported from old location!')
-
-    def test_managers_old_import_path(self):
-        try:
-            module = __import__('shop.models.defaults.managers', globals(),
-                locals(), ['ProductManager',])
-        except ImportError:
-            module = False
-
-        self.assertTrue(hasattr(module, 'ProductManager'),
-            'Model managers could not be imported from old location!')
-
-
-class CircularImportTestCase(TestCase):
-    """
-    Test circular import when custom Product model inherits from BaseProduct
-    """
-
-    # NOTE: Deleting the modules in TestCase.setUp does not work
-    def setup_app(self, app_name, product_model):
-        self.app_name = app_name
-        settings.INSTALLED_APPS.insert(0, app_name)
-
-        cache.loaded = False
-        try:
-            del sys.modules['shop.models.productmodel']
-            del sys.modules['shop.models']
-        except KeyError:
-            pass
-
-        try:
-            self.product_model = settings.SHOP_PRODUCT_MODEL
-        except AttributeError:
-            self.product_model = '!'
-        settings.SHOP_PRODUCT_MODEL = product_model
-
-    def tearDown(self):
-        cache.loaded = False
-        settings.INSTALLED_APPS.remove(self.app_name)
-        if self.product_model == '!':
-            del settings.SHOP_PRODUCT_MODEL
-        else:
-            settings.SHOP_PRODUCT_MODEL = self.product_model
-
-    def test_old_import_raises_exception(self):
-        self.setup_app('circular_import_old',
-            'circular_import_old.models.MyProduct')
-        self.assertRaises(ImproperlyConfigured, cache.load_app,
-            'circular_import_old')
-
-    def test_new_import_doesnot_raise_exception(self):
-        self.setup_app('circular_import_new',
-            'circular_import_new.models.MyProduct')
-        try:
-            app = cache.load_app('circular_import_new')
-        except ImproperlyConfigured:
-            app = False
-        self.assertTrue(app, 'Could not load app "circular_import_new"')
 
 
 class AddressUtilTestCase(TestCase):

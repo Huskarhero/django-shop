@@ -28,8 +28,6 @@ from util import (
     CartUtilsTestCase,
     CurrencyFieldTestCase,
     LoaderTestCase,
-    ModelImportTestCase,
-    CircularImportTestCase,
 )
 from views import (
     CartDetailsViewTestCase,
