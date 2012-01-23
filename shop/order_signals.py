@@ -3,7 +3,7 @@ import django.dispatch
 # Order-related signals
 
 """Emitted when the Cart was converted to an Order"""
-processing = django.dispatch.Signal(providing_args=['order', 'cart'])
+processing = django.dispatch.Signal(providing_args=['order'])
 
 """Emitted when the user is shown the "select a payment method" page """
 payment_selection = django.dispatch.Signal(providing_args=['order'])
