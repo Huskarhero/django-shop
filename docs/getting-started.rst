@@ -127,7 +127,7 @@ describing a book::
         # The author should probably be a foreign key in the real world, but
         # this is just an example
         author = models.CharField(max_length=255)
-        cover_picture = models.ImageField(upload_to='img/book') 
+        cover_picture = models.ImageField() 
         isbn = models.CharField(max_length=255)
 
         class Meta:
@@ -141,9 +141,6 @@ Like a normal Django model, you might want to register it to the admin interface
 to allow easy edition by your users. In an ``admin.py`` file::
 
     from django.contrib import admin
-    
-    from models import Book
-    
     admin.site.register(Book)
 
 That's it! 
