@@ -31,12 +31,9 @@ class ShopApiTestCase(TestCase):
         oei = OrderExtraInfo.objects.get(order=self.order)
         self.assertEqual(oei.text, 'test')
 
-    def test_is_order_paid(self):
+    def test_is_order_payed(self):
         api = ShopAPI()
-        # Ensure deprecated method still works
         res = api.is_order_payed(self.order)
-        self.assertEqual(res, False)
-        res = api.is_order_paid(self.order)
         self.assertEqual(res, False)
 
     def test_is_order_complete(self):

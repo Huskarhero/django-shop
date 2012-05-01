@@ -345,18 +345,17 @@ class BaseOrder(models.Model):
     def get_absolute_url(self):
         return reverse('order_detail', kwargs={'pk': self.pk})
 
-    def is_paid(self):
-        """Has this order been integrally paid for?"""
-        return self.amount_paid == self.order_total
-    is_payed = is_paid #Backward compatability, deprecated spelling
+    def is_payed(self):
+        """Has this order been integrally payed for?"""
+        return self.amount_payed == self.order_total
 
     def is_completed(self):
         return self.status == self.COMPLETED
 
     @property
-    def amount_paid(self):
+    def amount_payed(self):
         """
-        The amount paid is the sum of related orderpayments
+        The amount payed is the sum of related orderpayments
         """
         from shop.models import OrderPayment
         sum_ = OrderPayment.objects.filter(order=self).aggregate(
@@ -365,7 +364,6 @@ class BaseOrder(models.Model):
         if not result:
             result = Decimal('-1')
         return result
-    amount_payed = amount_paid #Backward compatability, deprecated spelling
 
     @property
     def shipping_costs(self):
