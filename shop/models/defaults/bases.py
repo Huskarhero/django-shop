@@ -56,6 +56,12 @@ class BaseProduct(PolymorphicModel):
         """
         return self.name
 
+    def get_product_reference(self):
+        """
+        Return product reference of this Product (provided for extensibility).
+        """
+        return unicode(self.id)
+
 
 #==============================================================================
 # Carts
@@ -123,11 +129,6 @@ class BaseCart(models.Model):
         1
         """
         from shop.models import CartItem
-
-        # get the last updated timestamp
-        # also saves cart object if it is not saved
-        self.save()
-
         if queryset == None:
             queryset = CartItem.objects.filter(cart=self, product=product)
         item = queryset
@@ -141,6 +142,7 @@ class BaseCart(models.Model):
                 cart=self, quantity=quantity, product=product)
             cart_item.save()
 
+        self.save()  # to get the last updated timestamp
         return cart_item
 
     def update_quantity(self, cart_item_id, quantity):
@@ -239,9 +241,8 @@ class BaseCart(models.Model):
         """
         Remove all cart items
         """
-        if self.pk:
-            self.items.all().delete()
-            self.delete()
+        self.items.all().delete()
+        self.delete()
 
     @property
     def total_quantity(self):
