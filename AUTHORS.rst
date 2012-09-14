@@ -27,7 +27,6 @@ CONTRIBUTORS
 * Per Rosengren
 * Raúl Cumplido
 * Rolo Mawlabaux
-* Simon Luijk
 * Stephen Muss
 * Thomas Woolford
 
