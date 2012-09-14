@@ -22,7 +22,7 @@ Example
 Extending the Product model in django SHOP works like this::
     
     # In myproject.models
-    from shop.models_bases import BaseProduct
+    from shop.models import Product
     class MyProduct(BaseProduct):
         def extra_method(self):
             return 'Yay'
