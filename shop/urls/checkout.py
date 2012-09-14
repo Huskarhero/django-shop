@@ -1,5 +1,4 @@
 from django.conf.urls.defaults import url, patterns
-from shop.util.decorators import cart_required
 
 from shop.views.checkout import (
     # SelectPaymentView,
@@ -11,7 +10,7 @@ from shop.views.checkout import (
 )
 
 urlpatterns = patterns('',
-    url(r'^$', cart_required(CheckoutSelectionView.as_view()),
+    url(r'^$', CheckoutSelectionView.as_view(),
         name='checkout_selection'  # First step of the checkout process
         ),
     #url(r'^checkout/ship/$', SelectShippingView.as_view(),
