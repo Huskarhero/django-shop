@@ -178,7 +178,7 @@ class BaseCart(models.Model):
         Returns updated cart items after update() has been called and
         cart modifiers have been processed for all cart items.
         """
-        assert self._updated_cart_items is not None, ('Cart needs to be'
+        assert self._updated_cart_items is not None, ('Cart needs to be '
             'updated before calling get_updated_cart_items.')
         return self._updated_cart_items
 
@@ -312,18 +312,16 @@ class BaseOrder(models.Model):
     like the status, shipping costs, taxes, etc...
     """
 
-    PROCESSING = 10  # New order, addresses and shipping/payment methods chosen (user is in the shipping backend)
-    CONFIRMING = 20 # The order is pending confirmation (user is on the confirm view)
-    CONFIRMED = 30 # The order was confirmed (user is in the payment backend)
-    COMPLETED = 40 # Payment backend successfully completed
-    SHIPPED = 50 # The order was shipped to client
-    CANCELLED = 60 # The order was cancelled
-
-    PAYMENT = 30 # DEPRECATED!
+    PROCESSING = 1  # New order, no shipping/payment backend chosen yet
+    PAYMENT = 2  # The user is filling in payment information
+    CONFIRMED = 3  # Chosen shipping/payment backend, processing payment
+    COMPLETED = 4  # Successful payment confirmed by payment backend
+    SHIPPED = 5  # successful order shipped to client
+    CANCELLED = 6  # order has been cancelled
 
     STATUS_CODES = (
         (PROCESSING, _('Processing')),
-        (CONFIRMING, _('Confirming')),
+        (PAYMENT, _('Selecting payment')),
         (CONFIRMED, _('Confirmed')),
         (COMPLETED, _('Completed')),
         (SHIPPED, _('Shipped')),
@@ -345,7 +343,6 @@ class BaseOrder(models.Model):
             verbose_name=_('Created'))
     modified = models.DateTimeField(auto_now=True,
             verbose_name=_('Updated'))
-    cart_pk = models.PositiveIntegerField(_('Cart primary key'), blank=True, null=True)
 
     class Meta(object):
         abstract = True
