@@ -134,7 +134,7 @@ class BaseCart(models.Model):
         # also saves cart object if it is not saved
         self.save()
 
-        if queryset is None:
+        if queryset == None:
             queryset = CartItem.objects.filter(cart=self, product=product)
         item = queryset
         # Let's see if we already have an Item with the same product ID
@@ -210,7 +210,7 @@ class BaseCart(models.Model):
 
         # This will hold extra information that cart modifiers might want to
         # pass to each other
-        if state is None:
+        if state == None:
             state = {}
 
         # This calls all the pre_process_cart methods (if any), before the cart
@@ -312,16 +312,18 @@ class BaseOrder(models.Model):
     like the status, shipping costs, taxes, etc...
     """
 
-    PROCESSING = 1  # New order, no shipping/payment backend chosen yet
-    PAYMENT = 2  # The user is filling in payment information
-    CONFIRMED = 3  # Chosen shipping/payment backend, processing payment
-    COMPLETED = 4  # Successful payment confirmed by payment backend
-    SHIPPED = 5  # successful order shipped to client
-    CANCELLED = 6  # order has been cancelled
+    PROCESSING = 10  # New order, addresses and shipping/payment methods chosen (user is in the shipping backend)
+    CONFIRMING = 20 # The order is pending confirmation (user is on the confirm view)
+    CONFIRMED = 30 # The order was confirmed (user is in the payment backend)
+    COMPLETED = 40 # Payment backend successfully completed
+    SHIPPED = 50 # The order was shipped to client
+    CANCELLED = 60 # The order was cancelled
+
+    PAYMENT = 30 # DEPRECATED!
 
     STATUS_CODES = (
         (PROCESSING, _('Processing')),
-        (PAYMENT, _('Selecting payment')),
+        (CONFIRMING, _('Confirming')),
         (CONFIRMED, _('Confirmed')),
         (COMPLETED, _('Completed')),
         (SHIPPED, _('Shipped')),
@@ -343,6 +345,7 @@ class BaseOrder(models.Model):
             verbose_name=_('Created'))
     modified = models.DateTimeField(auto_now=True,
             verbose_name=_('Updated'))
+    cart_pk = models.PositiveIntegerField(_('Cart primary key'), blank=True, null=True)
 
     class Meta(object):
         abstract = True
