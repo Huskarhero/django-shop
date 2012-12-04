@@ -1,6 +1,9 @@
 Version NEXT
 ============
 
+* Separation of Concern in OrderManager.create_from_cart:
+  It now is easier to extend the Order class with customized
+  data.
 * Added OrderConfirmView after the shipping backend views that can be easily
   extended to display a confirmation page
 * Added example payment backend to the example shop
