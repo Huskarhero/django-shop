@@ -60,7 +60,7 @@ class BaseProduct(PolymorphicModel):
         """
         Return product reference of this Product (provided for extensibility).
         """
-        return unicode(self.id)
+        return unicode(self.pk)
 
 
 #==============================================================================
@@ -202,8 +202,8 @@ class BaseCart(models.Model):
         # This is a ghetto "select_related" for polymorphic models.
         items = CartItem.objects.filter(cart=self)
         product_ids = [item.product_id for item in items]
-        products = Product.objects.filter(id__in=product_ids)
-        products_dict = dict([(p.id, p) for p in products])
+        products = Product.objects.filter(pk__in=product_ids)
+        products_dict = dict([(p.pk, p) for p in products])
 
         self.extra_price_fields = []  # Reset the price fields
         self.subtotal_price = Decimal('0.0')  # Reset the subtotal
@@ -354,7 +354,7 @@ class BaseOrder(models.Model):
         verbose_name_plural = _('Orders')
 
     def __unicode__(self):
-        return _('Order ID: %(id)s') % {'id': self.id}
+        return _('Order ID: %(id)s') % {'id': self.pk}
 
     def get_absolute_url(self):
         return reverse('order_detail', kwargs={'pk': self.pk})
