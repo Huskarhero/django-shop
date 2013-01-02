@@ -16,7 +16,6 @@ class AddressAdmin(ModelAdmin):
     list_display = (
         'name', 'address', 'address2', 'zip_code', 'city', 'country',
         'user_shipping', 'user_billing')
-    raw_id_fields = ('user_shipping', 'user_billing')
 
 
 admin.site.register(Address, AddressAdmin)

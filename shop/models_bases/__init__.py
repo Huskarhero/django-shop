@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from django.conf import settings
 from decimal import Decimal
 from distutils.version import LooseVersion
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.aggregates import Sum
@@ -12,7 +12,6 @@ from shop.util.fields import CurrencyField
 from shop.util.loader import get_model_string
 import django
 
-User = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 #==============================================================================
 # Product
@@ -61,11 +60,7 @@ class BaseProduct(PolymorphicModel):
         """
         Return product reference of this Product (provided for extensibility).
         """
-        return unicode(self.pk)
-
-    @property
-    def can_be_added_to_cart(self):
-        return self.active
+        return unicode(self.id)
 
 
 #==============================================================================
@@ -135,15 +130,11 @@ class BaseCart(models.Model):
         """
         from shop.models import CartItem
 
-        # check if product can be added at all
-        if not getattr(product, 'can_be_added_to_cart', True):
-            return None
-
         # get the last updated timestamp
         # also saves cart object if it is not saved
         self.save()
 
-        if queryset is None:
+        if queryset == None:
             queryset = CartItem.objects.filter(cart=self, product=product)
         item = queryset
         # Let's see if we already have an Item with the same product ID
@@ -211,15 +202,15 @@ class BaseCart(models.Model):
         # This is a ghetto "select_related" for polymorphic models.
         items = CartItem.objects.filter(cart=self)
         product_ids = [item.product_id for item in items]
-        products = Product.objects.filter(pk__in=product_ids)
-        products_dict = dict([(p.pk, p) for p in products])
+        products = Product.objects.filter(id__in=product_ids)
+        products_dict = dict([(p.id, p) for p in products])
 
         self.extra_price_fields = []  # Reset the price fields
         self.subtotal_price = Decimal('0.0')  # Reset the subtotal
 
         # This will hold extra information that cart modifiers might want to
         # pass to each other
-        if state is None:
+        if state == None:
             state = {}
 
         # This calls all the pre_process_cart methods (if any), before the cart
@@ -321,18 +312,16 @@ class BaseOrder(models.Model):
     like the status, shipping costs, taxes, etc...
     """
 
-    PROCESSING = 10  # New order, addresses and shipping/payment methods chosen (user is in the shipping backend)
-    CONFIRMING = 20 # The order is pending confirmation (user is on the confirm view)
-    CONFIRMED = 30 # The order was confirmed (user is in the payment backend)
-    COMPLETED = 40 # Payment backend successfully completed
-    SHIPPED = 50 # The order was shipped to client
-    CANCELLED = 60 # The order was cancelled
-
-    PAYMENT = 30 # DEPRECATED!
+    PROCESSING = 1  # New order, no shipping/payment backend chosen yet
+    PAYMENT = 2  # The user is filling in payment information
+    CONFIRMED = 3  # Chosen shipping/payment backend, processing payment
+    COMPLETED = 4  # Successful payment confirmed by payment backend
+    SHIPPED = 5  # successful order shipped to client
+    CANCELLED = 6  # order has been cancelled
 
     STATUS_CODES = (
         (PROCESSING, _('Processing')),
-        (CONFIRMING, _('Confirming')),
+        (PAYMENT, _('Selecting payment')),
         (CONFIRMED, _('Confirmed')),
         (COMPLETED, _('Completed')),
         (SHIPPED, _('Shipped')),
@@ -354,7 +343,6 @@ class BaseOrder(models.Model):
             verbose_name=_('Created'))
     modified = models.DateTimeField(auto_now=True,
             verbose_name=_('Updated'))
-    cart_pk = models.PositiveIntegerField(_('Cart primary key'), blank=True, null=True)
 
     class Meta(object):
         abstract = True
@@ -363,7 +351,7 @@ class BaseOrder(models.Model):
         verbose_name_plural = _('Orders')
 
     def __unicode__(self):
-        return _('Order ID: %(id)s') % {'id': self.pk}
+        return _('Order ID: %(id)s') % {'id': self.id}
 
     def get_absolute_url(self):
         return reverse('order_detail', kwargs={'pk': self.pk})
@@ -375,9 +363,6 @@ class BaseOrder(models.Model):
 
     def is_completed(self):
         return self.status == self.COMPLETED
-
-    def get_status_name(self):
-        return dict(self.STATUS_CODES)[self.status]
 
     @property
     def amount_paid(self):

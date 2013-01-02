@@ -21,10 +21,9 @@ class ProductDetailViewTestCase(TestCase):
         self.product.short_description = 'test'
         self.product.long_description = 'test'
         self.product.unit_price = Decimal('1.0')
-        self.product.active = True
         self.product.save()
 
-        self.view = ProductDetailView(kwargs={'pk': self.product.pk})
+        self.view = ProductDetailView(kwargs={'pk': self.product.id})
 
     def test_get_product_returns_correctly(self):
         setattr(self.view, 'object', None)
@@ -47,7 +46,7 @@ class CartDetailsViewTestCase(TestCase):
                                         last_name="Tester")
 
         self.cart = Cart.objects.create()
-        self.product = Product.objects.create(active=True)
+        self.product = Product.objects.create()
         self.item = CartItem.objects.create(cart=self.cart, quantity=1,
                                             product=self.product)
 
@@ -79,7 +78,7 @@ class CartDetailsViewTestCase(TestCase):
         setattr(request, 'user', self.user)
         setattr(request, 'session', {})
         post = {
-            'add_item_id': self.product.pk,
+            'add_item_id': self.product.id,
             'add_item_quantity': 1,
         }
         setattr(request, 'POST', post)
@@ -104,7 +103,7 @@ class CartDetailsViewTestCase(TestCase):
         setattr(request, 'user', self.user)
         setattr(request, 'session', {})
         post = {
-            'add_item_id': self.product.pk,
+            'add_item_id': self.product.id,
             'add_item_quantity': 1,
         }
         setattr(request, 'POST', post)
@@ -124,11 +123,11 @@ class CartDetailsViewTestCase(TestCase):
 class CartViewTestCase(TestCase):
 
     def setUp(self):
-        self.product = Product.objects.create(active=True)
+        self.product = Product.objects.create()
 
     def add_product_to_cart(self, product):
         post = {
-            'add_item_id': self.product.pk,
+            'add_item_id': self.product.id,
             'add_item_quantity': 1,
         }
         return self.client.post(reverse('cart_item_add'), post)
@@ -230,7 +229,7 @@ class OrderListViewTestCase(TestCase):
 
     def test_authenticated_user_see_order_detail(self):
         self.client.login(username='test', password='test')
-        url = reverse('order_detail', kwargs={'pk': self.order.pk})
+        url = reverse('order_detail', kwargs={'pk': self.order.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, unicode(self.order))
