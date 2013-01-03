@@ -7,8 +7,7 @@ class LocalizeDecimalFieldsForm(forms.ModelForm):
         new_class = super(LocalizeDecimalFieldsForm, cls).__new__(cls)
         if hasattr(new_class, 'base_fields'):
             for field in new_class.base_fields.values():
-                if isinstance(field, forms.DecimalField) \
-                    or isinstance(field, forms.FloatField):
+                if isinstance(field, forms.DecimalField):
                     field.localize = True
                     field.widget.is_localized = True
         return new_class
@@ -21,6 +20,6 @@ class LocalizeDecimalFieldsMixin(object):
     of type DecimalField in the admin interface.
     If your class derived from ModelAdmin wants to override the form attribute,
     make sure that this form is derived from LocalizeDecimalFieldsForm and not
-    from forms.ModelForm.
+    from forms.ModelForm. 
     '''
     form = LocalizeDecimalFieldsForm
