@@ -50,6 +50,7 @@ def get_or_create_cart(request, save=False):
                     # and there already is a cart that belongs to us in the database
                     # delete the old database cart
                     database_cart.delete()
+                    database_cart = None
                 # save the user to the new one from the session
                 session_cart.user = request.user
                 session_cart.save()
@@ -59,7 +60,7 @@ def get_or_create_cart(request, save=False):
                 cart = get_cart_from_database(request)
                 if cart:
                     # and save it to the session
-                    request.session['cart_id'] = cart.pk
+                    request.session['cart_id'] = cart.id
         else:
             # not authenticated? cart might be in session
             cart = get_cart_from_session(request)
@@ -73,7 +74,7 @@ def get_or_create_cart(request, save=False):
 
         if save and not cart.pk:
             cart.save()
-            request.session['cart_id'] = cart.pk
+            request.session['cart_id'] = cart.id
 
         setattr(request, '_cart', cart)
 
