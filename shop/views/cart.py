@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect
 
 from shop.forms import get_cart_item_formset
 from shop.models.productmodel import Product
@@ -61,11 +62,8 @@ class CartItemDetail(ShopView):
         """
         cart_object = get_or_create_cart(self.request)
         item_id = self.kwargs.get('id')
-        try:
-            cart_object.delete_item(item_id)
-            return self.delete_success()
-        except ObjectDoesNotExist:
-            raise Http404
+        cart_object.delete_item(item_id)
+        return self.delete_success()
 
     # success hooks
     def success(self):
@@ -159,8 +157,11 @@ class CartDetails(ShopTemplateResponseMixin, CartItemDetail):
         and QTY is quantity to set.
         """
         context = self.get_context_data(**kwargs)
-        formset = get_cart_item_formset(cart_items=context['cart_items'],
-                data=self.request.POST)
+        try:
+            formset = get_cart_item_formset(cart_items=context['cart_items'],
+                    data=self.request.POST)
+        except ValidationError:
+            return redirect('cart')
         if formset.is_valid():
             formset.save()
             return self.put_success()
