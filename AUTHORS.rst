@@ -10,7 +10,6 @@ CONTRIBUTORS
 * Adrien Lemaire
 * airtonix
 * Aleš Kocjančič
-* Andrés Reyes Monge
 * Audrey Roy
 * Ben Lopatin
 * Benjamin Wohlwend
@@ -31,7 +30,6 @@ CONTRIBUTORS
 * Raúl Cumplido
 * Rolo Mawlabaux
 * Simon Luijk
-* Sławomir Ehlert
 * Stephen Muss
 * Thomas Woolford
 
