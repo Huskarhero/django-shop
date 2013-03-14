@@ -1,18 +1,6 @@
 Version NEXT
 ============
 
-* models.FloatField are now automatically localized.
-* Support for Django 1.2 dropped.
-* Product model now has property ``can_be_added_to_cart`` which is checked before adding the product to cart
-* In cart_modifiers methods ``get_extra_cart_price_field`` and ``get_extra_cart_item_price_field``
-  accepts the additional field ``state`` to pass customized data from ``Cart.update()``
-  down to these methods.
-
-Version 0.1.2
-=============
-
-* cart_required and order_required decorators now accept a reversible url
-  name instead and redirect to cart by default
 * Added setting `SHOP_PRICE_FORMAT` used in the `priceformat` filter
 * Separation of Concern in OrderManager.create_from_cart:
   It now is easier to extend the Order class with customized
@@ -30,7 +18,8 @@ Version 0.1.2
 * Checkout process works like this:
     1. CartDetails
     2. CheckoutSelectionView
-        * POST --> Order.objects.create_from_cart(cart) removes all orders originating from this cart that have status < CONFIRMED(30)
+        * POST --> Order.objects.create_from_cart(cart) removes all orders
+        originating from this cart that have status < CONFIRMED(30)
         * creates a new Order with status PROCESSING(10)
     3. ShippingBackend
         * self.finished() sets the status to CONFIRMING(20)

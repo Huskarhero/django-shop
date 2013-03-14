@@ -180,7 +180,7 @@ class FlatRateShippingTestCase(TestCase):
 
         # User logged in (no order)
         view = self.backend.view_process_order(self.request)
-        self.assertEqual(view.get('location', None), '/shop/cart/')
+        self.assertEqual(view.get('location', None), '/')
 
         # User logged in with order
         order = Order()

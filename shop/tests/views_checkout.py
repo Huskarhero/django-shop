@@ -160,7 +160,7 @@ class ShippingBillingViewTestCase(TestCase):
     def test_cart_required_redirects_on_checkout(self):
         resp = self.client.get(reverse('checkout_selection'))
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual('http://testserver/shop/cart/', resp._headers['location'][1])
+        self.assertEqual('http://testserver/', resp._headers['location'][1])
 
 
 class ShippingBillingViewOrderStuffTestCase(TestCase):
@@ -230,7 +230,7 @@ class CheckoutCartToOrderTestCase(TestCase):
         setattr(self.request, 'user', self.user)
         setattr(self.request, 'session', {})
         setattr(self.request, 'method', 'GET')
-        self.product = Product(name='pizza', slug='pizza', unit_price='1.45', active=True)
+        self.product = Product(name='pizza', slug='pizza', unit_price='1.45')
         self.product.save()
         self.cart = Cart()
         self.cart.user = self.user
