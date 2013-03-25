@@ -1,5 +1,4 @@
 #-*- coding: utf-8 -*-
-import sys
 from django.conf import settings
 from django.core import exceptions
 from django.utils.importlib import import_module
@@ -47,7 +46,7 @@ def load_class(class_path, setting_name=None):
                 class_module, e, setting_name)
         else:
             txt = 'Error importing backend %s: "%s".' % (class_module, e)
-        raise exceptions.ImproperlyConfigured(txt), None, sys.exc_info()[2]
+        raise exceptions.ImproperlyConfigured(txt)
 
     try:
         clazz = getattr(mod, class_name)
