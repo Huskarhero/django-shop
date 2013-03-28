@@ -1,6 +1,10 @@
 Version NEXT
 ============
 
+* models.FloatField are now automatically localized.
+* Support for Django 1.2 dropped.
+* Product model now has property ``can_be_added_to_cart`` which is checked before adding the product to cart
+
 
 Version 0.1.2
 =============
@@ -24,8 +28,7 @@ Version 0.1.2
 * Checkout process works like this:
     1. CartDetails
     2. CheckoutSelectionView
-        * POST --> Order.objects.create_from_cart(cart) removes all orders
-        originating from this cart that have status < CONFIRMED(30)
+        * POST --> Order.objects.create_from_cart(cart) removes all orders originating from this cart that have status < CONFIRMED(30)
         * creates a new Order with status PROCESSING(10)
     3. ShippingBackend
         * self.finished() sets the status to CONFIRMING(20)

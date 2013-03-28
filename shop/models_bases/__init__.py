@@ -62,6 +62,10 @@ class BaseProduct(PolymorphicModel):
         """
         return unicode(self.pk)
 
+    @property
+    def can_be_added_to_cart(self):
+        return self.active
+
 
 #==============================================================================
 # Carts
@@ -129,6 +133,10 @@ class BaseCart(models.Model):
         1
         """
         from shop.models import CartItem
+
+        # check if product can be added at all
+        if not getattr(product, 'can_be_added_to_cart', True):
+            return None
 
         # get the last updated timestamp
         # also saves cart object if it is not saved
@@ -393,14 +401,6 @@ class BaseOrder(models.Model):
         for cost in cost_list:
             sum_ += cost.value
         return sum_
-
-    @property
-    def short_name(self):
-        """
-        A short name for the order, to be displayed on the payment processor's
-        website. Should be human-readable, as much as possible
-        """
-        return "%s-%s" % (self.pk, self.order_total)
 
     def set_billing_address(self, billing_address):
         """
