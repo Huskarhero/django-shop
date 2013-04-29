@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls.defaults import url, patterns
 from shop.util.decorators import cart_required
 
 from shop.views.checkout import (
