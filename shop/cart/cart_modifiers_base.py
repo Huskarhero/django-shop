@@ -34,19 +34,19 @@ class BaseCartModifier(object):
     # Processing hooks
     #==========================================================================
 
-    def pre_process_cart(self, cart, request):
+    def pre_process_cart(self, cart, state):
         """
         This method will be called before the cart starts being processed.
         Totals are not updated yet (obviously), but this method can be useful
         to gather some information on products in the cart.
 
-        The ``request`` object is further passed to process_cart_item,
-        process_cart, and post_process_cart. If you have to store per-request
-        arbitrary information, add them the the temporary dict ``request.cart_modifiers_state``.
+        The `state` parameter is further passed to process_cart_item,
+        process_cart, and post_process_cart, so it can be used as a way to
+        store per-request arbitrary information.
         """
         pass
 
-    def post_process_cart(self, cart, request):
+    def post_process_cart(self, cart, state):
         """
         This method will be called after the cart was processed.
         The Cart object is "final" and all the fields are computed. Remember
@@ -55,7 +55,7 @@ class BaseCartModifier(object):
         """
         pass
 
-    def process_cart_item(self, cart_item, request):
+    def process_cart_item(self, cart_item, state):
         """
         This will be called for every line item in the Cart:
         Line items typically contain: product, unit_price, quantity...
@@ -67,19 +67,17 @@ class BaseCartModifier(object):
         Overrides of this method should however update cart_item.current_total,
         since it will potentially be used by other modifiers.
 
-        The request object is used to let implementations determine their
-        prices according to session, and other request information and to
-        use this object to store arbitrary data to be passed between
-        cart_item_modifers and cart_modifiers.
+        The state parameter is only used to let implementations store temporary
+        information to pass between cart_item_modifers and cart_modifiers
         """
-        field = self.get_extra_cart_item_price_field(cart_item, request)
+        field = self.get_extra_cart_item_price_field(cart_item)
         if field is not None:
             price = field[1]
             cart_item.current_total = cart_item.current_total + price
             cart_item.extra_price_fields.append(field)
         return cart_item
 
-    def process_cart(self, cart, request):
+    def process_cart(self, cart, state):
         """
         This will be called once per Cart, after every line item was treated
         The subtotal for the cart is already known, but the Total is 0.
@@ -92,12 +90,10 @@ class BaseCartModifier(object):
         Subtotal is accessible, but total is still 0.0. Overrides are expected
         to update cart.current_total.
 
-        The ``request`` object is used to let implementations determine their
-        prices according to session, and other request information. Use the
-        Python dict ``request.cart_modifier_state`` to pass arbitrary data between
-        cart_item_modifers and cart_modifiers.
+        The state parameter is only used to let implementations store temporary
+        information to pass between cart_item_modifers and cart_modifiers
         """
-        field = self.get_extra_cart_price_field(cart, request)
+        field = self.get_extra_cart_price_field(cart)
         if field is not None:
             price = field[1]
             cart.current_total = cart.current_total + price
@@ -108,7 +104,7 @@ class BaseCartModifier(object):
     # Simple methods
     #==========================================================================
 
-    def get_extra_cart_item_price_field(self, cart_item, request):
+    def get_extra_cart_item_price_field(self, cart_item):
         """
         Get an extra price field tuple for the current cart_item:
 
@@ -136,7 +132,7 @@ class BaseCartModifier(object):
         """
         return None  # Does nothing by default
 
-    def get_extra_cart_price_field(self, cart, request):
+    def get_extra_cart_price_field(self, cart):
         """
         Get an extra price field tuple for the current cart:
 

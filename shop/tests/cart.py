@@ -5,7 +5,6 @@ from django.test.testcases import TestCase
 from shop.cart.modifiers_pool import cart_modifiers_pool
 from shop.models.cartmodel import Cart, CartItem
 from shop.models.productmodel import Product
-from shop.tests.util import Mock
 from shop.tests.utils.context_managers import SettingsOverride
 
 # This try except is there to let people run the tests from any project
@@ -23,9 +22,8 @@ class CartTestCase(TestCase):
 
     def setUp(self):
         cart_modifiers_pool.USE_CACHE = False
-        user = User.objects.create(username="test", email="test@example.com")
-        self.request = Mock()
-        setattr(self.request, 'user', user)
+        self.user = User.objects.create(username="test",
+            email="test@example.com")
         self.product = Product()
         self.product.name = "TestPrduct"
         self.product.slug = "TestPrduct"
@@ -38,13 +36,13 @@ class CartTestCase(TestCase):
         self.inactive_product.save()
 
         self.cart = Cart()
-        self.cart.user = user
+        self.cart.user = self.user
         self.cart.save()
 
     def test_empty_cart_costs_0_quantity_0(self):
         with SettingsOverride(SHOP_CART_MODIFIERS=[]):
 
-            self.cart.update(self.request)
+            self.cart.update()
 
             self.assertEqual(self.cart.subtotal_price, Decimal('0.0'))
             self.assertEqual(self.cart.total_price, Decimal('0.0'))
@@ -54,7 +52,7 @@ class CartTestCase(TestCase):
         with SettingsOverride(SHOP_CART_MODIFIERS=[]):
             self.cart.add_product(self.product)
             self.cart.save()
-            self.cart.update(self.request)
+            self.cart.update()
             self.cart.save()
 
             self.assertEqual(self.cart.subtotal_price, self.PRODUCT_PRICE)
@@ -66,7 +64,7 @@ class CartTestCase(TestCase):
 
             # We add two objects now :)
             self.cart.add_product(self.product, 2)
-            self.cart.update(self.request)
+            self.cart.update()
             self.cart.save()
 
             self.assertEqual(self.cart.subtotal_price, self.PRODUCT_PRICE * 2)
@@ -78,7 +76,7 @@ class CartTestCase(TestCase):
             'shop.cart.modifiers.tax_modifiers.TenPercentGlobalTaxModifier']
         with SettingsOverride(SHOP_CART_MODIFIERS=MODIFIERS):
             self.cart.add_product(self.product)
-            self.cart.update(self.request)
+            self.cart.update()
             self.cart.save()
 
             self.assertEqual(self.cart.subtotal_price, self.PRODUCT_PRICE)
@@ -92,7 +90,7 @@ class CartTestCase(TestCase):
         with SettingsOverride(SHOP_CART_MODIFIERS=MODIFIERS):
             self.cart.add_product(self.product)
 
-            self.cart.update(self.request)
+            self.cart.update()
             self.cart.save()
 
             self.assertEqual(self.cart.subtotal_price, self.PRODUCT_PRICE)
@@ -106,7 +104,7 @@ class CartTestCase(TestCase):
         with SettingsOverride(SHOP_CART_MODIFIERS=MODIFIERS):
             # We add 6 objects now :)
             self.cart.add_product(self.product, 6)
-            self.cart.update(self.request)
+            self.cart.update()
             self.cart.save()
 
             #subtotal is 600 - 10% = 540
@@ -124,7 +122,7 @@ class CartTestCase(TestCase):
             self.assertEqual(self.cart.total_quantity, 0)
             self.cart.add_product(self.product)
             self.cart.add_product(self.product)
-            self.cart.update(self.request)
+            self.cart.update()
             self.cart.save()
 
             self.assertEqual(len(self.cart.items.all()), 1)
@@ -136,7 +134,7 @@ class CartTestCase(TestCase):
             self.assertEqual(self.cart.total_quantity, 0)
             self.cart.add_product(self.product, merge=False)
             self.cart.add_product(self.product, merge=False)
-            self.cart.update(self.request)
+            self.cart.update()
             self.cart.save()
 
             self.assertEqual(len(self.cart.items.all()), 2)
@@ -158,7 +156,7 @@ class CartTestCase(TestCase):
             name="Variation 1", active=True)
         with SettingsOverride(SHOP_CART_MODIFIERS=[]):
             self.cart.add_product(variation)
-            self.cart.update(self.request)
+            self.cart.update()
             self.cart.save()
             self.assertEqual(self.cart.subtotal_price, self.PRODUCT_PRICE)
 
@@ -167,7 +165,7 @@ class CartTestCase(TestCase):
             self.assertEqual(self.cart.total_quantity, 0)
             self.cart.add_product(self.product)
             self.cart.add_product(self.product)
-            self.cart.update(self.request)
+            self.cart.update()
             self.cart.save()
 
             self.assertEqual(len(self.cart.items.all()), 1)
@@ -190,7 +188,7 @@ class CartTestCase(TestCase):
 
     def test_get_updated_cart_items(self):
         self.cart.add_product(self.product)
-        self.cart.update(self.request)
+        self.cart.update()
         cached_cart_items = self.cart.get_updated_cart_items()
 
         cart_items = CartItem.objects.filter(cart=self.cart)
@@ -208,5 +206,6 @@ class CartTestCase(TestCase):
     def test_adding_inactive_product_does_nothing(self):
         self.cart.add_product(self.product)
         self.cart.add_product(self.inactive_product)
-        self.cart.update(self.request)
+        self.cart.update()
         self.assertEqual(len(self.cart.items.all()), 1)
+

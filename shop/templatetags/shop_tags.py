@@ -21,9 +21,8 @@ class Cart(InclusionTag):
     template = 'shop/templatetags/_cart.html'
 
     def get_context(self, context):
-        request = context['request']
-        cart = get_or_create_cart(request)
-        cart.update(request)
+        cart = get_or_create_cart(context['request'])
+        cart.update()
         return {
             'cart': cart
         }
