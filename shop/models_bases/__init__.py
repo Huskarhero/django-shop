@@ -209,7 +209,7 @@ class BaseCart(models.Model):
         from shop.models import CartItem, Product
 
         # This is a ghetto "select_related" for polymorphic models.
-        items = CartItem.objects.filter(cart=self).order_by('pk')
+        items = CartItem.objects.filter(cart=self)
         product_ids = [item.product_id for item in items]
         products = Product.objects.filter(pk__in=product_ids)
         products_dict = dict([(p.pk, p) for p in products])
@@ -264,6 +264,10 @@ class BaseCart(models.Model):
         Returns the total quantity of all items in the cart
         """
         return sum([ci.quantity for ci in self.items.all()])
+
+    @property
+    def is_empty(self):
+        return self.total_quantity == 0
 
 
 class BaseCartItem(models.Model):

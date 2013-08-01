@@ -1,13 +1,11 @@
 #-*- coding: utf-8 -*-
 """Forms for the django-shop app."""
 from django import forms
-from django.conf import settings
 from django.forms.models import modelformset_factory
 from django.utils.translation import ugettext_lazy as _
 
 from shop.backends_pool import backends_pool
 from shop.models.cartmodel import CartItem
-from shop.util.loader import load_class
 
 
 def get_shipping_backends_choices():
@@ -51,18 +49,6 @@ class CartItemModelForm(forms.ModelForm):
         return instance
 
 
-def get_cart_item_modelform_class():
-    """
-    Return the class of the CartItem ModelForm.
-
-    The default `shop.forms.CartItemModelForm` can be overridden settings
-    ``SHOP_CART_ITEM_FORM`` parameter in settings
-    """
-    cls_name = getattr(settings, 'SHOP_CART_ITEM_FORM', 'shop.forms.CartItemModelForm')
-    cls = load_class(cls_name)
-    return cls
-
-
 def get_cart_item_formset(cart_items=None, data=None):
     """
     Returns a CartItemFormSet which can be used in the CartDetails view.
@@ -72,7 +58,7 @@ def get_cart_item_formset(cart_items=None, data=None):
     :param data: Optional POST data to be bound to this formset.
     """
     assert(cart_items is not None)
-    CartItemFormSet = modelformset_factory(CartItem, form=get_cart_item_modelform_class(),
+    CartItemFormSet = modelformset_factory(CartItem, form=CartItemModelForm,
             extra=0)
     kwargs = {'queryset': cart_items, }
     form_set = CartItemFormSet(data, **kwargs)
