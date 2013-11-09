@@ -19,10 +19,9 @@ USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 #==============================================================================
 class BaseProduct(PolymorphicModel):
     """
-    A basic product for the shop.
-    
+    A basic product for the shop
     Most of the already existing fields here should be generic enough to reside
-    on the "base model" and not on an added property.
+    on the "base model" and not on an added property
     """
 
     name = models.CharField(max_length=255, verbose_name=_('Name'))
@@ -48,19 +47,19 @@ class BaseProduct(PolymorphicModel):
 
     def get_price(self):
         """
-        Returns the price for this item (provided for extensibility).
+        Return the price for this item (provided for extensibility)
         """
         return self.unit_price
 
     def get_name(self):
         """
-        Returns the name of this Product (provided for extensibility).
+        Return the name of this Product (provided for extensibility)
         """
         return self.name
 
     def get_product_reference(self):
         """
-        Returns product reference of this Product (provided for extensibility).
+        Return product reference of this Product (provided for extensibility).
         """
         return unicode(self.pk)
 
@@ -74,10 +73,9 @@ class BaseProduct(PolymorphicModel):
 #==============================================================================
 class BaseCart(models.Model):
     """
-    This should be a rather simple list of items. 
-    
-    Ideally it should be bound to a session and not to a User is we want to let 
-    people buy from our shop without having to register with us.
+    This should be a rather simple list of items. Ideally it should be bound to
+    a session and not to a User is we want to let people buy from our shop
+    without having to register with us.
     """
     # If the user is null, that means this is used for a session
     user = models.OneToOneField(USER_MODEL, null=True, blank=True)
@@ -103,13 +101,13 @@ class BaseCart(models.Model):
         """
         Adds a (new) product to the cart.
 
-        The parameter `merge` controls whether we should merge the added
+        The parameter `merge`, controls wheter we should merge the added
         CartItem with another already existing sharing the same
         product_id. This is useful when you have products with variations
         (for example), and you don't want to have your products merge (to loose
         their specific variations, for example).
 
-        A drawback is that generally  setting `merge` to ``False`` for
+        A drawback is, that generally  setting `merge` to ``False`` for
         products with variations can be a problem if users can buy thousands of
         products at a time (that would mean we would create thousands of
         CartItems as well which all have the same variation).
@@ -176,10 +174,9 @@ class BaseCart(models.Model):
 
     def delete_item(self, cart_item_id):
         """
-        A simple convenience method to delete one of the cart's items. 
-        
-        This allows to implicitely check for "access rights" since we insure the
-        cartitem is actually in the user's cart.
+        A simple convenience method to delete one of the cart's items. This
+        allows to implicitely check for "access rights" since we insure the
+        cartitem is actually in the user's cart
         """
         cart_item = self.items.get(pk=cart_item_id)
         cart_item.delete()
@@ -198,7 +195,6 @@ class BaseCart(models.Model):
         """
         This should be called whenever anything is changed in the cart (added
         or removed).
-        
         It will loop on all line items in the cart, and call all the price
         modifiers on each row.
         After doing this, it will compute and update the order's total and
@@ -265,7 +261,7 @@ class BaseCart(models.Model):
     @property
     def total_quantity(self):
         """
-        Returns the total quantity of all items in the cart.
+        Returns the total quantity of all items in the cart
         """
         return sum([ci.quantity for ci in self.items.all()])
 
@@ -326,7 +322,7 @@ class BaseOrder(models.Model):
     An order is the "in process" counterpart of the shopping cart, which holds
     stuff like the shipping and billing addresses (copied from the User
     profile) when the Order is first created), list of items, and holds stuff
-    like the status, shipping costs, taxes, etc.
+    like the status, shipping costs, taxes, etc...
     """
 
     PROCESSING = 10  # New order, addresses and shipping/payment methods chosen (user is in the shipping backend)
@@ -416,7 +412,7 @@ class BaseOrder(models.Model):
     def short_name(self):
         """
         A short name for the order, to be displayed on the payment processor's
-        website. Should be human-readable, as much as possible.
+        website. Should be human-readable, as much as possible
         """
         return "%s-%s" % (self.pk, self.order_total)
 
