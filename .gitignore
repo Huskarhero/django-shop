@@ -2,7 +2,6 @@
 .project
 .pydevproject
 .settings
-.tox/
 *.coverage
 *~
 build
