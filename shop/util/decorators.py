@@ -5,9 +5,10 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+from shop.util.cart import get_or_create_cart
+
 from shop.util.login_mixin import get_test_func
 from shop.util.order import get_order_from_request
-from shop.models.cart import BaseCart
 from shop.models.order import BaseOrder
 
 
@@ -96,8 +97,7 @@ def cart_required(url_name='cart'):
 
     def decorator(func):
         def inner(request, *args, **kwargs):
-            CartModel = getattr(BaseCart, 'MaterializedModel')
-            cart = CartModel.objects.get(request)
+            cart = get_or_create_cart(request)
             if cart.total_quantity <= 0:
                 return HttpResponseRedirect(reverse(url_name))
             return func(request, *args, **kwargs)

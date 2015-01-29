@@ -2,7 +2,7 @@
 from django.shortcuts import redirect
 from shop.shop_api import ShopAPI
 from shop.order_signals import payment_selection
-from shop.models.order import BaseOrder, BaseOrderExtraRow
+from shop.models.order import BaseOrder, ExtraOrderPriceField
 
 
 class ShippingAPI(ShopAPI):
@@ -22,10 +22,8 @@ class ShippingAPI(ShopAPI):
         for the given value.
         Please not that the value *should* be negative (it's a cost).
         """
-        OrderExtraRow = getattr(BaseOrderExtraRow, 'MaterializedModel')
-        
         # Check if we already have one shipping cost entry
-        eopf = OrderExtraRow.objects.filter(order=order,
+        eopf = ExtraOrderPriceField.objects.filter(order=order,
                                                    is_shipping=True)
         if eopf and len(eopf) >= 1:
             eopf = eopf[0]
@@ -47,7 +45,7 @@ class ShippingAPI(ShopAPI):
             # In this case, there was no shipping cost already associated with
             # the order - let's simply create a new one (theat should be the
             # default case)
-            OrderExtraRow.objects.create(order=order,
+            ExtraOrderPriceField.objects.create(order=order,
                                                 label=label,
                                                 value=value,
                                                 is_shipping=True)
