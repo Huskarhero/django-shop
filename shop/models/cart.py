@@ -10,7 +10,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from jsonfield.fields import JSONField
-from shop.money import Money
 from shop.cart.modifiers_pool import cart_modifiers_pool
 from .product import BaseProduct
 from . import deferred
@@ -232,10 +231,7 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
             item.update(request)
             item.product = products[item.product_id]
         # since we know the Money type only after start iterating, sum() or += doesn't work here
-        if items:
-            self.subtotal_price = reduce(lambda l, r: l + r, (item.line_total for item in items))
-        else:
-            self.subtotal_price = Money(0)
+        self.subtotal_price = reduce(lambda l, r: l + r, (item.line_total for item in items))
 
         self.current_total = self.subtotal_price
         # Now we have to iterate over the registered modifiers again
