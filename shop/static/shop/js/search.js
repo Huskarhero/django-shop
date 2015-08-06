@@ -15,6 +15,7 @@ djangoShopModule.directive('shopProductSearch', ['$window', function($window) {
 		}],
 		link: function(scope, element, attrs, formController) {
 			var i, search = {}, splitted, queries;
+			scope.searchQuery = '';
 
 			// convert query string to object
 			queries = $window.location.search.replace(/^\?/, '').split('&');
@@ -22,8 +23,6 @@ djangoShopModule.directive('shopProductSearch', ['$window', function($window) {
 				splitted = queries[i].split('=');
 				if (splitted[0] === 'q') {
 					scope.searchQuery = decodeURIComponent(splitted[1].split('+').join('%20'));
-				} else {
-					scope.searchQuery = '';
 				}
 			}
 
