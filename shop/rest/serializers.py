@@ -180,7 +180,7 @@ class CartListSerializer(serializers.ListSerializer):
     def get_attribute(self, instance):
         manager = super(CartListSerializer, self).get_attribute(instance)
         assert isinstance(manager, models.Manager) and issubclass(manager.model, BaseCartItem)
-        return manager.filter_cart_items(instance, self.context['request'])
+        return manager.filter(quantity__gt=0)
 
 
 class WatchListSerializer(serializers.ListSerializer):
@@ -192,7 +192,7 @@ class WatchListSerializer(serializers.ListSerializer):
     def get_attribute(self, instance):
         manager = super(WatchListSerializer, self).get_attribute(instance)
         assert isinstance(manager, models.Manager) and issubclass(manager.model, BaseCartItem)
-        return manager.filter_watch_items(instance, self.context['request'])
+        return manager.filter(quantity=0)
 
 
 class ItemModelSerializer(serializers.ModelSerializer):
@@ -200,7 +200,7 @@ class ItemModelSerializer(serializers.ModelSerializer):
         model = CartItemModel
 
     def create(self, validated_data):
-        assert 'cart' in validated_data
+        validated_data['cart'] = CartModel.objects.get_from_request(self.context['request'])
         cart_item = CartItemModel.objects.get_or_create(**validated_data)[0]
         cart_item.save()
         return cart_item
@@ -236,10 +236,6 @@ class CartItemSerializer(BaseItemSerializer):
         list_serializer_class = CartListSerializer
         exclude = ('cart', 'id',)
 
-    def create(self, validated_data):
-        validated_data['cart'] = CartModel.objects.get_from_request(self.context['request'])
-        return super(CartItemSerializer, self).create(validated_data)
-
 
 class WatchItemSerializer(BaseItemSerializer):
     class Meta(BaseItemSerializer.Meta):
@@ -247,8 +243,7 @@ class WatchItemSerializer(BaseItemSerializer):
         fields = ('product', 'url', 'summary', 'quantity', 'extra',)
 
     def create(self, validated_data):
-        cart = CartModel.objects.get_from_request(self.context['request'])
-        validated_data.update(cart=cart, quantity=0)
+        validated_data['quantity'] = 0
         return super(WatchItemSerializer, self).create(validated_data)
 
 
@@ -260,17 +255,17 @@ class BaseCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartModel
 
+    def to_representation(self, cart):
+        cart.update(self.context['request'])
+        representation = super(BaseCartSerializer, self).to_representation(cart)
+        return representation
+
 
 class CartSerializer(BaseCartSerializer):
     items = CartItemSerializer(many=True, read_only=True)
 
     class Meta(BaseCartSerializer.Meta):
         fields = ('items', 'subtotal', 'extra_rows', 'total',)
-
-    def to_representation(self, cart):
-        cart.update(self.context['request'])
-        representation = super(BaseCartSerializer, self).to_representation(cart)
-        return representation
 
 
 class WatchSerializer(BaseCartSerializer):
