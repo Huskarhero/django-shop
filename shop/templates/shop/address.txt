@@ -1,5 +1,0 @@
-{{ address.addressee }}{% if address.supplement %}
-{{ address.supplement }}{% endif %}
-{{ address.street }}
-{{ address.location }}
-{{ address.get_country_display }}
