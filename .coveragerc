@@ -1,3 +1,8 @@
 [run]
-source = shop
-omit = */tests/*, */migrations/*, */admin.py
+branch = True
+
+[report]
+show_missing = True
+omit =
+    .tox/*
+    manage.py

@@ -1,0 +1,28 @@
+{% load i18n %}
+
+{% block search-results-table %}
+<table class="table table-hover shop-search-results" ng-cloak>
+
+	{% block search-results-thead %}
+	<thead>
+		<tr>
+			<th class="col-xs-9 text-center">{% trans "{{ search_data.count }} matching products found" %}</th>
+			<th class="col-xs-3 text-center">{% trans "Unit Price" %}</th>
+		</tr>
+	</thead>
+	{% endblock search-results-thead %}
+
+	{% block search-results-tbody %}
+	<tbody>
+		<tr ng-repeat="result_line in search_data.results">
+			<td ng-bind-html="result_line.body"></td>
+			<td class="text-center text-nowrap">
+				<strong ng-bind="result_line.price"></strong>
+				<a class="btn btn-primary btn-sm" href="{% verbatim %}{{ result_line.product_url }}{% endverbatim %}">{% trans "Details" %}&nbsp;<i class="glyphicon glyphicon-menu-right"></i></a>
+			</td>
+		</tr>
+	</tbody>
+	{% endblock search-results-tbody %}
+
+</table>
+{% endblock search-results-table %}
