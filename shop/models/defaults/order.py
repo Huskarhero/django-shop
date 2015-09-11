@@ -1,22 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from shop.models import order
+from shop.models_bases import BaseOrder
+from shop.models_bases.managers import OrderManager
 
 
-class Order(order.BaseOrder):
-    """Default materialized model for Order"""
-    shipping_address_text = models.TextField(_("Shipping address"), blank=True, null=True,
-        help_text=_("Shipping address at the moment of purchase."))
-    billing_address_text = models.TextField(_("Billing address"), blank=True, null=True,
-        help_text=_("Billing address at the moment of purchase."))
+class Order(BaseOrder):
+    objects = OrderManager()
 
-    @property
-    def identifier(self):
-        return "{}-{}".format(self.created_at.year, self.pk)
-
-    def populate_from_cart(self, cart, request):
-        self.shipping_address_text = cart.shipping_address.as_text()
-        self.billing_address_text = cart.shipping_address.as_text()
-        super(Order, self).populate_from_cart(cart, request)
+    class Meta(object):
+        abstract = False
+        app_label = 'shop'
+        verbose_name = _('Order')
+        verbose_name_plural = _('Orders')

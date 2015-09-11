@@ -2,6 +2,7 @@
 .project
 .pydevproject
 .settings
+.tox/
 *.coverage
 *~
 build
@@ -20,5 +21,3 @@ database.db
 *coverage.xml
 .idea
 .ropeproject
-OLD-out-of-date
-.tox

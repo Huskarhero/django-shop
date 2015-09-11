@@ -1,144 +1,36 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-import os
-import operator
-from functools import reduce
-from django.db.models import Q
-from django.shortcuts import get_object_or_404
-from django.utils.translation import get_language_from_request
-from rest_framework import generics
-from rest_framework import status
-from rest_framework import views
-from rest_framework.renderers import BrowsableAPIRenderer
-from rest_framework.response import Response
-from shop import settings as shop_settings
-from shop.rest.money import JSONRenderer
-from shop.rest.serializers import AddToCartSerializer
-from shop.rest.renderers import CMSPageRenderer
-from shop.models.product import ProductModel
+from shop.models.productmodel import Product
+from shop.views import (ShopListView, ShopDetailView)
 
 
-class ProductListView(generics.ListAPIView):
-    renderer_classes = (CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer)
-    product_model = ProductModel
-    serializer_class = None  # must be overridden by ProductListView.as_view
-    filter_class = None  # may be overridden by ProductListView.as_view
-    limit_choices_to = Q()
-    cms_pages_fields = ('cms_pages',)
+class ProductListView(ShopListView):
+    """
+    This view handles displaying the product catalogue to customers.
+    It filters out inactive products and shows only those that are active.
+    """
+    generic_template = 'shop/product_list.html'
 
     def get_queryset(self):
-        # restrict queryset by language
-        filter_kwargs = {}
-        if hasattr(self.product_model, 'translations'):
-            filter_kwargs.update(translations__language_code=get_language_from_request(self.request))
-        qs = self.product_model.objects.filter(self.limit_choices_to, **filter_kwargs)
+        """
+        Return all active products.
+        """
+        return Product.objects.filter(active=True)
 
-        # restrict products for current CMS page
-        current_page = self.request.current_page
-        if current_page.publisher_is_draft:
-            current_page = current_page.publisher_public
-        filter_by_cms_page = [Q((field, current_page)) for field in self.cms_pages_fields]
-        qs = qs.filter(reduce(operator.or_, filter_by_cms_page)).distinct()
-        return qs
+
+class ProductDetailView(ShopDetailView):
+    """
+    This view handles displaying the right template for the subclasses of
+    Product.
+    It will look for a template at the normal (conventional) place, but will
+    fallback to using the default product template in case no template is
+    found for the subclass.
+    """
+    model = Product  # It must be the biggest ancestor of the inheritance tree.
+    generic_template = 'shop/product_detail.html'
 
     def get_template_names(self):
-        return [self.request.current_page.get_template()]
+        ret = super(ProductDetailView, self).get_template_names()
+        if not self.generic_template in ret:
+            ret.append(self.generic_template)
+        return ret
 
-    def paginate_queryset(self, queryset):
-        page = super(ProductListView, self).paginate_queryset(queryset)
-        self.paginator = page.paginator
-        return page
-
-    def filter_queryset(self, queryset):
-        self.filter_context = None
-        if self.filter_class:
-            filter_instance = self.filter_class(self.request.query_params, queryset=queryset)
-            if callable(getattr(filter_instance, 'get_render_context', None)):
-                self.filter_context = filter_instance.get_render_context()
-            elif hasattr(filter_instance, 'render_context'):
-                self.filter_context = filter_instance.render_context
-        qs = super(ProductListView, self).filter_queryset(queryset)
-        print qs.query
-        return qs
-
-    def get_renderer_context(self):
-        renderer_context = super(ProductListView, self).get_renderer_context()
-        if renderer_context['request'].accepted_renderer.format == 'html':
-            # add the paginator as Python object to the context
-            renderer_context['paginator'] = self.paginator
-            renderer_context['filter'] = self.filter_context
-        return renderer_context
-
-
-class AddToCartView(views.APIView):
-    """
-    Handle the "Add to Cart" dialog on the products detail page.
-    """
-    renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
-    product_model = ProductModel
-    serializer_class = AddToCartSerializer
-    lookup_field = lookup_url_kwarg = 'slug'
-    limit_choices_to = Q()
-
-    def get_context(self, request, **kwargs):
-        assert self.lookup_url_kwarg in kwargs
-        filter_kwargs = {self.lookup_field: kwargs.pop(self.lookup_url_kwarg)}
-        if hasattr(self.product_model, 'translations'):
-            filter_kwargs.update(translations__language_code=get_language_from_request(self.request))
-        queryset = self.product_model.objects.filter(self.limit_choices_to, **filter_kwargs)
-        product = get_object_or_404(queryset)
-        return {'product': product, 'request': request}
-
-    def get(self, request, *args, **kwargs):
-        context = self.get_context(request, **kwargs)
-        serializer = self.serializer_class(context=context)
-        return Response(serializer.data)
-
-    def post(self, request, *args, **kwargs):
-        context = self.get_context(request, **kwargs)
-        serializer = self.serializer_class(data=request.data, context=context)
-        if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ProductRetrieveView(generics.RetrieveAPIView):
-    """
-    View responsible for rendering the products details.
-    Additionally an extra method as shown in products lists, cart lists
-    and order item lists.
-    """
-    renderer_classes = (CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer)
-    lookup_field = lookup_url_kwarg = 'slug'
-    product_model = ProductModel
-    serializer_class = None  # must be overridden by ProductListView.as_view
-    limit_choices_to = Q()
-
-    def get_template_names(self):
-        product = self.get_object()
-        app_label = product._meta.app_label.lower()
-        basename = 'catalog-detail-{}.html'.format(product.__class__.__name__.lower())
-        return [
-            os.path.join(app_label, 'pages', basename),
-            os.path.join(app_label, 'pages/catalog-detail-product.html'),
-            'shop/pages/catalog-detail-product.html',
-        ]
-
-    def get_renderer_context(self):
-        renderer_context = super(ProductRetrieveView, self).get_renderer_context()
-        if renderer_context['request'].accepted_renderer.format == 'html':
-            # add the product as Python object to the context
-            renderer_context['product'] = self.get_object()
-            renderer_context['ng_model_options'] = shop_settings.ADD2CART_NG_MODEL_OPTIONS
-        return renderer_context
-
-    def get_object(self):
-        if not hasattr(self, '_product'):
-            assert self.lookup_url_kwarg in self.kwargs
-            filter_kwargs = {self.lookup_field: self.kwargs[self.lookup_url_kwarg]}
-            if hasattr(self.product_model, 'translations'):
-                filter_kwargs.update(translations__language_code=get_language_from_request(self.request))
-            queryset = self.product_model.objects.filter(self.limit_choices_to, **filter_kwargs)
-            product = get_object_or_404(queryset)
-            self._product = product
-        return self._product
