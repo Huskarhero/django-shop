@@ -9,7 +9,7 @@ from polymorphic.admin import PolymorphicParentModelAdmin
 from reversion import VersionAdmin
 from myshop.models.shopmodels import Product
 from myshop.models.commodity import Commodity
-from .commodity import CommodityAdmin
+from myshop.admin.commodity import CommodityAdmin
 
 
 class ProductTypeListFilter(admin.SimpleListFilter):
@@ -21,6 +21,7 @@ class ProductTypeListFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
+            #('textilepanel', _("Textile Panel")),  # TODO get this list from products
             ('commodity', _("Commodity")),
         )
 
@@ -39,6 +40,7 @@ class ProductTypeListFilter(admin.SimpleListFilter):
 
 class ProductAdmin(SortableAdminMixin, VersionAdmin, PolymorphicParentModelAdmin):
     base_model = Product
+    #child_models = ((TextilePanel, TextilePanelAdmin), (Commodity, CommodityAdmin),)
     child_models = ((Commodity, CommodityAdmin),)
     list_display = ('identifier', 'unit_price', 'product_type', 'active',)
     list_display_links = ('identifier',)

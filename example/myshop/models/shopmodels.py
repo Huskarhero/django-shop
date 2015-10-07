@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from decimal import Decimal
 from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -35,8 +36,12 @@ class Product(TranslatableModel, BaseProduct):
     slug = TranslatedField()
     description = TranslatedField()
     images = models.ManyToManyField(Image, through='ProductImage', null=True)
-    placeholder = PlaceholderField('Product Detail',
-        verbose_name=_("Additional description for this product."))
+    placeholder = PlaceholderField('Textile Detail',
+        verbose_name=_("Details for this textile"))
+    availability = models.SmallIntegerField(default=1,
+        choices=((0, _("Sold out")), (1, _("1 day")), (4, _("4 days")), (7, _("7 days")),),
+        verbose_name=_("Availability"),
+        help_text=_("Ready for shipping in days"))
 
     class Meta:
         app_label = settings.SHOP_APP_LABEL
@@ -75,6 +80,7 @@ class ProductTranslation(TranslatedFieldsModel):
 
     class Meta:
         unique_together = [('language_code', 'master'), ('language_code', 'slug')]
+        db_table = 'stofferia_product_translation'
         app_label = settings.SHOP_APP_LABEL
 
 

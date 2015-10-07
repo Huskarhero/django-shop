@@ -1,49 +1,43 @@
 ===========
-django SHOP
+Development
 ===========
 
-This repository hosts the django SHOP code and documentation.
+Quickstart
+==========
+Want to help out? Great! Here are some instructions to get you up and running.
 
-Django SHOP aims to be the easy, fun and fast shop counterpart to django CMS.
+We recommend that you use virtualenv_.
 
-Specifically, we aim at providing a clean, modular and Pythonic/Djangonic implementation of a shop
-framework, that a moderately talented Django programmer should be able to pick up and run easily.
+1. Clone the repository and cd into it::
 
-The current state is a roughly functional and highly modular system. Please refer to
-docs/plugins.rst to figure out what plugin types are available, and what the do.
+    git clone https://github.com/jrief/django-shop
+    cd django-shop
 
-You'll find the detailed doc on `RTD <http://readthedocs.org/projects/django-shop/>`_
+2. Create a virtualenv, and activate it::
 
+    virtualenv ~/.virtualenvs/django-shop
+    source ~/.virtualenvs/django-shop/bin/activate
 
-Build status
-============
-.. |travisci| image:: https://api.travis-ci.org/divio/django-shop.png
-.. _travisci https://travis-ci.org/divio/django-shop
+3. Install the project in development mode::
 
-|travisci|
+    pip install -e .
 
+4. Install the development requirements::
 
-How to help:
-============
+    pip install -r requirements/dev.txt
 
-* Development is done on github - please fork!
-* Most of the discussion around architecture decisions / tools etc... take
-  place on IRC (Freenode), on #django-shop
-* Pick a task from the list below :)
+That's it! Now, you should be able to run the tests::
 
+    py.test tests
 
-Todo:
-=====
+We use tox_ as a CI tool. To run the full CI test suite and get a coverage
+report, all you have to do is this::
 
-* Somebody should kickstart an example shop application using django SHOP, to
-  use as an example.
-* If you feel like adding templates, please *refrain* from adding fancy styling
-  to the core set of templates.
-  Styling is awesome, and everybody wants a good looking shop, but it should go
-  in example apps, not in core shop :)
-  Also, please keep templates to the main templates directory only (so that
-  people have a clear view of the templates structure)
-* Writing docs is most welcome :)
-* Refactoring tests to make creating test environments less messy (fixtures?)
-* If you feel like you could solve having multiple currencies in an elegant
-  manner, we would really be interested to hear from you
+    tox
+
+.. NOTE::
+    Using tox and py.test is optional. If you prefer the conventional way of
+    running tests, you can do this: ``django-admin.py test --settings shop.testsettings``
+
+.. _virtualenv: https://virtualenv.pypa.io/
+.. _tox: http://codespeak.net/tox/

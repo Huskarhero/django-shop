@@ -22,11 +22,8 @@ numberformat.format = patched_numberformat.format
 SHOP_APP_LABEL = 'myshop'
 BASE_DIR = os.path.dirname(__file__)
 
-# Root directory for this django project
-PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, os.path.pardir))
-
 # Directory where working files, such as media and databases are kept
-WORK_DIR = os.path.join(PROJECT_ROOT, 'workdir')
+WORK_DIR = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, os.path.pardir, 'workdir'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -182,12 +179,11 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'sass_processor.finders.CssFinder',
     'compressor.finders.CompressorFinder',
+    'nodebow.finders.BowerComponentsFinder',
 )
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-    ('bower_components', os.path.join(PROJECT_ROOT, 'bower_components')),
-    ('node_modules', os.path.join(PROJECT_ROOT, 'node_modules')),
+    os.path.join(WORK_DIR, 'static'),
 )
 
 
@@ -207,7 +203,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
     'cms.context_processors.cms_settings',
     'shop.context_processors.customer',
+    'stofferia.context_processors.global_context',
     'sekizai.context_processors.sekizai',
+    'allauth.account.context_processors.account',
+    'allauth.socialaccount.context_processors.socialaccount',
 )
 
 SECURE_PROXY_SSL_HEADER = (u'HTTP_X_FORWARDED_PROTO', u'https')
@@ -260,19 +259,11 @@ EMAIL_BACKEND = 'post_office.EmailBackend'
 ############################################
 # settings for third party Django apps
 
-#NODEBOW_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, os.path.pardir))
-
-NODEBOW_SERVE_UNMINIMIZED = DEBUG
-
-NODE_MODULES_URL = STATIC_URL + 'node_modules'
-
-SASS_PROCESSOR_INCLUDE_DIRS = (
-    os.path.join(PROJECT_ROOT, 'node_modules'),
-)
+NODEBOW_ROOT = WORK_DIR
 
 COERCE_DECIMAL_TO_STRING = True
 
-COMPRESS_ENABLED = False
+COMPRESS_ENABLED = True
 
 FSM_ADMIN_FORCE_PERMIT = True
 
@@ -288,7 +279,12 @@ PARLER_LANGUAGES = {
     },
 }
 
-ROBOTS_META_TAGS = ('noindex', 'nofollow')
+SASS_PROCESSOR_INCLUDE_DIRS = (
+    #os.path.abspath(os.path.join(BASE_DIR, os.pardir, 'node_modules/bootstrap-sass/assets/stylesheets')),
+    #os.path.abspath(os.path.join(BASE_DIR, os.pardir, 'node_modules/compass-mixins/lib')),
+    os.path.abspath(os.path.join(BASE_DIR, os.pardir, 'node_modules')),
+)
+
 
 ############################################
 # settings for django-restframework and plugins
@@ -359,7 +355,10 @@ THUMBNAIL_PROCESSORS = (
 
 CMS_TEMPLATES = (
     ('myshop/pages/default.html', _("Default Page")),
-#    ('myshop/pages/catalog-list.html', _("List Commodites")),
+#    ('myshop/pages/cart-checkout-view.html', _("Cart & Checkout View")),
+#    ('myshop/pages/order-views.html', _("Order Views")),
+#    ('myshop/pages/search-view.html', _("Search View")),
+#    ('myshop/pages/catalog-list-commodity.html', _("Commodity List View")),
 )
 
 CMS_SEO_FIELDS = True
@@ -446,12 +445,12 @@ HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
         'URL': 'http://localhost:9200/',
-        'INDEX_NAME': 'shop-de',
+        'INDEX_NAME': 'stofferia-de',
     },
     'en': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
         'URL': 'http://localhost:9200/',
-        'INDEX_NAME': 'shop-en',
+        'INDEX_NAME': 'stofferia-en',
     },
 }
 
@@ -467,14 +466,14 @@ SHOP_CART_MODIFIERS = (
     'shop.modifiers.taxes.CartExcludedTaxModifier',
     'myshop.modifiers.PostalShippingModifier',
     'shop.modifiers.defaults.PayInAdvanceModifier',
-    'shop_stripe.modifiers.StripePaymentModifier',
+    #'stofferia.stripe_payment.StripePaymentModifier',
 )
 SHOP_EDITCART_NG_MODEL_OPTIONS = "{updateOn: 'default blur', debounce: {'default': 2500, 'blur': 0}}"
 
 SHOP_ORDER_WORKFLOWS = (
     'shop.payment.defaults.PayInAdvanceWorkflowMixin',
     'shop.payment.defaults.CommissionGoodsWorkflowMixin',
-    'shop_stripe.payment.OrderWorkflowMixin',
+    #'stofferia.stripe_payment.OrderWorkflowMixin',
 )
 
 SHOP_STRIPE = {
