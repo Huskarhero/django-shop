@@ -1,31 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.contrib import admin
 from django.db.models import Max
 from django.utils.translation import ugettext_lazy as _
 from django.template.context import Context
 from django.template.loader import get_template
 from cms.models import Page
 from cms.admin.placeholderadmin import PlaceholderAdminMixin, FrontendEditableAdminMixin
-from parler.admin import TranslatableAdmin, TranslatableTabularInline
+from parler.admin import TranslatableAdmin
 from polymorphic.admin import PolymorphicChildModelAdmin
 from reversion import VersionAdmin
-from myshop.models.product import Product
-from myshop.models.commodity import CommodityProperty, CommodityTag
+from myshop.models.shopmodels import Product
 from .image import ProductImageInline
-
-
-class CommodityTagInline(TranslatableTabularInline):
-    model = CommodityTag
-    extra = 1
-    fields = ('tag', 'image', 'search_indices',)
-
-
-class CommodityPropertyAdmin(TranslatableAdmin):
-    fields = ('property', 'multiple_tags',)
-    inlines = (CommodityTagInline,)
-
-admin.site.register(CommodityProperty, CommodityPropertyAdmin)
 
 
 class CommodityAdmin(TranslatableAdmin, VersionAdmin, FrontendEditableAdminMixin,
@@ -55,7 +40,7 @@ class CommodityAdmin(TranslatableAdmin, VersionAdmin, FrontendEditableAdminMixin
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == 'cms_pages':
             # restrict many-to-many field for cms_pages to ProductApp only
-            limit_choices_to = {'publisher_is_draft': False, 'application_urls': 'ProductsListApp'}
+            limit_choices_to = {'publisher_is_draft': False, 'application_urls': 'CommodityListApp'}
             kwargs['queryset'] = Page.objects.filter(**limit_choices_to)
         return super(CommodityAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 

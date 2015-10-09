@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.conf import settings
+
 from django.db import models, migrations
 import filer.fields.file
 
@@ -8,15 +8,10 @@ import filer.fields.file
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('email_auth', '0001_initial'),
         ('filer', '0002_auto_20150606_2003'),
         ('post_office', '0002_add_i18n_and_backend_alias'),
     ]
-    if 'email_auth' in settings.INSTALLED_APPS:
-        dependencies.append(('email_auth', '0001_initial'))
-        customer_bases = ('email_auth.user',)
-    else:
-        dependencies.append(('auth', '0001_initial'))
-        customer_bases = ('auth.user',)
 
     operations = [
         migrations.CreateModel(
@@ -54,7 +49,7 @@ class Migration(migrations.Migration):
                 'proxy': True,
                 'verbose_name_plural': 'Customers',
             },
-            bases=customer_bases,
+            bases=('email_auth.user',),
         ),
         migrations.CreateModel(
             name='Email',

@@ -25,8 +25,7 @@ class _CMSPagesFilterBackend(BaseFilterBackend):
 
 class CMSPagesFilterBackend(type):
     """
-    Class builder to filter by CMS pages.
-    Returned classes shall be used to emulate categories as CMS pages.
+    Filter by CMS pages as categories.
     """
     def __new__(cls, cms_pages_fields=('cms_pages',)):
         bases = (_CMSPagesFilterBackend,)
