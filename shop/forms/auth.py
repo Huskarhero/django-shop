@@ -19,7 +19,7 @@ class RegisterUserForm(NgModelFormMixin, NgFormValidationMixin, Bootstrap3ModelF
     field_css_classes = 'input-group has-feedback'
 
     email = fields.EmailField(label=_("Your e-mail address"))
-    preset_password = fields.BooleanField(required=False, initial=True, label=_("Preset password"),
+    preset_password = fields.BooleanField(required=False, label=_("Preset password"),
         widget=widgets.CheckboxInput(),
         help_text=_("Send a randomly generated password to your e-mail address."))
 
@@ -39,20 +39,16 @@ class RegisterUserForm(NgModelFormMixin, NgFormValidationMixin, Bootstrap3ModelF
             data['password1'] = data['password2'] = password
         super(RegisterUserForm, self).__init__(data=data, instance=instance, *args, **kwargs)
 
-    def as_div(self):
-        # Intentionally rendered without fields `email` and `preset_password`
-        self.fields.pop('email', None)
-        self.fields.pop('preset_password', None)
-        return super(RegisterUserForm, self).as_div()
+    def clean_email(self):
+        # check for uniqueness of email address
+        if get_user_model().objects.filter(email=self.cleaned_data['email']).exists():
+            msg = _("A customer with the e-mail address ‘{email}’ already exists.\n"
+                    "If you have used this address previously, try to reset the password.")
+            raise ValidationError(msg.format(**self.cleaned_data))
+        return self.cleaned_data['email']
 
     def clean(self):
         cleaned_data = super(RegisterUserForm, self).clean()
-        # check for uniqueness of email address
-        if 'email' not in self.errors:
-            if get_user_model().objects.filter(email=cleaned_data['email']).exists():
-                msg = _("A customer with the e-mail address ‘{email}’ already exists.\n"
-                        "If you have used this address previously, try to reset the password.")
-                raise ValidationError(msg.format(**cleaned_data))
         # check for matching passwords
         if 'password1' not in self.errors and 'password2' not in self.errors:
             if cleaned_data['password1'] != cleaned_data['password2']:
@@ -107,6 +103,10 @@ class ContinueAsGuestForm(ModelForm):
         fields = ()  # this form doesn't show any fields
 
     def save(self, request=None, commit=True):
-        self.instance.user.is_active = False
+        self.instance.user.is_active = shop_settings.GUEST_IS_ACTIVE_USER
+        if self.instance.user.is_active:
+            # set a usable password, otherwise the user can not reset the password
+            password = get_user_model().objects.make_random_password(length=30)
+            self.instance.user.set_password(password)
         self.instance.recognized = CustomerModel.GUEST
         return super(ContinueAsGuestForm, self).save(commit)

@@ -74,8 +74,10 @@ class ShopAuthenticationPlugin(ShopLinkPluginBase):
             try:
                 FormClass = import_by_path(form_type[2])
             except (ImportError, IndexError):
-                pass
+                # TODO: other unresolvable may need another form name
+                context['form_name'] = 'auth_form'
             else:
+                context['form_name'] = FormClass.form_name
                 context[FormClass.form_name] = FormClass()
         context['action'] = instance.link
         return super(ShopAuthenticationPlugin, self).render(context, instance, placeholder)
