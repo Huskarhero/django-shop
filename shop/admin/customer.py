@@ -12,12 +12,7 @@ from shop.models.customer import CustomerModel
 
 class CustomerInlineAdmin(admin.StackedInline):
     model = CustomerModel
-    fields = ('salutation', 'get_number', 'recognized')
-    readonly_fields = ('get_number',)
-
-    def get_number(self, customer):
-        return customer.get_number()
-    get_number.short_description = _("Number")
+    fields = ('salutation',)
 
 
 class CustomerChangeForm(UserChangeForm):
@@ -64,9 +59,9 @@ class CustomerAdmin(UserAdmin):
     """
     form = CustomerChangeForm
     inlines = (CustomerInlineAdmin,)
-    list_display = ('get_username', 'salutation', 'last_name', 'first_name', 'recognized',
+    list_display = ('identifier', 'salutation', 'last_name', 'first_name', 'recognized',
         'last_access', 'is_unexpired')
-    segmentation_list_display = ('get_username',)
+    segmentation_list_display = ('identifier',)
     list_filter = UserAdmin.list_filter + (CustomerListFilter,)
     readonly_fields = ('last_login', 'date_joined', 'last_access', 'recognized')
 
@@ -76,9 +71,9 @@ class CustomerAdmin(UserAdmin):
         fieldsets[3][1]['fields'] = ('date_joined', 'last_login', 'last_access',)
         return fieldsets
 
-    def get_username(self, user):
-        return user.customer.get_username()
-    get_username.short_description = _("Username")
+    def identifier(self, user):
+        return user.customer.identifier()
+    identifier.short_description = _("Identifier")
 
     def salutation(self, user):
         return user.customer.get_salutation_display()

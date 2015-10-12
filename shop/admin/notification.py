@@ -16,7 +16,7 @@ class NotificationAttachmentAdmin(admin.TabularInline):
 
 class NotificationAdmin(admin.ModelAdmin):
     USER_CHOICES = (('', _("Nobody")), (0, _("Customer")),)
-    list_display = ('name', 'transition_name', 'recipient', 'mail_template', 'num_attachments')
+    list_display = ('name', 'transition_name', 'recipient')
     inlines = (NotificationAttachmentAdmin,)
     save_as = True
 
@@ -41,14 +41,6 @@ class NotificationAdmin(admin.ModelAdmin):
             email = '{0} {1} <{2}>'.format(user.first_name, user.last_name, user.email)
             choices.append((user.id, email))
         return choices
-
-    def transition_name(self, obj):
-        return OrderModel.get_transition_name(obj.transition_target)
-    transition_name.short_description = _("Event")
-
-    def num_attachments(self, obj):
-        return obj.notificationattachment_set.count()
-    num_attachments.short_description = _("Attachments")
 
     def recipient(self, obj):
         try:

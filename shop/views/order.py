@@ -30,10 +30,7 @@ class OrderView(mixins.ListModelMixin, mixins.RetrieveModelMixin, generics.Gener
             renderer_context['many'] = self.many
             if self.many is False:
                 # add an extra ance to the breadcrumb
-                try:
-                    renderer_context['extra_ance'] = self.get_object().identifier
-                except AttributeError:
-                    pass
+                renderer_context['extra_ance'] = self.get_object().identifier
         return renderer_context
 
     def get_template_names(self):

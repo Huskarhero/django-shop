@@ -138,14 +138,6 @@ class PaymentModifier(BaseCartModifier):
         """
         return cart.extra.get('payment_modifier') == self.identifier
 
-    def is_disabled(self, cart):
-        """
-        Returns True if this payment modifier is disabled for the current cart.
-        Shall be used to temporarily disable a payment method, if the cart does not
-        fulfill certain criteria, such as a minimum total.
-        """
-        return False
-
     def update_render_context(self, context):
         """
         Hook to update the rendering context with payment specific data.
@@ -169,14 +161,6 @@ class ShippingModifier(BaseCartModifier):
         Returns true if this shipping modifier is active.
         """
         return cart.extra.get('shipping_modifier') == self.identifier
-
-    def is_disabled(self, cart):
-        """
-        Returns True if this shipping modifier is disabled for the current cart.
-        Shall be used to temporarily disable a shipping method, if the cart does not
-        fulfill certain criteria, such as an undeliverable destination address.
-        """
-        return False
 
     def update_render_context(self, context):
         """
