@@ -178,26 +178,29 @@ Authenticating against the Email Address
 Nowadays it is quite common, to use the email address for authenticating, rather than an explicit
 account identifier. This in Django is not possible without replacing the built-in User model.
 Since for an e-commerce site this authentication variant is rather important, **djangoSHOP** is
-shipped with an optional replacement for the built-in User model.
+shipped with an optional drop-in replacement for the built-in User model.
 
 This convenience User model is almost a copy of the existing ``User`` model as found in
 ``django.contrib.auth.models.py``, but it uses the field ``email`` rather than ``username`` for
-looking up the credentials.
-
-You may optionally use it by importing the alternative implementation into ``models.py`` of your
-application:
+looking up the credentials. To activate it, add to the project's ``settings.py``:
 
 .. code-block:: python
 
-	from shop.models.defaults.auth import User
+	INSTALLED_APPS = (
+	    'django.contrib.auth',
+	    'email_auth',
+	    ...
+	)
+	
+	AUTH_USER_MODEL = 'email_auth.User'
 
-and then using that model in your ``settings.py``: 
+.. note:: This alternative User model uses the same table as the Django authentication would,
+		 namely ``auth_user``. It is even field-compatible with the built-in model and hence can
+		 even be used for existing projects.
 
-	AUTH_USER_MODEL = 'my_application.User'
 
-
-Caveat for this User model
---------------------------
+Caveat when using this alternative User model
+--------------------------------------------
 
 The savvy reader may have noticed that in ``email_auth.models.User``, the email field is not
 declared as unique. This by the way causes Django to complain during startup with:
@@ -211,17 +214,26 @@ declared as unique. This by the way causes Django to complain during startup wit
 This warning can be silenced by adding ``SILENCED_SYSTEM_CHECKS = ['auth.W004']`` to the project's
 ``settings.py``.
 
-The reason for this is twofold: First, Django's default user model has no unique constraint on the
-email field, so ``email_auth`` remains more compatible. Second, the uniqueness is only required for
-users which actually can sign in. Guest users on the other hand can not sign in, but they may return
-someday. By having a unique email field, the Django application ``email_auth`` would lock them out.
+The reason for this is twofold:
+
+First, Django's default user model has no unique constraint on the email field, so ``email_auth``
+remains more compatible.
+
+Second, the uniqueness is only required for users which actually can sign in. Guest users on the
+other hand can not sign in, but they may return someday. By having a unique email field, the Django
+application ``email_auth`` would lock them out.
 
 
 Administration of Users and Customers
 -------------------------------------
 
 By keeping the Customer- and the User model tight together, it is possible to share Django's
-backend interface for both of them. All you have to do is to import and register the administration
+backend interface for both of them.
+
+DOCUMENTATION UNFINISHED
+........................
+
+All you have to do is to import and register the administration
 classes into ``admin.py`` of your project:
 
 .. code-block:: python
@@ -231,5 +243,3 @@ classes into ``admin.py`` of your project:
 	from shop.admin.customer import CustomerAdmin
 
 	admin.site.register(get_user_model(), CustomerAdmin)
-
-The 
