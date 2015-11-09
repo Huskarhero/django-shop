@@ -15,7 +15,7 @@ from .base import DialogForm, DialogModelForm
 
 class CustomerForm(DialogModelForm):
     scope_prefix = 'data.customer'
-    email = fields.EmailField(label=_("Email address"))
+    email = fields.EmailField(label=_("Email"))
     first_name = fields.CharField(label=_("First Name"))
     last_name = fields.CharField(label=_("Last Name"))
 
@@ -48,14 +48,15 @@ class CustomerForm(DialogModelForm):
 class GuestForm(DialogModelForm):
     scope_prefix = 'data.guest'
     form_name = 'customer_form'
-    email = fields.EmailField(label=_("Email address"))
 
     class Meta:
         model = get_user_model()  # since we only use the email field, use the User model directly
         fields = ('email',)
 
     def __init__(self, initial=None, instance=None, *args, **kwargs):
-        if isinstance(instance, CustomerModel._materialized_model):
+        try:
+           instance = None if instance.is_visitor() else instance.user
+        except AttributeError:
             instance = instance.user
         super(GuestForm, self).__init__(initial=initial, instance=instance, *args, **kwargs)
 
