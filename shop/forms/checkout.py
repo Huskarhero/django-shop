@@ -48,15 +48,14 @@ class CustomerForm(DialogModelForm):
 class GuestForm(DialogModelForm):
     scope_prefix = 'data.guest'
     form_name = 'customer_form'
+    email = fields.EmailField(label=_("Email address"), required=True)
 
     class Meta:
         model = get_user_model()  # since we only use the email field, use the User model directly
         fields = ('email',)
 
     def __init__(self, initial=None, instance=None, *args, **kwargs):
-        try:
-           instance = None if instance.is_visitor() else instance.user
-        except AttributeError:
+        if isinstance(instance, CustomerModel._materialized_model):
             instance = instance.user
         super(GuestForm, self).__init__(initial=initial, instance=instance, *args, **kwargs)
 
