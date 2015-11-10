@@ -13,7 +13,7 @@ class BaseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         cart = CartModel.objects.get_from_request(self.request)
-        if cart and self.kwargs.get(self.lookup_field):
+        if self.kwargs.get(self.lookup_field):
             # we're interest only into a certain cart item
             return CartItemModel.objects.filter(cart=cart)
         # otherwise the CartSerializer will show its detail and list all its items
@@ -21,8 +21,7 @@ class BaseViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def count_items(self, request):
-        cart = self.get_queryset()
-        data = {'count_items': cart and cart.items.count() or 0}
+        data = {'count_items': self.get_queryset().items.count()}
         return Response(data)
 
     def get_serializer(self, *args, **kwargs):

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.db.models import Max
 from django.forms import fields, widgets
 from django.utils.translation import ugettext_lazy as _
@@ -15,7 +14,7 @@ from .base import DialogForm, DialogModelForm
 
 class CustomerForm(DialogModelForm):
     scope_prefix = 'data.customer'
-    email = fields.EmailField(label=_("Email address"))
+    email = fields.EmailField(label=_("Email"))
     first_name = fields.CharField(label=_("First Name"))
     last_name = fields.CharField(label=_("Last Name"))
 
@@ -24,13 +23,14 @@ class CustomerForm(DialogModelForm):
         exclude = ('user', 'recognized', 'number', 'last_access',)
         custom_fields = ('email', 'first_name', 'last_name',)
 
-    def __init__(self, initial={}, instance=None, *args, **kwargs):
-        assert instance is not None and isinstance(initial, dict)
-        initial.update(dict((f, getattr(instance, f)) for f in self.Meta.custom_fields))
+    def __init__(self, initial=None, instance=None, *args, **kwargs):
+        if instance:
+            initial = initial or {}
+            initial.update(dict((f, getattr(instance, f)) for f in self.Meta.custom_fields))
         super(CustomerForm, self).__init__(initial=initial, instance=instance, *args, **kwargs)
 
     def save(self, commit=True):
-        self.instance.recognize_as_registered()
+        self.instance.recognized = CustomerModel.REGISTERED
         for f in self.Meta.custom_fields:
             setattr(self.instance, f, self.cleaned_data[f])
         return super(CustomerForm, self).save(commit)
@@ -46,8 +46,7 @@ class CustomerForm(DialogModelForm):
 
 class GuestForm(DialogModelForm):
     scope_prefix = 'data.guest'
-    email = fields.EmailField(label=_("Email address"))
-    form_name = 'customer_form'  # Override form name to reuse template `customer.html`
+    form_name = 'customer_form'
 
     class Meta:
         model = get_user_model()  # since we only use the email field, use the User model directly
@@ -65,14 +64,6 @@ class GuestForm(DialogModelForm):
             customer_form.save()
         else:
             return {cls.form_name: customer_form.errors}
-
-    def clean_email(self):
-        # check for uniqueness of email address
-        if get_user_model().objects.filter(is_active=True, email=self.cleaned_data['email']).exists():
-            msg = _("A registered customer with the e-mail address ‘{email}’ already exists.\n"
-                    "If you have used this address previously, try to reset the password.")
-            raise ValidationError(msg.format(**self.cleaned_data))
-        return self.cleaned_data['email']
 
 
 class AddressForm(DialogModelForm):

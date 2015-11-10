@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from decimal import Decimal, InvalidOperation
-from cms.utils.helpers import classproperty
 from shop import settings as shop_settings
 from iso4217 import CURRENCIES
 
@@ -107,8 +106,8 @@ class AbstractMoney(Decimal):
             s = Decimal.__str__(self)
         return float(s)
 
-    @classproperty
-    def currency(cls):
+    @classmethod
+    def get_currency(cls):
         """
         Return the currency in ISO-4217
         """
@@ -128,12 +127,12 @@ class AbstractMoney(Decimal):
         """
         return int(self.as_decimal() * self.subunits)
 
-    @classproperty
-    def subunits(cls):
+    @property
+    def subunits(self):
         """
         Return the subunits for the given currency.
         """
-        return 10**CURRENCIES[cls._currency_code][1]
+        return 10**CURRENCIES[self._currency_code][1]
 
     def _assert_addable(self, other):
         if isinstance(other, (int, float)) and other == 0:

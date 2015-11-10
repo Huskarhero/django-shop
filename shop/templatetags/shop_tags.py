@@ -29,9 +29,8 @@ class CartIcon(InclusionTag):
     def get_context(self, context):
         request = context['request']
         cart = CartModel.objects.get_from_request(request)
-        if cart:
-            cart.update(request)
-            context['cart'] = cart
+        cart.update(request)
+        context['cart'] = cart
         return context
 register.tag(CartIcon)
 
