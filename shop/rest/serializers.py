@@ -9,6 +9,7 @@ from django.template.base import TemplateDoesNotExist
 from django.template.loader import select_template
 from django.utils.six import with_metaclass
 from django.utils.html import strip_spaces_between_tags
+from django.utils.formats import localize
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.translation import get_language_from_request
 from jsonfield.fields import JSONField
@@ -16,6 +17,7 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 from shop import settings as shop_settings
 from shop.models.cart import CartModel, CartItemModel, BaseCartItem
+from shop.models.product import ProductModel
 from shop.models.customer import CustomerModel
 from shop.models.order import OrderModel, OrderItemModel
 from shop.rest.money import MoneyField
@@ -55,7 +57,8 @@ class ProductCommonSerializer(serializers.ModelSerializer):
     availability = serializers.SerializerMethodField()
 
     def get_price(self, product):
-        return product.get_price(self.context['request'])
+        price = product.get_price(self.context['request'])
+        return localize(price)
 
     def get_availability(self, product):
         return product.get_availability(self.context['request'])
@@ -83,7 +86,7 @@ class ProductCommonSerializer(serializers.ModelSerializer):
         try:
             template = select_template(['{0}/products/{1}-{2}-{3}.html'.format(*p) for p in params])
         except TemplateDoesNotExist:
-            return SafeText()
+            return SafeText("<!-- no such template: '{0}/products/{1}-{2}-{3}.html' -->".format(*params[0]))
         # when rendering emails, we require an absolute URI, so that media can be accessed from
         # the mail client
         absolute_base_uri = request.build_absolute_uri('/').rstrip('/')
@@ -97,7 +100,8 @@ class SerializerRegistryMetaclass(serializers.SerializerMetaclass):
     """
     Keep a global reference onto the class implementing `ProductSummarySerializerBase`.
     There can be only one class instance, because the products summary is the lowest common
-    denominator for all products of this shop instance.
+    denominator for all products of this shop instance. Otherwise we would be unable to mix
+    different polymorphic product types in the Cart and Order list views.
     """
     def __new__(cls, clsname, bases, attrs):
         global product_summary_serializer_class
@@ -122,7 +126,7 @@ class ProductSummarySerializerBase(with_metaclass(SerializerRegistryMetaclass, P
     product_model = serializers.CharField(read_only=True)
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('label', 'overview')
+        kwargs.setdefault('label', 'catalog')
         super(ProductSummarySerializerBase, self).__init__(*args, **kwargs)
 
 
@@ -144,13 +148,14 @@ class AddToCartSerializer(serializers.Serializer):
     unit_price = MoneyField(read_only=True)
     subtotal = MoneyField(read_only=True)
     product = serializers.IntegerField(read_only=True, help_text="The product's primary key")
+    extra = serializers.DictField(read_only=True)
 
     def __init__(self, instance=None, data=empty, **kwargs):
         context = kwargs.get('context', {})
         if 'product' not in context or 'request' not in context:
             msg = "A context is required for this serializer and must contain the `product` and the `request` object."
             raise ValueError(msg)
-        instance = {'product': context['product'].id}
+        instance = self.get_instance(context, kwargs)
         unit_price = context['product'].get_price(context['request'])
         if data == empty:
             quantity = self.fields['quantity'].default
@@ -158,6 +163,9 @@ class AddToCartSerializer(serializers.Serializer):
             quantity = data['quantity']
         instance.update(quantity=quantity, unit_price=unit_price, subtotal=quantity * unit_price)
         super(AddToCartSerializer, self).__init__(instance, data, **kwargs)
+
+    def get_instance(self, context, extra_args):
+        return {'product': context['product'].id}
 
 
 class ExtraCartRow(serializers.Serializer):
@@ -244,7 +252,7 @@ class CartItemSerializer(BaseItemSerializer):
         exclude = ('cart', 'id',)
 
     def create(self, validated_data):
-        validated_data['cart'] = CartModel.objects.get_from_request(self.context['request'])
+        validated_data['cart'] = CartModel.objects.get_or_create_from_request(self.context['request'])
         return super(CartItemSerializer, self).create(validated_data)
 
 
@@ -254,7 +262,7 @@ class WatchItemSerializer(BaseItemSerializer):
         fields = ('product', 'url', 'summary', 'quantity', 'extra',)
 
     def create(self, validated_data):
-        cart = CartModel.objects.get_from_request(self.context['request'])
+        cart = CartModel.objects.get_or_create_from_request(self.context['request'])
         validated_data.update(cart=cart, quantity=0)
         return super(WatchItemSerializer, self).create(validated_data)
 
@@ -308,8 +316,9 @@ class OrderItemSerializer(serializers.ModelSerializer):
         exclude = ('id',)
 
     def get_summary(self, order_item):
+        label = self.context.get('render_label', 'order')
         serializer = product_summary_serializer_class(order_item.product, context=self.context,
-                                                      read_only=True, label='order')
+                                                      read_only=True, label=label)
         return serializer.data
 
 
@@ -327,13 +336,13 @@ class OrderListSerializer(serializers.ModelSerializer):
 
 class OrderDetailSerializer(OrderListSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
-    amount_paid = MoneyField(source='get_amount_paid', read_only=True)
-    outstanding_amount = MoneyField(source='get_outstanding_amount', read_only=True)
+    amount_paid = MoneyField(read_only=True)
+    outstanding_amount = MoneyField(read_only=True)
     is_partially_paid = serializers.SerializerMethodField(method_name='get_partially_paid',
         help_text="Returns true, if order has been partially paid")
 
     def get_partially_paid(self, order):
-        return order.get_amount_paid() > 0
+        return order.amount_paid > 0
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -342,3 +351,18 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerModel
         fields = ('salutation', 'first_name', 'last_name', 'email', 'extra',)
+
+
+class ProductSelectSerializer(serializers.ModelSerializer):
+    """
+    A simple serializer to convert the product's name and code for rendering the select widget
+    when looking up for a product.
+    """
+    text = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProductModel
+        fields = ('id', 'text',)
+
+    def get_text(self, instance):
+        return instance.product_name
