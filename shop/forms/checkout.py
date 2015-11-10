@@ -15,7 +15,7 @@ from .base import DialogForm, DialogModelForm
 
 class CustomerForm(DialogModelForm):
     scope_prefix = 'data.customer'
-    email = fields.EmailField(label=_("Email"))
+    email = fields.EmailField(label=_("Email address"))
     first_name = fields.CharField(label=_("First Name"))
     last_name = fields.CharField(label=_("Last Name"))
 
@@ -24,10 +24,9 @@ class CustomerForm(DialogModelForm):
         exclude = ('user', 'recognized', 'number', 'last_access',)
         custom_fields = ('email', 'first_name', 'last_name',)
 
-    def __init__(self, initial=None, instance=None, *args, **kwargs):
-        if instance:
-            initial = initial or {}
-            initial.update(dict((f, getattr(instance, f)) for f in self.Meta.custom_fields))
+    def __init__(self, initial={}, instance=None, *args, **kwargs):
+        assert instance is not None and isinstance(initial, dict)
+        initial.update(dict((f, getattr(instance, f)) for f in self.Meta.custom_fields))
         super(CustomerForm, self).__init__(initial=initial, instance=instance, *args, **kwargs)
 
     def save(self, commit=True):
@@ -47,8 +46,8 @@ class CustomerForm(DialogModelForm):
 
 class GuestForm(DialogModelForm):
     scope_prefix = 'data.guest'
+    email = fields.EmailField(label=_("Email address"))
     form_name = 'customer_form'
-    email = fields.EmailField(label=_("Email address"), required=True)
 
     class Meta:
         model = get_user_model()  # since we only use the email field, use the User model directly
