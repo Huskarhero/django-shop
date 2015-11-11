@@ -238,14 +238,12 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
 
     def is_expired(self):
         """
-        Return true if the session of an unrecognized customer expired.
-        Registered customers never expire.
-        Guest customers only expire, if they failed fulfilling the purchase (currently not implemented).
+        Return true if the session of an unregistered customer expired.
         """
-        if self.recognized == self.UNRECOGNIZED:
-            session_key = CustomerManager.decode_session_key(self.user.username)
-            return not SessionStore.exists(session_key)
-        return False
+        if self.recognized in (self.GUEST, self.REGISTERED):
+            return False
+        session_key = CustomerManager.decode_session_key(self.user.username)
+        return not SessionStore.exists(session_key)
 
     def get_number(self):
         """
@@ -284,6 +282,10 @@ class VisitingCustomer(object):
     @property
     def email(self):
         return ''
+
+    @email.setter
+    def email(self, value):
+        pass
 
     def is_anonymous(self):
         return True

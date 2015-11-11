@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-shop\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-10 09:40+0100\n"
+"POT-Creation-Date: 2015-10-21 09:38+0200\n"
 "PO-Revision-Date: 2011-07-13 16:16+0000\n"
 "Last-Translator: chrisglass <tribaal@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,56 +25,56 @@ msgstr "Kundennummer"
 msgid "Customer State"
 msgstr "Kundesstatus"
 
-#: admin/customer.py:87
+#: admin/customer.py:84
 msgid "Username"
 msgstr "Benutzername"
 
-#: admin/customer.py:93 models/customer.py:146
+#: admin/customer.py:90 models/customer.py:114
 msgid "Salutation"
 msgstr "Anrede"
 
-#: admin/customer.py:99
+#: admin/customer.py:96
 msgid "Staff"
 msgstr ""
 
-#: admin/customer.py:101
+#: admin/customer.py:98
 msgid "User"
 msgstr "Benutzer"
 
-#: admin/customer.py:102
+#: admin/customer.py:99
 msgid "State"
 msgstr "Status"
 
-#: admin/customer.py:107
+#: admin/customer.py:104
 msgid "No data"
 msgstr ""
 
-#: admin/customer.py:108 models/customer.py:147
+#: admin/customer.py:105 models/customer.py:115
 msgid "Last accessed"
 msgstr "Letzter Besuch"
 
-#: admin/customer.py:114
+#: admin/customer.py:111
 msgid "Unexpired"
 msgstr ""
 
-#: admin/customer.py:125 admin/notification.py:18 admin/order.py:81
-#: models/cart.py:136 models/order.py:130
+#: admin/customer.py:122 admin/notification.py:18 admin/order.py:81
+#: models/cart.py:126 models/order.py:130
 msgid "Customer"
 msgstr "Kunde"
 
-#: admin/customer.py:126
+#: admin/customer.py:123
 msgid "Customers"
 msgstr "Kunden"
 
-#: admin/notification.py:18 admin/notification.py:62
+#: admin/notification.py:18 admin/notification.py:61
 msgid "Nobody"
 msgstr "Unbekannt"
 
-#: admin/notification.py:48 models/notification.py:74
+#: admin/notification.py:47 models/notification.py:74
 msgid "Event"
 msgstr "Ereignis"
 
-#: admin/notification.py:52
+#: admin/notification.py:51
 msgid "Attachments"
 msgstr ""
 
@@ -137,10 +137,12 @@ msgid "Continue as guest"
 msgstr "Als Gast fortsetzen"
 
 #: cascade/auth.py:26 cascade/checkout.py:30 cascade/plugin_base.py:96
+#: cascade/processbar.py:107 cascade/processbar.py:110
 msgid "CMS Page"
 msgstr ""
 
-#: cascade/auth.py:26 cascade/checkout.py:30
+#: cascade/auth.py:26 cascade/checkout.py:30 cascade/processbar.py:108
+#: cascade/processbar.py:110
 msgid "Reload Page"
 msgstr "Seite erneut Laden"
 
@@ -212,11 +214,11 @@ msgstr ""
 msgid "Shall the cart be editable or a static summary?"
 msgstr ""
 
-#: cascade/checkout.py:29 cascade/processbar.py:99
+#: cascade/checkout.py:29 cascade/processbar.py:105
 msgid "Button Content"
 msgstr ""
 
-#: cascade/checkout.py:30
+#: cascade/checkout.py:30 cascade/processbar.py:108 cascade/processbar.py:111
 msgid "Purchase Now"
 msgstr ""
 
@@ -224,47 +226,39 @@ msgstr ""
 msgid "Proceed Button"
 msgstr "Weiter Button"
 
-#: cascade/checkout.py:83
+#: cascade/checkout.py:59
 msgid "Customer Form"
 msgstr ""
 
-#: cascade/checkout.py:88
-msgid "Only registered customers can access this form."
-msgstr "Nur registrierte Kunden können auf dieses Formular zugreifen."
-
-#: cascade/checkout.py:100
+#: cascade/checkout.py:70
 msgid "Guest Form"
 msgstr ""
 
-#: cascade/checkout.py:105
-msgid "Only guest customers can access this form."
-msgstr ""
-
-#: cascade/checkout.py:126
+#: cascade/checkout.py:90
 msgid "Shipping Address Form"
 msgstr "Formular für Lieferadresse"
 
-#: cascade/checkout.py:134
+#: cascade/checkout.py:98
 msgid "Billing Address Form"
 msgstr "Formular für Rechnungsadresse"
 
-#: cascade/checkout.py:142
+#: cascade/checkout.py:106
 msgid "Payment Method Form"
 msgstr "Formular für Zahlungsmethode"
 
-#: cascade/checkout.py:163
+#: cascade/checkout.py:127
 msgid "Shipping Method Form"
 msgstr "Formular für Liefermethode"
 
-#: cascade/checkout.py:184
+#: cascade/checkout.py:148
 msgid "Extra Annotation Form"
 msgstr "Formular für zusätzliche Anmerkung"
 
-#: cascade/checkout.py:200
+#: cascade/checkout.py:164
 msgid "Accept Condition"
 msgstr ""
 
-#: cascade/checkout.py:221
+#: cascade/checkout.py:185
 msgid "HTML content"
 msgstr ""
 
@@ -303,33 +297,33 @@ msgstr ""
 msgid "A dialog can also be rendered as a box containing a read-only summary."
 msgstr ""
 
-#: cascade/processbar.py:28
+#: cascade/processbar.py:26
 msgid "Steps"
 msgstr ""
 
-#: cascade/processbar.py:29
+#: cascade/processbar.py:27
 msgid "Number of steps for this proceed bar."
 msgstr ""
 
-#: cascade/processbar.py:33
+#: cascade/processbar.py:31
 msgid "Process Bar"
 msgstr ""
 
-#: cascade/processbar.py:43
+#: cascade/processbar.py:41
 msgid "with {} page"
 msgid_plural "with {} pages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: cascade/processbar.py:69
+#: cascade/processbar.py:67
 msgid "Process Step"
 msgstr ""
 
-#: cascade/processbar.py:78
+#: cascade/processbar.py:76
 msgid "Step Title"
 msgstr ""
 
-#: cascade/processbar.py:121
+#: cascade/processbar.py:97
 msgid "Next Step Button"
 msgstr ""
 
@@ -371,60 +365,45 @@ msgid "Confirm password."
 msgstr "Bestätige Passwort"
 
 #: forms/auth.py:45
-#, fuzzy, python-brace-format
-#| msgid ""
-#| "A registered customer with the e-mail address ‘{email}’ already exists.\n"
-#| "If you have used this address previously, try to reset the password."
+#, python-brace-format
 msgid ""
 "A customer with the e-mail address ‘{email}’ already exists.\n"
 "If you have used this address previously, try to reset the password."
 msgstr ""
-"Ein registrierter Benutzer mit der E-Mail Adresse ‘{email}’ existiert "
-"bereits.\n"
-"Wenn Sie diese Adresse bereits verwendet haben, versuchen Sie bitte das "
-"Passwort zurückzusetzen."
+"Ein Benutzer mit der E-Mail Adresse ‘{email}’ existiert bereits.\n"
+"Wenn Sie diese Adresse bereits verwendet haben, versuchen Sie bitte das Passwort zurückzusetzen."
 
 #: forms/auth.py:55
 msgid "Passwords do not match"
 msgstr "Passwörter stimmen nicht überein"
 
-#: forms/checkout.py:18 forms/checkout.py:49
-#, fuzzy
-msgid "Email address"
-msgstr "Rechnungsadresse"
+#: forms/checkout.py:17 templates/shop/auth/login-reset.html:14
+#: templates/shop/auth/login.html:12 templates/shop/auth/reset.html:11
+#: templates/shop/email/customer-information.html:6
+msgid "Email"
+msgstr "E-Mail"
 
-#: forms/checkout.py:19
+#: forms/checkout.py:18
 msgid "First Name"
 msgstr "Vorname"
 
-#: forms/checkout.py:20
+#: forms/checkout.py:19
 msgid "Last Name"
 msgstr "Nachname"
 
-#: forms/checkout.py:72
-#, python-brace-format
-msgid ""
-"A registered customer with the e-mail address ‘{email}’ already exists.\n"
-"If you have used this address previously, try to reset the password."
-msgstr ""
-"Ein registrierter Benutzer mit der E-Mail Adresse ‘{email}’ existiert "
-"bereits.\n"
-"Wenn Sie diese Adresse bereits verwendet haben, versuchen Sie bitte das "
-"Passwort zurückzusetzen."
-
-#: forms/checkout.py:167
+#: forms/checkout.py:158
 msgid "Use shipping address for billing"
 msgstr "Verwende Liefer- als Rechnungsadresse"
 
-#: forms/checkout.py:194
+#: forms/checkout.py:185
 msgid "Payment Method"
 msgstr "Zahlungsmethode"
 
-#: forms/checkout.py:223
+#: forms/checkout.py:214
 msgid "Shipping Method"
 msgstr "Liefermethode"
 
-#: forms/checkout.py:252
+#: forms/checkout.py:243
 msgid "Extra annotation for this order"
 msgstr "Zusätzliche Anmerkung zu dieser Bestellung"
 
@@ -438,10 +417,7 @@ msgstr ""
 
 #: management/commands/shop_customers.py:35
 #, python-brace-format
-msgid ""
-"Customers in this shop: total={total}, anonymous={anonymous}, "
-"expired={expired}, active={active}, guests={guests}, "
-"registered={registered}, staff={staff}."
+msgid "Customers in this shop: total={total}, anonymous={anonymous}, expired={expired}, active={active}, guests={guests}, registered={registered}, staff={staff}."
 msgstr ""
 
 #: models/address.py:18
@@ -1452,71 +1428,71 @@ msgstr ""
 msgid "Zimbabwe"
 msgstr ""
 
-#: models/cart.py:77
+#: models/cart.py:76
 msgid "Arbitrary information for this cart item"
 msgstr ""
 
-#: models/cart.py:83
+#: models/cart.py:82
 msgid "Cart item"
 msgstr "Artikel"
 
-#: models/cart.py:84
+#: models/cart.py:83
 msgid "Cart items"
 msgstr "Artikel"
 
-#: models/cart.py:137 models/order.py:136 models/product.py:95
+#: models/cart.py:127 models/order.py:136 models/product.py:95
 msgid "Created at"
 msgstr "Erstellt am"
 
-#: models/cart.py:138 models/order.py:137 models/product.py:96
+#: models/cart.py:128 models/order.py:137 models/product.py:96
 msgid "Updated at"
 msgstr "Aktualisiert am"
 
-#: models/cart.py:139
+#: models/cart.py:129
 msgid "Arbitrary information for this cart"
 msgstr ""
 
-#: models/cart.py:146
+#: models/cart.py:136
 msgid "Shopping Cart"
 msgstr "Der Warenkorb"
 
-#: models/cart.py:147
+#: models/cart.py:137
 msgid "Shopping Carts"
 msgstr "Warenkörbe"
 
-#: models/customer.py:137
+#: models/customer.py:105
 msgid "Mrs."
 msgstr "Frau"
 
-#: models/customer.py:137
+#: models/customer.py:105
 msgid "Mr."
 msgstr "Herr"
 
-#: models/customer.py:137
+#: models/customer.py:105
 msgid "(n/a)"
 msgstr "keine Angabe"
 
-#: models/customer.py:141
+#: models/customer.py:109
 msgid "Unrecognized"
 msgstr "Unerkannt"
 
-#: models/customer.py:141
+#: models/customer.py:109
 msgid "Guest"
 msgstr "Gast"
 
-#: models/customer.py:141
+#: models/customer.py:109
 msgid "Registered"
 msgstr "Registriert"
 
-#: models/customer.py:144
+#: models/customer.py:112
 msgid "Recognized as"
 msgstr "Erkannt als"
 
-#: models/customer.py:145
+#: models/customer.py:113
 msgid "Designates the state the customer is recognized as."
 msgstr ""
 
-#: models/customer.py:149
+#: models/customer.py:117
 msgid "Extra information about this customer"
 msgstr "Zusätzliche Information über diesen Kunden"
 
@@ -1834,41 +1810,35 @@ msgstr ""
 msgid "US Dollar"
 msgstr ""
 
-#: payment/defaults.py:33
+#: payment/defaults.py:30
 msgid "Awaiting a forward fund payment"
 msgstr "Erwarte einen Zahlungseingang"
 
-#: payment/defaults.py:34
+#: payment/defaults.py:31
 msgid "Prepayment deposited"
 msgstr "Vorauszahlung eingegangen"
 
-#: payment/defaults.py:35
-#, fuzzy
-#| msgid "Payment confirmed"
-msgid "No Payment Required"
-msgstr "Zahlung bestätigt"
-
-#: payment/defaults.py:58
+#: payment/defaults.py:50
 msgid "Deposited too little"
 msgstr "Zu wenig einbezahlt"
 
-#: payment/defaults.py:63
+#: payment/defaults.py:55
 msgid "Mark as Paid"
 msgstr "Als bezahlt markieren"
 
-#: payment/defaults.py:81
+#: payment/defaults.py:72
 msgid "Picking goods"
 msgstr "Ware kommisionieren"
 
-#: payment/defaults.py:82
+#: payment/defaults.py:73
 msgid "Packing goods"
 msgstr "Ware verpacken"
 
-#: payment/defaults.py:86
+#: payment/defaults.py:77
 msgid "Pick the goods"
 msgstr "Bestellte Waren kommisionieren"
 
-#: payment/defaults.py:91
+#: payment/defaults.py:82
 msgid "Pack the goods"
 msgstr "Bestellte Ware verpacken"
 
@@ -1904,12 +1874,6 @@ msgstr "Anmelden"
 msgid "Password Forgotten?"
 msgstr "Passwort Vergessen?"
 
-#: templates/shop/auth/login-reset.html:14 templates/shop/auth/login.html:12
-#: templates/shop/auth/reset.html:11
-#: templates/shop/email/customer-information.html:6
-msgid "Email"
-msgstr "E-Mail"
-
 #: templates/shop/auth/login-reset.html:18 templates/shop/auth/reset.html:15
 msgid "Reset Password"
 msgstr "Passwort zurücksetzen"
@@ -1943,12 +1907,8 @@ msgid "New password for '%(user_name)s'"
 msgstr "Neues Passwort für '%(user_name)s'"
 
 #: templates/shop/auth/password-reset-confirm.html:11
-msgid ""
-"Please enter your new password twice so we can verify you typed it in "
-"correctly."
-msgstr ""
-"Bitte geben Sie das Passwort ein zweites Mal ein, so dass wir es überprüfen "
-"können."
+msgid "Please enter your new password twice so we can verify you typed it in correctly."
+msgstr "Bitte geben Sie das Passwort ein zweites Mal ein, so dass wir es überprüfen können."
 
 #: templates/shop/auth/password-reset-confirm.html:15
 msgid "New password"
@@ -1967,12 +1927,8 @@ msgid "Password reset unsuccessful"
 msgstr "Passwort konnte nich zurückgesetzt werden."
 
 #: templates/shop/auth/password-reset-decline.html:7
-msgid ""
-"The password reset link was invalid, possibly because it has already been "
-"used.  Please request a new password reset."
-msgstr ""
-"Der Link zum Rücksetzen ist ungültig, vermutlich weil er bereits verwendet "
-"wurde. Bitte beantragen Sie ein erneutes Rücksetzen des Passwortes."
+msgid "The password reset link was invalid, possibly because it has already been used.  Please request a new password reset."
+msgstr "Der Link zum Rücksetzen ist ungültig, vermutlich weil er bereits verwendet wurde. Bitte beantragen Sie ein erneutes Rücksetzen des Passwortes."
 
 #: templates/shop/auth/register-user.html:4
 msgid "Register Yourself"
@@ -2028,22 +1984,16 @@ msgstr "Preis"
 #: templates/shop/email/register-user-body.txt:2
 #, python-format
 msgid ""
-"You are receiving this email because you asked for a auto-generated password "
-"for your\n"
+"You are receiving this email because you asked for a auto-generated password for your\n"
 "user account at %(site_name)s."
-msgstr ""
-"Sie erhalten dieses E-Mail, weil Sie ein auto-generiertes Passwort für Ihr "
-"Konto bei %(site_name)s gewünscht haben."
+msgstr "Sie erhalten dieses E-Mail, weil Sie ein auto-generiertes Passwort für Ihr Konto bei %(site_name)s gewünscht haben."
 
 #: templates/shop/email/register-user-body.txt:5
 #, python-format
 msgid ""
-"In the future, please use username %(email)s with password %(password)s to "
-"sign\n"
+"In the future, please use username %(email)s with password %(password)s to sign\n"
 "into %(absolute_base_uri)s."
-msgstr ""
-"Bitte verwenden Sie in Zukunft %(email)s mit Password %(password)s, um sich "
-"bei %(absolute_base_uri)s anzumelden."
+msgstr "Bitte verwenden Sie in Zukunft %(email)s mit Password %(password)s, um sich bei %(absolute_base_uri)s anzumelden."
 
 #: templates/shop/email/register-user-body.txt:8
 #: templates/shop/email/reset-password-body.txt:8
@@ -2064,12 +2014,9 @@ msgstr "Passwort für %(site_name)s wurde gesetzt"
 #: templates/shop/email/reset-password-body.txt:2
 #, python-format
 msgid ""
-"You're receiving this email because you requested a password reset for your "
-"user\n"
+"You're receiving this email because you requested a password reset for your user\n"
 "account '%(user)s' at %(site_name)s."
-msgstr ""
-"Sie erhalten dieses E-Mail, weil Sie Ihre Passwort für das Benutzerkonto "
-"'%(user)s' auf %(site_name)s. zurückgesetzt haben."
+msgstr "Sie erhalten dieses E-Mail, weil Sie Ihre Passwort für das Benutzerkonto '%(user)s' auf %(site_name)s. zurückgesetzt haben."
 
 #: templates/shop/email/reset-password-body.txt:5
 msgid "Please go to the following page and choose a new password:"
@@ -2082,7 +2029,7 @@ msgstr "Passwort für %(site_name)s zurücksetzen"
 
 #: templates/shop/navbar/language-chooser.html:3
 msgid "Language"
-msgstr "Sprache"
+msgstr ""
 
 #: templates/shop/navbar/login-logout.html:16
 msgid "Sign in"
@@ -2152,7 +2099,7 @@ msgstr "Art-Nr.:"
 
 #: templates/shop/search/results.html:14
 msgid "No search results found"
-msgstr "Die Suche hat nichts gefunden"
+msgstr ""
 
 #: templates/shop/search/results.html:20
 msgid "{{ search_data.count }} matching products found"
@@ -2168,7 +2115,7 @@ msgstr "Details"
 
 #: templates/shop/search/results.html:42
 msgid "Loading search results"
-msgstr "Läd weitere Suchergebnisse"
+msgstr ""
 
 #: templates/shop/templatetags/cart-icon.html:12
 msgctxt "cart icon"
@@ -2180,20 +2127,16 @@ msgctxt "cart icon"
 msgid "{} Items"
 msgstr "{} Artikel"
 
-#: views/auth.py:29
-msgid "Unable to proceed as guest without items in the cart."
-msgstr "Ohne Artikel im Warenkorb kann der Einkauf nicht fortgesetzt werden."
-
-#: views/auth.py:66
+#: views/auth.py:58
 msgid "Successfully logged out."
 msgstr "Erfolgreich abgemeldet"
 
-#: views/auth.py:86
+#: views/auth.py:78
 #, python-brace-format
 msgid "Instructions on how to reset the password have been sent to '{email}'."
 msgstr "Anleitung zum Zurücksetzen des Passwortes wurde an '{email}' gesendet."
 
-#: views/auth.py:133
+#: views/auth.py:125
 msgid "Password has been reset with the new password."
 msgstr "Passwort wurde mit neuem Passwort zurückgesetzt"
 
@@ -2205,6 +2148,10 @@ msgstr "Passwort wurde mit neuem Passwort zurückgesetzt"
 
 #~ msgid "Your Orders"
 #~ msgstr "Ihre Bestellungen"
+
+#, fuzzy
+#~ msgid "Email address"
+#~ msgstr "Rechnungsadresse"
 
 #, fuzzy
 #~ msgid "staff status"
