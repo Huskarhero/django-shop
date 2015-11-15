@@ -38,7 +38,7 @@ class CommodityAdmin(TranslatableAdmin, VersionAdmin, FrontendEditableAdminMixin
         (_("Translatable Fields"), {
             'fields': ('name', 'slug', 'description',)
         }),
-        (_("Categories"), {
+        (_("Properties"), {
             'fields': ('cms_pages',),
         }),
         (_("Render search indices"), {
