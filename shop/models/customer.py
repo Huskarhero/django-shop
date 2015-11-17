@@ -291,10 +291,6 @@ class VisitingCustomer(object):
     def email(self):
         return ''
 
-    @email.setter
-    def email(self, value):
-        pass
-
     def is_anonymous(self):
         return True
 

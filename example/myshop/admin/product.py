@@ -8,8 +8,8 @@ from adminsortable2.admin import SortableAdminMixin
 from polymorphic.admin import PolymorphicParentModelAdmin
 from reversion import VersionAdmin
 from myshop.models.product import Product
-from myshop.models.smartphone import SmartPhoneModel
-from .smartphone import SmartPhoneAdmin
+from myshop.models.commodity import Commodity
+from .commodity import CommodityAdmin
 
 
 class ProductTypeListFilter(admin.SimpleListFilter):
@@ -21,7 +21,7 @@ class ProductTypeListFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
-            ('smartphone', _("Smart Phone")),
+            ('commodity', _("Commodity")),
         )
 
     def queryset(self, request, queryset):
@@ -37,17 +37,18 @@ class ProductTypeListFilter(admin.SimpleListFilter):
         return queryset.filter(polymorphic_ctype=product_type)
 
 
-@admin.register(Product)
 class ProductAdmin(SortableAdminMixin, VersionAdmin, PolymorphicParentModelAdmin):
     base_model = Product
-    child_models = ((SmartPhoneModel, SmartPhoneAdmin),)  # (Commodity, CommodityAdmin),)
-    list_display = ('name', 'get_price', 'product_type', 'active',)
-    list_display_links = ('name',)
-    search_fields = ('name',)
+    child_models = ((Commodity, CommodityAdmin),)
+    list_display = ('identifier', 'unit_price', 'product_type', 'active',)
+    list_display_links = ('identifier',)
+    search_fields = ('identifier', 'translations__name',)
     list_filter = (ProductTypeListFilter,)
     list_per_page = 250
     list_max_show_all = 1000
 
-    def get_price(self, obj):
-        return obj.get_real_instance().get_price(None)
-    get_price.short_description = _("Price starting at")
+    def price(self, obj):
+        return obj.unit_price
+    price.short_description = _("Gross Price")
+
+admin.site.register(Product, ProductAdmin)
