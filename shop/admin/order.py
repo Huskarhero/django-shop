@@ -4,7 +4,6 @@ from django.conf import settings
 from django.conf.urls import patterns, url
 from django.contrib import admin
 from django.core.urlresolvers import reverse
-from django.db.models.fields import Field, FieldDoesNotExist
 from django.forms import widgets
 from django.http import HttpResponse
 from django.template import RequestContext
@@ -12,7 +11,6 @@ from django.template.loader import select_template
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from fsm_admin.mixins import FSMTransitionMixin
-from shop.models.customer import CustomerModel
 from shop.models.order import OrderItemModel, OrderPayment
 from shop.modifiers.pool import cart_modifiers_pool
 from shop.rest import serializers
@@ -37,9 +35,9 @@ class OrderPaymentInline(admin.TabularInline):
 class OrderItemInline(admin.StackedInline):
     model = OrderItemModel
     extra = 0
-    readonly_fields = ('product_identifier', 'product_name', 'unit_price', 'line_total', 'extra',)
+    readonly_fields = ('product_code', 'product_name', 'unit_price', 'line_total', 'extra',)
     fields = (
-        ('product_identifier', 'product_name',),
+        ('product_code', 'product_name',),
         ('quantity', 'unit_price', 'line_total',),
         'extra',
     )
@@ -68,6 +66,7 @@ class StatusListFilter(admin.SimpleListFilter):
 class BaseOrderAdmin(FSMTransitionMixin, admin.ModelAdmin):
     list_display = ('identifier', 'customer', 'status_name', 'total', 'created_at',)
     list_filter = (StatusListFilter,)
+    search_fields = ('customer__user__email', 'customer__user__lastname',)
     fsm_field = ('status',)
     date_hierarchy = 'created_at'
     inlines = (OrderItemInline, OrderPaymentInline,)
@@ -81,17 +80,6 @@ class BaseOrderAdmin(FSMTransitionMixin, admin.ModelAdmin):
         return format_html('<a href="{0}" target="_new">{1}</a>'.format(url, obj.customer.get_username()))
     get_customer_link.short_description = _("Customer")
     get_customer_link.allow_tags = True
-
-    def get_search_fields(self, request):
-        fields = super(BaseOrderAdmin, self).get_search_fields(request) + \
-            ('customer__user__email', 'customer__user__last_name',)
-        try:
-            # if CustomerModel contains a number field, let search for it
-            if isinstance(CustomerModel._meta.get_field('number'), Field):
-                fields += ('customer__number',)
-        except FieldDoesNotExist:
-            pass
-        return fields
 
     def outstanding_amount(self, obj):
         return obj.outstanding_amount
@@ -162,8 +150,5 @@ class OrderAdmin(BaseOrderAdmin):
     """
     Admin class to be used with `shop.models.defauls.order`
     """
+    search_fields = BaseOrderAdmin.search_fields + ('shipping_address_text', 'billing_address_text',)
     fields = BaseOrderAdmin.fields + (('shipping_address_text', 'billing_address_text',),)
-
-    def get_search_fields(self, request):
-        return super(OrderAdmin, self).get_search_fields(request) + \
-            ('number', 'shipping_address_text', 'billing_address_text',)
