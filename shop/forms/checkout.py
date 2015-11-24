@@ -46,9 +46,8 @@ class CustomerForm(DialogModelForm):
 
 class GuestForm(DialogModelForm):
     scope_prefix = 'data.guest'
-    form_name = 'customer_form'  # Override form name to reuse template `customer.html`
-
     email = fields.EmailField(label=_("Email address"))
+    form_name = 'customer_form'  # Override form name to reuse template `customer.html`
 
     class Meta:
         model = get_user_model()  # since we only use the email field, use the User model directly

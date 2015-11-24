@@ -9,14 +9,12 @@ from django.template.base import TemplateDoesNotExist
 from django.template.loader import select_template
 from django.utils.six import with_metaclass
 from django.utils.html import strip_spaces_between_tags
-from django.utils.formats import localize
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.translation import get_language_from_request
 from rest_framework import serializers
 from rest_framework.fields import empty
 from shop import settings as shop_settings
 from shop.models.cart import CartModel, CartItemModel, BaseCartItem
-from shop.models.product import ProductModel
 from shop.models.customer import CustomerModel
 from shop.models.order import OrderModel, OrderItemModel
 from shop.rest.money import MoneyField
@@ -53,8 +51,7 @@ class ProductCommonSerializer(serializers.ModelSerializer):
     availability = serializers.SerializerMethodField()
 
     def get_price(self, product):
-        price = product.get_price(self.context['request'])
-        return localize(price)
+        return product.get_price(self.context['request'])
 
     def get_availability(self, product):
         return product.get_availability(self.context['request'])
@@ -82,7 +79,7 @@ class ProductCommonSerializer(serializers.ModelSerializer):
         try:
             template = select_template(['{0}/products/{1}-{2}-{3}.html'.format(*p) for p in params])
         except TemplateDoesNotExist:
-            return SafeText("<!-- no such template: '{0}/products/{1}-{2}-{3}.html' -->".format(*params[0]))
+            return SafeText()
         # when rendering emails, we require an absolute URI, so that media can be accessed from
         # the mail client
         absolute_base_uri = request.build_absolute_uri('/').rstrip('/')
@@ -96,8 +93,7 @@ class SerializerRegistryMetaclass(serializers.SerializerMetaclass):
     """
     Keep a global reference onto the class implementing `ProductSummarySerializerBase`.
     There can be only one class instance, because the products summary is the lowest common
-    denominator for all products of this shop instance. Otherwise we would be unable to mix
-    different polymorphic product types in the Cart and Order list views.
+    denominator for all products of this shop instance.
     """
     def __new__(cls, clsname, bases, attrs):
         global product_summary_serializer_class
@@ -122,7 +118,7 @@ class ProductSummarySerializerBase(with_metaclass(SerializerRegistryMetaclass, P
     product_model = serializers.CharField(read_only=True)
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('label', 'catalog')
+        kwargs.setdefault('label', 'overview')
         super(ProductSummarySerializerBase, self).__init__(*args, **kwargs)
 
 
@@ -144,24 +140,20 @@ class AddToCartSerializer(serializers.Serializer):
     unit_price = MoneyField(read_only=True)
     subtotal = MoneyField(read_only=True)
     product = serializers.IntegerField(read_only=True, help_text="The product's primary key")
-    extra = serializers.DictField(read_only=True)
 
     def __init__(self, instance=None, data=empty, **kwargs):
         context = kwargs.get('context', {})
         if 'product' not in context or 'request' not in context:
             msg = "A context is required for this serializer and must contain the `product` and the `request` object."
             raise ValueError(msg)
-        instance = self.get_instance(context, kwargs)
+        instance = {'product': context['product'].id}
         unit_price = context['product'].get_price(context['request'])
         if data == empty:
             quantity = self.fields['quantity'].default
         else:
             quantity = data['quantity']
         instance.update(quantity=quantity, unit_price=unit_price, subtotal=quantity * unit_price)
-        super(AddToCartSerializer, self).__init__(instance, data, context=context)
-
-    def get_instance(self, context, extra_args):
-        return {'product': context['product'].id}
+        super(AddToCartSerializer, self).__init__(instance, data, **kwargs)
 
 
 class ExtraCartRow(serializers.Serializer):
@@ -319,7 +311,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderListSerializer(serializers.ModelSerializer):
-    number = serializers.CharField(source='get_number', read_only=True)
+    identifier = serializers.CharField()
     url = serializers.URLField(source='get_absolute_url', read_only=True)
     status = serializers.CharField(source='status_name', read_only=True)
     subtotal = MoneyField()
@@ -347,18 +339,3 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerModel
         fields = ('salutation', 'first_name', 'last_name', 'email', 'extra',)
-
-
-class ProductSelectSerializer(serializers.ModelSerializer):
-    """
-    A simple serializer to convert the product's name and code for rendering the select widget
-    when looking up for a product.
-    """
-    text = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ProductModel
-        fields = ('id', 'text',)
-
-    def get_text(self, instance):
-        return instance.product_name

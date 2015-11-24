@@ -15,9 +15,7 @@ from ipware.ip import get_ip
 from django_fsm import FSMField, transition
 from cms.models import Page
 from shop import settings as shop_settings
-from shop.models.cart import CartItemModel
 from shop.money.fields import MoneyField, MoneyMaker
-from .product import BaseProduct
 from . import deferred
 
 
@@ -26,25 +24,22 @@ class OrderManager(models.Manager):
     def create_from_cart(self, cart, request):
         """
         This creates a new Order object with all its OrderItems using the current Cart object
-        with its CartItems.
+        with its Cart Items. Whenever on Order Item is created from a Cart Item, that item is
+        removed from the Cart.
         """
         cart.update(request)
         order = self.model(customer=cart.customer, currency=cart.total.currency,
             _subtotal=Decimal(0), _total=Decimal(0), stored_request=self.stored_request(request))
-        order.get_or_assign_number()
         order.save()
         order.customer.get_or_assign_number()
         for cart_item in cart.items.all():
             cart_item.update(request)
             order_item = OrderItemModel(order=order)
-            try:
-                order_item.populate_from_cart_item(cart_item, request)
+            if order_item.populate_from_cart_item(cart_item, request):
                 order_item.save()
-            except CartItemModel.DoesNotExist:
-                pass
+                cart_item.delete()
         order.populate_from_cart(cart, request)
         order.save()
-        cart.delete()
         return order
 
     def stored_request(self, request):
@@ -137,11 +132,11 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
     status = FSMField(default='new', protected=True, verbose_name=_("Status"))
     currency = models.CharField(max_length=7, editable=False,
         help_text=_("Currency in which this order was concluded"))
-    _subtotal = models.DecimalField(_("Subtotal"), **decimalfield_kwargs)
-    _total = models.DecimalField(_("Total"), **decimalfield_kwargs)
-    created_at = models.DateTimeField(_("Created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("Updated at"), auto_now=True)
-    extra = JSONField(verbose_name=_("Extra fields"), default={},
+    _subtotal = models.DecimalField(verbose_name=_("Subtotal"), **decimalfield_kwargs)
+    _total = models.DecimalField(verbose_name=_("Total"), **decimalfield_kwargs)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated at"))
+    extra = JSONField(default={}, verbose_name=_("Extra fields"),
         help_text=_("Arbitrary information for this order object on the moment of purchase."))
     stored_request = JSONField(default={},
         help_text=_("Parts of the Request objects on the moment of purchase."))
@@ -153,24 +148,18 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         verbose_name_plural = _("Orders")
 
     def __str__(self):
-        return self.get_number()
+        return self.identifier
 
     def __repr__(self):
         return "<{}(pk={})>".format(self.__class__.__name__, self.pk)
 
-    def get_or_assign_number(self):
+    @property
+    def identifier(self):
         """
-        Hook to get or to assign the order number. It shall be invoked, every time an Order
-        object is created. If you prefer to use an order number which differs from the primary
-        key, then override this method.
+        Return a unique identifier representing this Order object.
         """
-        return self.get_number()
-
-    def get_number(self):
-        """
-        Hook to get the order number.
-        """
-        return str(self.id)
+        msg = "Property method identifier() must be implemented by subclass: `{}`"
+        raise NotImplementedError(msg.format(self.__class__.__name__))
 
     @cached_property
     def subtotal(self):
@@ -265,12 +254,12 @@ class OrderPayment(with_metaclass(WorkflowMixinMetaclass, models.Model)):
     """
     order = deferred.ForeignKey(BaseOrder, verbose_name=_("Order"))
     status = FSMField(default='new', protected=True, verbose_name=_("Status"))
-    amount = MoneyField(_("Amount paid"),
+    amount = MoneyField(verbose_name=_("Amount paid"),
         help_text=_("How much was paid with this particular transfer."))
-    transaction_id = models.CharField(_("Transaction ID"), max_length=255,
+    transaction_id = models.CharField(max_length=255, verbose_name=_("Transaction ID"),
         help_text=_("The transaction processor's reference"))
-    created_at = models.DateTimeField(_("Received at"), auto_now_add=True)
-    payment_method = models.CharField(_("Payment method"), max_length=255,
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Received at"))
+    payment_method = models.CharField(max_length=255, verbose_name=_("Payment method"),
         help_text=_("The payment backend used to process the purchase"))
 
     class Meta:
@@ -284,9 +273,9 @@ class BaseOrderShipping(with_metaclass(WorkflowMixinMetaclass, models.Model)):
     """
     order = deferred.ForeignKey(BaseOrder, verbose_name=_("Order"))
     status = FSMField(default='new', protected=True, verbose_name=_("Status"))
-    shipping_id = models.CharField(_("Shipping ID"), max_length=255,
+    shipping_id = models.CharField(max_length=255, verbose_name=_("Shipping ID"),
         help_text=_("The transaction processor's reference"))
-    shipping_method = models.CharField(_("Shipping method"), max_length=255,
+    shipping_method = models.CharField(max_length=255, verbose_name=_("Shipping method"),
         help_text=_("The shipping backend used to deliver the items for this order"))
 
     class Meta:
@@ -303,19 +292,18 @@ class BaseOrderItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     """
     # TODO: add foreign key to OrderShipping
     order = deferred.ForeignKey(BaseOrder, related_name='items', verbose_name=_("Order"))
-    product_name = models.CharField(_("Product name"), max_length=255, null=True, blank=True,
+    product_identifier = models.CharField(max_length=255, verbose_name=_("Product identifier"),
+        help_text=_("Product identifier at the moment of purchase."))
+    product_name = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("Product name"),
         help_text=_("Product name at the moment of purchase."))
-    product_code = models.CharField(_("Product code"), max_length=255, null=True, blank=True,
-        help_text=_("Product code at the moment of purchase."))
-    product = deferred.ForeignKey(BaseProduct, null=True, blank=True, on_delete=models.SET_NULL,
+    product = deferred.ForeignKey('BaseProduct', null=True, blank=True, on_delete=models.SET_NULL,
         verbose_name=_("Product"))
-    _unit_price = models.DecimalField(_("Unit price"), null=True,  # may be NaN
+    _unit_price = models.DecimalField(verbose_name=_("Unit price"), null=True,  # may be NaN
         help_text=_("Products unit price at the moment of purchase."), **BaseOrder.decimalfield_kwargs)
-    _line_total = models.DecimalField(_("Line Total"), null=True,  # may be NaN
+    _line_total = models.DecimalField(verbose_name=_("Line Total"), null=True,  # may be NaN
         help_text=_("Line total on the invoice at the moment of purchase."), **BaseOrder.decimalfield_kwargs)
-    quantity = models.IntegerField(_("Ordered quantity"))
-    extra = JSONField(verbose_name=_("Extra fields"), default={},
-        help_text=_("Arbitrary information for this order item"))
+    quantity = models.IntegerField(verbose_name=_("Ordered quantity"))
+    extra = JSONField(default={}, verbose_name=_("Arbitrary information for this order item"))
 
     class Meta:
         abstract = True
@@ -332,18 +320,21 @@ class BaseOrderItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
 
     def populate_from_cart_item(self, cart_item, request):
         """
-        From a given cart item, populate the current order item.
-        If a CartItem.DoesNotExist exception is raised, discard the order item.
+        From a given cart item, populate the current Order Item.
+        Returns True, if operation was successful.
+        Otherwise discard the given Order Item and keep it in the Cart.
         """
+        if cart_item.quantity == 0:
+            return False
         self.product = cart_item.product
-        # for historical integrity, store the product's name and price at the moment of purchase
-        self.product_name = cart_item.product.product_name
+        self.product_name = cart_item.product.name  # store the name on the moment of purchase, in case it changes
+        self.product_identifier = cart_item.product.identifier
         self._unit_price = Decimal(cart_item.product.get_price(request))
         self._line_total = Decimal(cart_item.line_total)
         self.quantity = cart_item.quantity
         self.extra = dict(cart_item.extra)
-        extra_rows = [(modifier, extra_row.data) for modifier, extra_row in cart_item.extra_rows.items()]
-        self.extra.update(rows=extra_rows)
+        self.extra.update(rows=[(modifier, extra_row.data) for modifier, extra_row in cart_item.extra_rows.items()])
+        return True
 
     def save(self, *args, **kwargs):
         """
