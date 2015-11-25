@@ -15,7 +15,7 @@ from .plugin_base import ShopPluginBase
 class ShopCartPlugin(ShopPluginBase):
     name = _("Cart")
     require_parent = True
-    parent_classes = ('BootstrapColumnPlugin',)
+    parent_classes = ('BootstrapColumnPlugin', 'ProcessStepPlugin',)
     cache = False
     CHOICES = (('editable', _("Editable Cart")), ('static', _("Static Cart")),
         ('summary', _("Cart Summary")), ('watch', _("Watch List")),)
@@ -29,8 +29,8 @@ class ShopCartPlugin(ShopPluginBase):
     )
 
     @classmethod
-    def get_identifier(cls, instance):
-        render_type = instance.glossary.get('render_type')
+    def get_identifier(cls, obj):
+        render_type = obj.glossary.get('render_type')
         return mark_safe(dict(cls.CHOICES).get(render_type, ''))
 
     def get_render_template(self, context, instance, placeholder):
