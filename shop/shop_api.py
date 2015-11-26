@@ -2,7 +2,6 @@
 from shop.models.order import OrderAnnotation
 from shop.util.order import get_order_from_request
 
-raise NotImplemented("Legacy code")
 
 class ShopAPI(object):
     """
