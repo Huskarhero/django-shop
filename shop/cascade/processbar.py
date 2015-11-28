@@ -37,9 +37,9 @@ class ProcessBarPlugin(TransparentMixin, ShopPluginBase):
     allow_children = True
 
     @classmethod
-    def get_identifier(cls, obj):
-        identifier = super(ProcessBarPlugin, cls).get_identifier(obj)
-        num_cols = obj.get_children().count()
+    def get_identifier(cls, instance):
+        identifier = super(ProcessBarPlugin, cls).get_identifier(instance)
+        num_cols = instance.get_children().count()
         content = ungettext_lazy('with {} page', 'with {} pages', num_cols).format(num_cols)
         return format_html('{0}{1}', identifier, content)
 
@@ -87,11 +87,6 @@ class ProcessStepPlugin(TransparentMixin, ShopPluginBase):
             content = unicode(Truncator(content).words(3, truncate=' ...'))
         return format_html('{0}{1}', identifier, content)
 
-    def get_child_classes(self, slot, page):
-        child_classes = super(ProcessStepPlugin, self).get_child_classes(slot, page)
-        child_classes += ('ProcessNextStepPlugin',)
-        return child_classes
-
 plugin_pool.register_plugin(ProcessStepPlugin)
 
 
@@ -107,14 +102,14 @@ class ProcessNextStepForm(TextLinkFormMixin, ModelForm):
         super(ProcessNextStepForm, self).__init__(raw_data, *args, **kwargs)
 
 
-@python_2_unicode_compatible
-class NextStepElementMixin(object):
-    def __str__(self):
-        return self.content
-
-    @property
-    def content(self):
-        return mark_safe(self.glossary.get('link_content', ''))
+# @python_2_unicode_compatible
+# class NextStepElementMixin(object):
+#     def __str__(self):
+#         return self.content
+# 
+#     @property
+#     def content(self):
+#         return mark_safe(self.glossary.get('link_content', ''))
 
 
 class ProcessNextStepPlugin(BootstrapButtonMixin, ShopPluginBase):

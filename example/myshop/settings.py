@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 """
 Django settings for myshop project.
@@ -13,14 +14,13 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 from decimal import Decimal
 from django.utils.translation import ugettext_lazy as _
-
-# Patches backported from Django<1.8
-from django.utils import numberformat
-from shop.patches import numberformat as patched_numberformat
-numberformat.format = patched_numberformat.format
+from django.core.exceptions import ImproperlyConfigured
 
 SHOP_APP_LABEL = 'myshop'
 BASE_DIR = os.path.dirname(__file__)
+SHOP_TUTORIAL = os.environ.get('DJANGO_SHOP_TUTORIAL', 'simple')
+if SHOP_TUTORIAL not in ('simple', 'i18n', 'polymorphic',):
+    raise ImproperlyConfigured("Environment DJANGO_SHOP_TUTORIAL has an invalid value `{}`".format(SHOP_TUTORIAL))
 
 # Root directory for this django project
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, os.path.pardir))
@@ -104,12 +104,13 @@ INSTALLED_APPS = (
     'post_office',
     'haystack',
     'shop',
+    'shop_stripe',
     'myshop',
 )
 
 MIDDLEWARE_CLASSES = (
     'djangular.middleware.DjangularUrlMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware',
+    #'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -123,8 +124,12 @@ MIDDLEWARE_CLASSES = (
     'cms.middleware.user.CurrentUserMiddleware',
     'cms.middleware.page.CurrentPageMiddleware',
     'cms.middleware.toolbar.ToolbarMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
+    #'django.middleware.cache.FetchFromCacheMiddleware',
 )
+
+MIGRATION_MODULES = {
+    'myshop': 'myshop.migrations_{}'.format(SHOP_TUTORIAL)
+}
 
 ROOT_URLCONF = 'myshop.urls'
 
@@ -135,12 +140,12 @@ WSGI_APPLICATION = 'myshop.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(WORK_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(WORK_DIR, 'db-{}.sqlite3'.format(SHOP_TUTORIAL)),
     }
 }
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.7/topics/i18n/
+# https://docs.djangoproject.com/en/stable/topics/i18n/
 
 LANGUAGE_CODE = 'de'
 
@@ -204,6 +209,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
     'cms.context_processors.cms_settings',
     'shop.context_processors.customer',
+    'shop_stripe.context_processors.public_keys',
     'sekizai.context_processors.sekizai',
 )
 
@@ -239,6 +245,8 @@ LOGGING = {
         },
     },
 }
+
+SILENCED_SYSTEM_CHECKS = ('auth.W004')
 
 
 ############################################
@@ -305,13 +313,13 @@ SERIALIZATION_MODULES = {'shop': b'shop.money.serializers'}
 ############################################
 # settings for storing data in memory
 
-X_CACHES = {
-    'default': {
-        'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': 'localhost:6379',
-        'KEY_PREFIX': SHOP_APP_LABEL + '-cache',
-    },
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'redis_cache.RedisCache',
+#         'LOCATION': 'localhost:6379',
+#         'KEY_PREFIX': SHOP_APP_LABEL + '-cache',
+#     },
+# }
 
 SESSION_ENGINE = 'redis_sessions.session'
 SESSION_SAVE_EVERY_REQUEST = True
@@ -352,7 +360,6 @@ THUMBNAIL_PROCESSORS = (
 
 CMS_TEMPLATES = (
     ('myshop/pages/default.html', _("Default Page")),
-#    ('myshop/pages/catalog-list.html', _("List Commodites")),
 )
 
 CMS_SEO_FIELDS = True
@@ -387,6 +394,26 @@ CMS_CACHE_DURATIONS = {
 
 CMS_PERMISSION = False
 
+CMS_PLACEHOLDER_CONF = {
+    'Main Content Container': {
+        'plugins': ['BootstrapRowPlugin', 'SimpleWrapperPlugin', 'SegmentPlugin'],
+        'text_only_plugins': ['TextLinkPlugin'],
+        'parent_classes': {'BootstrapRowPlugin': []},
+        'require_parent': False,
+        'glossary': {
+            'breakpoints': ['xs', 'sm', 'md', 'lg'],
+            'container_max_widths': {'xs': 750, 'sm': 750, 'md': 970, 'lg': 1170},
+            'fluid': False,
+            'media_queries': {
+                'xs': ['(max-width: 768px)'],
+                'sm': ['(min-width: 768px)', '(max-width: 992px)'],
+                'md': ['(min-width: 992px)', '(max-width: 1200px)'],
+                'lg': ['(min-width: 1200px)'],
+            },
+        },
+    },
+}
+
 CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.segmentation', 'cmsplugin_cascade.generic', 'cmsplugin_cascade.link', 'shop.cascade', 'cmsplugin_cascade.bootstrap3',)
 
 CMSPLUGIN_CASCADE_DEPENDENCIES = {
@@ -410,7 +437,7 @@ CMSPLUGIN_CASCADE_WITH_EXTRAFIELDS = (
 )
 
 CMSPLUGIN_CASCADE_SEGMENTATION_MIXINS = (
-    ('cmsplugin_cascade.segmentation.mixins.SegmentPluginModelMixin', 'cmsplugin_cascade.segmentation.mixins.EmulateUserAdminMixin'),
+    ('shop.cascade.segmentation.EmulateCustomerModelMixin', 'shop.cascade.segmentation.EmulateCustomerAdminMixin'),
 )
 
 CKEDITOR_SETTINGS = {
@@ -431,6 +458,8 @@ CKEDITOR_SETTINGS = {
         ['Source']
     ],
 }
+
+SELECT2_MEDIA_PREFIX = 'bower_components/select2/dist/'
 
 #############################################
 # settings for full index text search (Haystack)
@@ -473,5 +502,10 @@ SHOP_ORDER_WORKFLOWS = (
 SHOP_STRIPE = {
     'PUBKEY': 'pk_test_stripe_secret',
     'APIKEY': 'sk_test_stripe_secret',
-    'PURCHASE_DESCRIPTION': _("Thank for purchasing at MyShop"),
+    'PURCHASE_DESCRIPTION': _("Thanks for purchasing at MyShop"),
 }
+try:
+    from . import private_settings
+    SHOP_STRIPE.update(private_settings.SHOP_STRIPE)
+except (ImportError, AttributeError):
+    pass
