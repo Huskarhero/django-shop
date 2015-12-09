@@ -11,8 +11,10 @@ I would be happy to get some feedback.
 
 # django SHOP
 
-This version of django-shop is currently under active development. If you want
-to help out, please have a look at our development documentation in the ``DEVELOPMENT.rst`` file.
+This version of django-shop is currently under development. If you want to help
+out, please have a look at our `Development documentation`_.
+
+.. _Development documentation: DEVELOPMENT.rst
 
 This repository hosts the django SHOP code and documentation.
 
@@ -24,12 +26,15 @@ framework, that a moderately talented Django programmer should be able to pick u
 The current state is a roughly functional and highly modular system. Please refer to
 docs/plugins.rst to figure out what plugin types are available, and what the do.
 
-You'll find the detailed doc on [RTD] (http://readthedocs.org/projects/django-shop/)
+You'll find the detailed doc on `RTD <http://readthedocs.org/projects/django-shop/>`_
 
 
 ## Build status
 
-[![Build Status](https://travis-ci.org/jrief/django-shop.svg)](https://travis-ci.org/jrief/django-shop)
+.. |travisci| image:: https://api.travis-ci.org/divio/django-shop.png
+.. _travisci https://travis-ci.org/divio/django-shop
+
+|travisci|
 
 
 ## How to help:

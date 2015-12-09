@@ -14,7 +14,6 @@ from shop.models.related import ProductPageModel, ProductImageModel
 class ProductImageInline(SortableInlineAdminMixin, admin.StackedInline):
     model = ProductImageModel
     extra = 1
-    ordering = ('order',)
 
 
 class CMSPageAsCategoryMixin(object):
