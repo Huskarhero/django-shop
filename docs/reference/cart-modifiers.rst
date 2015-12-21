@@ -2,13 +2,13 @@
 Cart modifiers
 ==============
 
-Cart Modifiers are simple plugins that allow you to define rules in a programmatic way, how the
+Cart modifiers are simple plugins that allow you to define rules in a programmatic way, how the
 totals of a cart are computed and how they are labeled. A typical job is to compute tax rates,
-adding discounts, shipping and payment costs, etc.
+adding discounts depending on certain conditions, adding shipping and payment costs, etc.
 
 Instead of implementing each possible combination for all of these use cases, the **djangoSHOP**
-framework offers an API, where third party applications can hooks into every computational step.
-One thing to note here is that Cart Modifiers are not only invoked, when the cart is complete and
+framework adds an API, where third party applications can hooks into every computational step.
+One thing to note here is that Cart modifiers are not only invoked, when the cart is complete and
 the customer wants to proceed to the checkout, but also for each item before being added to the
 cart.
 
@@ -29,15 +29,12 @@ shops ``settings.py`` they must be configured as a list or tuple such as:
 	    'shop_stripe.modifiers.StripePaymentModifier',
 	)
 
-When updating the cart, these modifiers are applied in the order of the above list. Therefore it
-makes a difference, if taxes are applied before or after having applied the shipping costs.
-
-Moreover, whenever in the detail view the quantity of a product is updated, then all configured
-modifiers are ran for that item. This allows the ``ItemModelSerializer``, to even change the unit
-price of product depending on the total content of the cart.
+When updating the cart they are applied in the order of the above list. Therefore it can make a
+difference, if taxes are applied before or after having applied the shipping costs. Moreover,
+some modifiers are applied only under certain conditions.
 
 Cart modifiers are easy to write and they normally consist only of a few lines of code. It is the
-intention of **djangoSHOP** to seed an eco-system for these kinds of plugins.
+intention of this framework to built an eco-system of these kinds of plugins around **djangoSHOP**.
 
 Here is an incomplete list of some useful cart modifiers.
 
@@ -61,26 +58,11 @@ Since this modifier sets the cart items line total, it must be listed as the fir
 Payment Cart Modifiers
 ----------------------
 
-From these kinds of modifiers, only that for the chosen payment method is applied. Payment Modifiers
-are used to add extra costs or discounts depending on the chosen payment method. By overriding the
-method ``is_disabled`` a payment method can be disabled; useful to disable certain payments in case
-the carts total is below a certain threshold.
 
 
-Shipping Cart Modifiers
------------------------
 
-From these kinds of modifiers, only that for the chosen shipping method is applied. Shipping
-Modifiers are used to add extra costs or discounts depending on chosen shipping method, the number
-of items in the cart and their weight. By overriding the method ``is_disabled`` a shipping method
-can be disabled; useful to disable certain payments in case the carts total is below a certain
-threshold.
+How they work
+--------------
+Cart modifiers should extend the
+:class:`shop.modifiers.base.BaseCartModifier` class.
 
-
-How Modifiers they work
------------------------
-Cart modifiers should extend the :class:`shop.modifiers.base.BaseCartModifier` class and extend one
-or more of the given methods:
-
-.. autoclass:: shop.modifiers.base.BaseCartModifier
-   :members:

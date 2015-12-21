@@ -448,9 +448,7 @@ CKEDITOR_SETTINGS = {
     ],
 }
 
-SELECT2_CSS = 'bower_components/select2/dist/css/select2.min.css'
-SELECT2_JS = 'bower_components/select2/dist/js/select2.min.js'
-
+SELECT2_MEDIA_PREFIX = 'bower_components/select2/dist/'
 
 #############################################
 # settings for full index text search (Haystack)
