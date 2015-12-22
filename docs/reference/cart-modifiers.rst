@@ -77,14 +77,10 @@ can be disabled; useful to disable certain payments in case the carts total is b
 threshold.
 
 
-How Modifiers work
-------------------
+How Modifiers they work
+-----------------------
 Cart modifiers should extend the :class:`shop.modifiers.base.BaseCartModifier` class and extend one
 or more of the given methods:
-
-.. note:: Until version 0.2 of **djangoSHOP**, the Cart Modifiers returned the amount and label
-		for the extra item rows, and **djangoSHOP** added them up. Since Version 0.3 cart modifiers
-		must change the line subtotals and cart total themselves.
 
 .. autoclass:: shop.modifiers.base.BaseCartModifier
    :members:
