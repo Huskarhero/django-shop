@@ -496,14 +496,8 @@ SHOP_STRIPE = {
     'APIKEY': 'sk_test_stripe_secret',
     'PURCHASE_DESCRIPTION': _("Thanks for purchasing at MyShop"),
 }
-
-for priv_attr in ('SHOP_STRIPE', 'DATABASES'):
-    try:
-        from . import private_settings
-        vars()[priv_attr].update(getattr(private_settings, priv_attr))
-    except AttributeError:
-        continue
-    except KeyError:
-        vars()[priv_attr] = getattr(private_settings, priv_attr)
-    except ImportError:
-        break
+try:
+    from . import private_settings
+    SHOP_STRIPE.update(private_settings.SHOP_STRIPE)
+except (ImportError, AttributeError):
+    pass

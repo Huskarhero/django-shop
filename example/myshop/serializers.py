@@ -10,6 +10,7 @@ if settings.SHOP_TUTORIAL in ('simple', 'i18n'):
     Product = import_string('myshop.models.{}.smartcard.SmartCard'.format(settings.SHOP_TUTORIAL))
 else:
     Product = import_string('myshop.models.polymorphic.product.Product')
+#from .search_indexes import CommodityIndex
 
 
 class ProductSummarySerializer(ProductSummarySerializerBase):
@@ -30,23 +31,7 @@ class ProductDetailSerializer(ProductDetailSerializerBase):
         exclude = ('active',)
 
 
-class AddSmartCardToCartSerializer(AddToCartSerializer):
-    """
-    Modified AddToCartSerializer which handles SmartCards
-    """
-    def get_instance(self, context, data, extra_args):
-        product = context['product']
-        extra = context['request'].data.get('extra', {})
-        extra.setdefault('product_code', product.product_code)
-        instance = {
-            'product': product.id,
-            'unit_price': product.unit_price,
-            'extra': extra,
-        }
-        return instance
-
-
-class AddSmartPhoneToCartSerializer(AddToCartSerializer):
+class AddSmartphoneToCartSerializer(AddToCartSerializer):
     """
     Modified AddToCartSerializer which handles SmartPhones
     """
@@ -54,11 +39,9 @@ class AddSmartPhoneToCartSerializer(AddToCartSerializer):
         product = context['product']
         extra = context['request'].data.get('extra', {})
         extra.setdefault('product_code', product.smartphone_set.first().product_code)
-        product_markedness = product.get_product_markedness(extra)
-        extra['storage'] = product_markedness.storage
         instance = {
             'product': product.id,
-            'unit_price': product_markedness.unit_price,
+            'unit_price': product.get_product_markedness(extra).unit_price,
             'extra': extra,
         }
         return instance
@@ -71,5 +54,12 @@ class ProductSearchSerializer(ProductSearchSerializerBase):
     app_label = settings.SHOP_APP_LABEL.lower()
 
     class Meta(ProductSearchSerializerBase.Meta):
+        #index_classes = (CommodityIndex,)
         fields = ProductSearchSerializerBase.Meta.fields + ('description', 'media', 'overlay')
         field_aliases = {'q': 'text'}
+
+
+# class CommoditySearchSerializer(ProductSearchSerializer):
+#     class Meta(ProductSearchSerializer.Meta):
+#         index_classes = (CommodityIndex,)
+#         field_aliases = {'q': 'autocomplete'}

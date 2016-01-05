@@ -7,7 +7,7 @@ from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible, force_text
 from django.utils.translation import ugettext_lazy as _
 from polymorphic.manager import PolymorphicManager
-from polymorphic.models import PolymorphicModel
+from polymorphic.polymorphic_model import PolymorphicModel
 from polymorphic.base import PolymorphicModelBase
 from . import deferred
 
@@ -52,17 +52,25 @@ class PolymorphicProductMetaclass(PolymorphicModelBase):
             try:
                 if issubclass(baseclass._materialized_model, Model):
                     # as the materialized model, use the most generic one
+                    cls.check_fields(Model, attrs)
                     baseclass._materialized_model = Model
                 elif not issubclass(Model, baseclass._materialized_model):
                     raise ImproperlyConfigured("Abstract base class {} has already been associated "
                         "with a model {}, which is different or not a submodel of {}."
                         .format(name, Model, baseclass._materialized_model))
             except (AttributeError, TypeError):
+                cls.check_fields(Model, attrs)
                 baseclass._materialized_model = Model
 
             # check for pending mappings in the ForeignKeyBuilder and in case, process them
             deferred.ForeignKeyBuilder.process_pending_mappings(Model, baseclass.__name__)
         return Model
+
+    @classmethod
+    def check_fields(cls, Model, attrs):
+        if not isinstance(attrs.get('product_name'), (models.Field, property)):
+            msg = "Class `{}` must provide a model field or property implementing `product_name`"
+            raise NotImplementedError(msg.format(Model.__name__))
 
 
 @python_2_unicode_compatible
@@ -108,13 +116,6 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
         """
         return self.polymorphic_ctype.model
 
-    @property
-    def product_name(self):
-        """
-        Hook to return the name of this product.
-        """
-        raise NotImplemented("subclasses of BaseProduct must provide a product_name() method")
-
     def get_absolute_url(self):
         """
         Hook for returning the canonical Django URL of this product.
@@ -150,12 +151,11 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
     def is_in_cart(self, cart, extra, watched=False):
         """
         Checks if the product is already in the given cart, and if so, returns the corresponding
-        cart_item, otherwise this method returns None.
-        The boolean `watched` is used to determine if this check shall only be performed for the
-        watch-list.
-        Optionally one may pass arbitrary information about the product using `extra`. This can
-        be used to determine if products with variations shall increase the number of items or
-        being added as separate items.
+        cart_item, otherwise this method returns None. The dictionary `extra` is  used for passing
+        arbitrary information about the product. It can be used to determine if products with
+        variations shall be added to the cart or added as separate items.
+        The boolean `watched` can be used to determine if this check shall only be performed for
+        the watch-list.
         """
         from .cart import CartItemModel
         cart_item_qs = CartItemModel.objects.filter(cart=cart, product=self)

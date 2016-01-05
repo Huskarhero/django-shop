@@ -1,7 +1,7 @@
 .. _simple-product:
 
 =========================
-Modeling a simple product
+Modeling a Simple Product
 =========================
 
 As a simple example, this tutorial uses Smart Cards as its first product. As emphasized in section
