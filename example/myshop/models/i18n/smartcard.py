@@ -18,7 +18,7 @@ class ProductManager(TranslatableManager):
 
 
 @python_2_unicode_compatible
-class SmartCard(BaseProduct, TranslatableModel):
+class SmartCard(TranslatableModel, BaseProduct):
     # common product fields
     name = models.CharField(max_length=255, verbose_name=_("Name"))
     slug = models.SlugField(verbose_name=_("Slug"))

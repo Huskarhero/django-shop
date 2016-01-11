@@ -77,7 +77,6 @@ INSTALLED_APPS = (
     'djangocms_text_ckeditor',
     'django_select2',
     'cmsplugin_cascade',
-    'cmsplugin_cascade.clipboard',
     'cmsplugin_cascade.sharable',
     'cmsplugin_cascade.extra_fields',
     'cmsplugin_cascade.segmentation',
@@ -132,6 +131,8 @@ ROOT_URLCONF = 'myshop.urls'
 
 WSGI_APPLICATION = 'myshop.wsgi.application'
 
+# Database
+# https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -403,17 +404,13 @@ CMS_PLACEHOLDER_CONF = {
     },
 }
 
-CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.segmentation', 'cmsplugin_cascade.generic',
-    'cmsplugin_cascade.link', 'shop.cascade', 'cmsplugin_cascade.bootstrap3',)
+CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.segmentation', 'cmsplugin_cascade.generic', 'cmsplugin_cascade.link', 'shop.cascade', 'cmsplugin_cascade.bootstrap3',)
 
 CMSPLUGIN_CASCADE = {
     'dependencies': {
         'shop/js/admin/shoplinkplugin.js': 'cascade/js/admin/linkpluginbase.js',
     },
     'alien_plugins': ('TextPlugin', 'TextLinkPlugin',),
-    'bootstrap3': {
-        'template_basedir': 'angular-ui',
-    },
     'plugins_with_extra_fields': (
         'BootstrapButtonPlugin',
         'BootstrapRowPlugin',
@@ -499,14 +496,8 @@ SHOP_STRIPE = {
     'APIKEY': 'sk_test_stripe_secret',
     'PURCHASE_DESCRIPTION': _("Thanks for purchasing at MyShop"),
 }
-
-for priv_attr in ('SHOP_STRIPE', 'DATABASES'):
-    try:
-        from . import private_settings
-        vars()[priv_attr].update(getattr(private_settings, priv_attr))
-    except AttributeError:
-        continue
-    except KeyError:
-        vars()[priv_attr] = getattr(private_settings, priv_attr)
-    except ImportError:
-        break
+try:
+    from . import private_settings
+    SHOP_STRIPE.update(private_settings.SHOP_STRIPE)
+except (ImportError, AttributeError):
+    pass

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.db.models import Sum
 from django.db.models.query import QuerySet
 from django.utils.cache import add_never_cache_headers
 from rest_framework import viewsets
@@ -20,14 +19,10 @@ class BaseViewSet(viewsets.ModelViewSet):
         return cart
 
     @list_route(methods=['get'])
-    def update_caption(self, request):
+    def count_items(self, request):
         cart = self.get_queryset()
-        if cart:
-            caption = CartItemModel.objects.filter(cart=cart).aggregate(total_quantity=Sum('quantity'))
-            caption.update(num_items=cart.items.count())
-        else:
-            caption = {'total_quantity': 0, 'num_items': 0}
-        return Response(caption)
+        data = {'count_items': cart and cart.items.count() or 0}
+        return Response(data)
 
     def paginate_queryset(self, queryset):
         if isinstance(queryset, QuerySet):

@@ -25,6 +25,8 @@ djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$mo
 			return;
 		isLoading = true;
 		$http.post(updateUrl, $scope.context).success(function(context) {
+			console.log('loaded product:');
+			console.log(context);
 			prevContext = context;
 			$scope.context = angular.copy(context);
 		}).error(function(msg) {
@@ -56,6 +58,7 @@ djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$mo
 djangoShopModule.controller('ModalInstanceCtrl', ['$scope', '$http', '$modalInstance', 'modal_context',
                                         function($scope, $http, $modalInstance, modal_context) {
 	var isLoading = false;
+	console.log(modal_context);
 	$scope.proceed = function(next_url) {
 		if (isLoading)
 			return;
@@ -80,78 +83,15 @@ djangoShopModule.controller('ModalInstanceCtrl', ['$scope', '$http', '$modalInst
 
 // Directive <ANY shop-add-to-cart="REST-API-endpoint">
 // handle dialog box on the product's detail page to add a product to the cart
-djangoShopModule.directive('shopAddToCart', function() {
+djangoShopModule.directive('shopAddToCart', function($window) {
 	return {
 		restrict: 'A',
 		controller: 'AddToCartCtrl',
 		link: function(scope, element, attrs, AddToCartCtrl) {
 			if (!attrs.shopAddToCart)
-				throw new Error("Directive shop-add-to-cart must point onto an URL");
+				throw new Error("shop-add-to-cart must point onto an URL");
 			AddToCartCtrl.setUpdateUrl(attrs.shopAddToCart); 
 			AddToCartCtrl.loadContext();
-		}
-	};
-});
-
-
-//Directive <ANY shop-catalog-list="REST-API-endpoint">
-djangoShopModule.directive('shopCatalogList', function() {
-	return {
-		restrict: 'A',
-		controller: ['$scope', '$http', '$window', function($scope, $http, $window) {
-			var self = this, fetchURL = $window.location.pathname;
-
-			this.loadProducts = function(config) {
-				if ($scope.isLoading || fetchURL === null)
-					return;
-				$scope.isLoading = true;
-				$http.get(fetchURL, config).success(function(response) {
-					fetchURL = response.next;
-					$scope.countProducts = response.count;
-					$scope.products = $scope.products.concat(response.results);
-					$scope.isLoading = false;
-				}).error(function() {
-					$scope.isLoading = false;
-				});
-			}
-
-			$scope.loadMore = function() {
-				console.log('load more products ...');
-				self.loadProducts();
-			};
-
-			$scope.products = [];
-			$scope.isLoading = false;
-			$scope.countProducts = null;
-		}],
-		link: function(scope, element, attrs, controller) {
-			console.log(controller);
-		}
-	};
-});
-
-
-// Directive <ANY shop-sync-catalog="REST-API-endpoint">
-// handle catalog list view combined with adding products to cart
-djangoShopModule.directive('shopSyncCatalog', function() {
-	var syncCatalogUrl;
-	return {
-		restrict: 'A',
-		controller: ['$scope', '$http', function($scope, $http) {
-			$scope.syncQuantity = function(id) {
-				var context = angular.extend({id: id}, $scope.context.products[id]);
-				$http.post(syncCatalogUrl, context).success(function(context) {
-					angular.extend($scope.context.products[id], context);
-					$scope.$emit('shopUpdateCarticonCaption');
-				}).error(function(msg) {
-					console.error('Unable to sync quantity: ' + msg);
-				});
-			}
-		}],
-		link: function(scope, element, attrs, AddToCartCtrl) {
-			if (!attrs.shopSyncCatalog)
-				throw new Error("Directive shop-sync-catalog must point onto an URL");
-			syncCatalogUrl = attrs.shopSyncCatalog;
 		}
 	};
 });
