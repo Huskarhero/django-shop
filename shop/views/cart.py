@@ -18,6 +18,12 @@ class BaseViewSet(viewsets.ModelViewSet):
         # otherwise the CartSerializer will show its detail view and list all its cart items
         return cart
 
+    @list_route(methods=['get'])
+    def count_items(self, request):
+        cart = self.get_queryset()
+        data = {'count_items': cart and cart.items.count() or 0}
+        return Response(data)
+
     def paginate_queryset(self, queryset):
         if isinstance(queryset, QuerySet):
             return super(BaseViewSet, self).paginate_queryset(queryset)
@@ -40,16 +46,6 @@ class CartViewSet(BaseViewSet):
     serializer_label = 'cart'
     serializer_class = serializers.CartSerializer
     item_serializer_class = serializers.CartItemSerializer
-
-    @list_route(methods=['get'])
-    def update_caption(self, request):
-        cart = self.get_queryset()
-        if cart:
-            cart.update(request)
-            caption = cart.get_caption_data()
-        else:
-            caption = CartModel.get_default_caption_data()
-        return Response(caption)
 
 
 class WatchViewSet(BaseViewSet):
