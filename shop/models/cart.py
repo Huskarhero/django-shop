@@ -7,6 +7,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from jsonfield.fields import JSONField
 from shop.modifiers.pool import cart_modifiers_pool
+from shop.money import Money
 from .product import BaseProduct
 from . import deferred
 from shop.models.customer import CustomerModel
@@ -218,14 +219,31 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         return "{}".format(self.pk) or '(unsaved)'
 
     @property
+    def num_items(self):
+        """
+        Returns the number of items in the cart.
+        """
+        return self.items.count()
+
+    @property
     def total_quantity(self):
         """
         Returns the total quantity of all items in the cart.
         """
-        return sum([ci.quantity for ci in self.items.all()])
+        return self.items.aggregate(models.Sum('quantity'))['quantity__sum']
+        # if we would know, that self.items is already evaluated, then this might be faster:
+        # return sum([ci.quantity for ci in self.items.all()])
 
     @property
     def is_empty(self):
         return self.total_quantity == 0
+
+    def get_caption_data(self):
+        return {'num_items': self.num_items, 'total_quantity': self.total_quantity,
+                'subtotal': self.subtotal, 'total': self.total}
+
+    @classmethod
+    def get_default_caption_data(cls):
+        return {'num_items': 0, 'total_quantity': 0, 'subtotal': Money(), 'total': Money()}
 
 CartModel = deferred.MaterializedModel(BaseCart)
