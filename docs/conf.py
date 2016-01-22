@@ -25,7 +25,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = []
+extensions = ['sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'django SHOP'
-copyright = u'2010, Chris Glass'
+copyright = u' 2016 Jacob Rief, 2010 Chris Glas'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -95,7 +95,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -181,10 +181,10 @@ htmlhelp_basename = 'DjangoShopdoc'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [
-  ('index_', 'DjangoShop.tex', u'Django SHOP Documentation',
-   u'Chris Glass', 'manual'),
-]
+#latex_documents = [
+#  ('index_', 'DjangoShop.tex', u'Django SHOP Documentation',
+#   u'Chris Glass', 'manual'),
+#]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
@@ -214,7 +214,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index_', 'djangoshop', u'Django SHOP Documentation',
-     [u'Chris Glass'], 1)
-]
+#man_pages = [
+#    ('index_', 'djangoshop', u'Django SHOP Documentation',
+#     [u'Chris Glass'], 1)
+#]
