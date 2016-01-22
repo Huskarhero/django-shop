@@ -1,51 +1,72 @@
 
-=======================================
-Welcome to the djangoSHOP documentation
-=======================================
+========================================
+Welcome to django SHOP's documentation!
+========================================
 
+User Manual
+============
 
-Tutorial
-========
-
-This tutorial shows how to setup a working e-commerce site with **djangoSHOP** using the given
-dependencies. The code required to setup this demo can be found in the example/myshop folder.
+The "instructions" :)
 
 .. toctree::
-	:maxdepth: 1
-	:numbered:
+    :maxdepth: 1
+    :numbered:
 
-	tutorial/intro
-	tutorial/quickstart
-	tutorial/simple-product
-	tutorial/multilingual-product
-	tutorial/polymorphic-product
-	tutorial/catalog-views
-	tutorial/cart-checkout-views
+    tutorial
+
+    getting-started
+    templatetags
+    signals
+    contributing
+
+How to
+======
+
+Various short articles on how to do specific things
+
+.. toctree::
+    :maxdepth: 2
+    :numbered:
+
+    howto/how-to-product
+    howto/how-to-cart-mod
+    howto/how-to-payment
+    howto/how-to-shipping
+    howto/how-to-interact-with-the-cart
+    howto/how-to-secure-your-views
+
+Advanced how to
+===============
+
+More focused short articles, focusing on less general and more advanced use cases.
+
+.. toctree::
+    :maxdepth: 2
+    :numbered:
+
+    howto/how-to-extend-django-shop-models
+    howto/how-to-use-your-own-addressmodel
 
 
 Reference
 ==========
 
-Reference to classes and concepts used in **djangoSHOP**
+Reference sheets and lists regarding django SHOP
 
 .. toctree::
-	:maxdepth: 1
-	:numbered:
+    :maxdepth: 1
+    :numbered:
 
-	reference/customer-model
-	reference/deferred-models
-	reference/money-types
-	reference/product-models
-	reference/cascade-plugins
-	reference/cart
-	reference/order
-	reference/notifications
+    plugins
+    settings
 
+The name
+========
 
-Development and Community
-=========================
+The official name of this project is **django SHOP**.
 
-.. toctree::
-	:maxdepth: 1
+**Django SHOP** should be capitalised at the start of sentences and in
+title-case headings.
 
-	contributing
+When referring to the package, repositories and any other things in which
+spaces are not permitted, use **django-shop**.

@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-from shop.models.order import OrderAnnotation
+#-*- coding: utf-8 -*-
+from shop.models.ordermodel import OrderExtraInfo, Order
 from shop.util.order import get_order_from_request
 
-raise NotImplemented("Legacy code")
 
 class ShopAPI(object):
     """
@@ -40,7 +39,7 @@ class ShopAPI(object):
         """
         Add an extra info text field to the order
         """
-        OrderAnnotation.objects.create(text=text, order=order)
+        OrderExtraInfo.objects.create(text=text, order=order)
 
     def is_order_paid(self, order):
         """Whether the passed order is fully paid or not."""
