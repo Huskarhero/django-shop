@@ -2,10 +2,9 @@
 .project
 .pydevproject
 .settings
-.cache
+.tox/
 *.coverage
 *~
-private_settings.py
 build
 docs/_build
 dist
@@ -19,12 +18,6 @@ share/
 *.sqlite
 database.db
 *.swp
-.DS_store
 *coverage.xml
 .idea
 .ropeproject
-OLD-out-of-date
-.tox
-workdir/
-node_modules/
-bower_components/

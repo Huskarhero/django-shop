@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-from shop.models import deferred
-from shop.models.address import BaseAddress
-from shop.models.cart import BaseCart
+from django.utils.translation import ugettext_lazy as _
+from shop.models_bases import BaseCart
 
 
 class Cart(BaseCart):
-    """
-    Default materialized model for BaseCart containing common fields
-    """
-    shipping_address = deferred.ForeignKey(BaseAddress, null=True, default=None, related_name='+')
-    billing_address = deferred.ForeignKey(BaseAddress, null=True, default=None, related_name='+')
+    class Meta(object):
+        abstract = False
+        app_label = 'shop'
+        verbose_name = _('Cart')
+        verbose_name_plural = _('Carts')
