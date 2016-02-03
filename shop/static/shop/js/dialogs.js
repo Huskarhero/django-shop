@@ -2,14 +2,14 @@
 'use strict';
 
 // module: django.shop, TODO: move this into a summary JS file
-var djangoShopModule = angular.module('django.shop.dialogs', ['ng.django.urls', 'ng.django.forms', 'django.shop.utils']);
+var djangoShopModule = angular.module('django.shop.dialogs', ['ng.django.urls', 'ng.django.forms']);
 
 
 // Shared controller for all forms, links and buttons using shop-dialog elements. It just adds
 // an `upload` function to the scope, so that all forms can send their gathered data to the
 // server. Since this controller does not make any presumption on how and where to proceed to,
 // the caller has to set the controllers `deferred` to a `$q.deferred()` object.
-djangoShopModule.controller('DialogController', ['$scope', '$rootScope', '$http', '$q', 'djangoUrl', 'djangoForm',
+djangoShopModule.controller('DialogCtrl', ['$scope', '$rootScope', '$http', '$q', 'djangoUrl', 'djangoForm',
                                    function($scope, $rootScope, $http, $q, djangoUrl, djangoForm) {
 	var uploadURL = djangoUrl.reverse('shop:checkout-upload');
 
@@ -54,10 +54,10 @@ djangoShopModule.controller('DialogController', ['$scope', '$rootScope', '$http'
 djangoShopModule.directive('shopDialogForm', function() {
 	return {
 		restrict: 'A',
-		controller: 'DialogController',
-		link: function(scope, element, attrs, DialogController) {
+		controller: 'DialogCtrl',
+		link: function(scope, element, attrs, DialogCtrl) {
 			scope.upload = function() {
-				DialogController.uploadScope(scope);
+				DialogCtrl.uploadScope(scope);
 			};
 		}
 	};
@@ -65,18 +65,18 @@ djangoShopModule.directive('shopDialogForm', function() {
 
 
 // Directive shop-dialog-proceed to be added to button elements.
-djangoShopModule.directive('shopDialogProceed', ['$window', '$http', '$q', 'djangoUrl', 'djangoShop',
-                         function($window, $http, $q, djangoUrl, djangoShop) {
+djangoShopModule.directive('shopDialogProceed', ['$window', '$http', '$q', 'djangoUrl',
+                         function($window, $http, $q, djangoUrl) {
 	var purchaseURL = djangoUrl.reverse('shop:checkout-purchase');
 	return {
 		restrict: 'EA',
-		controller: djangoShop.dialogController,
-		link: function(scope, element, attrs, DialogController) {
+		controller: 'DialogCtrl',
+		link: function(scope, element, attrs, DialogCtrl) {
 			// add ng-click="proceed()" to button elements wishing to post the content of the
 			// current scope. Returns a promise for further processing.
 			scope.proceed = function() {
 				var deferred = $q.defer();
-				DialogController.uploadScope(scope, deferred);
+				DialogCtrl.uploadScope(scope, deferred);
 				return deferred.promise;
 			};
 
@@ -84,7 +84,7 @@ djangoShopModule.directive('shopDialogProceed', ['$window', '$http', '$q', 'djan
 			// proceed after having posted the content of the current scope.
 			scope.proceedWith = function(action) {
 				var deferred = $q.defer();
-				DialogController.uploadScope(scope, deferred);
+				DialogCtrl.uploadScope(scope, deferred);
 				performAction(deferred.promise, action);
 			};
 
