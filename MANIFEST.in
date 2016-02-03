@@ -1,5 +1,11 @@
+include AUTHORS.rst
 include LICENSE
-include README.md
-recursive-include email_auth *
-recursive-include shop *
+include CHANGELOG.rst
+include README.rst
+include runtests.sh
+recursive-include docs *
+recursive-include shop/locale *
+recursive-include shop/templates *
+recursive-include shop/media *
+recursive-include tests *
 recursive-exclude * *.pyc

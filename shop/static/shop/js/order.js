@@ -2,11 +2,11 @@
 'use strict';
 
 // module: django.shop, TODO: move this into a summary JS file
-var djangoShopModule = angular.module('django.shop.utils', []);
+var djangoShopModule = angular.module('django.shop.order', []);
 
 // Directive <shop-time>
 // handle a djangoSHOP's timestamp
-djangoShopModule.directive('shopTimestamp', ['$filter', '$locale', function($filter, $locale) {
+djangoShopModule.directive('shopTimestamp', ['$filter', '$locale', 'translation', function($filter, $locale, translation) {
 	return {
 		restrict: 'EAC',
 		link: function(scope, element, attrs) {
@@ -16,11 +16,11 @@ djangoShopModule.directive('shopTimestamp', ['$filter', '$locale', function($fil
 	};
 }]);
 
-djangoShopModule.provider('djangoShop', function() {
+djangoShopModule.provider('translation', function() {
 	var self = this;
 
-	this.setTranslations = function(translations) {
-		self.translations = translations;
+	this.setDesignations = function(designators) {
+		self.designators = designators;
 	};
 
 	this.$get = function() {
