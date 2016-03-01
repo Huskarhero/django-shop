@@ -19,11 +19,8 @@ class CustomerMiddleware(object):
 
     def process_response(self, request, response):
         content_type = response.get('content-type')
-        try:
-            if content_type.startswith('text/html'):
-                # only update last_access when rendering the main page
-                request.customer.last_access = timezone.now()
-                request.customer.save(update_fields=['last_access'])
-        except AttributeError:
-            pass
+        if content_type and content_type.startswith('text/html'):
+            # only update last_access when rendering the main page
+            request.customer.last_access = timezone.now()
+            request.customer.save(update_fields=['last_access'])
         return response
