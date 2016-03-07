@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 Holds all the information relevant to the client (addresses for instance)
 """
 from six import with_metaclass
-from django.conf import settings
 from django.db import models
 from django.template import Context
 from django.template.loader import select_template
@@ -13,59 +12,31 @@ from shop import settings as shop_settings
 from . import deferred
 
 
-class AddressManager(models.Manager):
-    def get_max_priority(self, customer):
-        aggr = self.get_queryset().filter(customer=customer).aggregate(models.Max('priority'))
-        priority = aggr['priority__max'] or 0
-        return priority
+class BaseAddress(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
+    customer = deferred.ForeignKey('BaseCustomer')
+    priority_shipping = models.SmallIntegerField(null=True, default=None,
+        help_text=_("Priority of using this address for shipping"))
+    priority_billing = models.SmallIntegerField(null=True, default=None,
+        help_text=_("Priority of using this address for invoicing"))
 
-    def get_fallback(self, customer):
-        """
-        Return a fallback address, whenever the customer has not declared one.
-        """
-        return self.get_queryset().filter(customer=customer).order_by('priority').last()
-
-
-class BaseAddress(models.Model):
-    customer = models.ForeignKey(settings.AUTH_USER_MODEL)
-    priority = models.SmallIntegerField(help_text=_("Priority for using this address"))
-
-    class Meta:
+    class Meta(object):
         abstract = True
-
-    objects = AddressManager()
+        verbose_name = _("Address")
+        verbose_name_plural = _("Addresses")
 
     def as_text(self):
         """
         Return the address as plain text to be used for printing, etc.
         """
         template_names = [
-            '{}/{}.txt'.format(shop_settings.APP_LABEL, self.address_type),
             '{}/address.txt'.format(shop_settings.APP_LABEL),
             'shop/address.txt',
         ]
         template = select_template(template_names)
         context = Context({'address': self})
         return template.render(context)
-    as_text.short_description = _("Address")
 
-
-class BaseShippingAddress(with_metaclass(deferred.ForeignKeyBuilder, BaseAddress)):
-    address_type = 'shipping_address'
-
-    class Meta:
-        abstract = True
-
-ShippingAddressModel = deferred.MaterializedModel(BaseShippingAddress)
-
-
-class BaseBillingAddress(with_metaclass(deferred.ForeignKeyBuilder, BaseAddress)):
-    address_type = 'billing_address'
-
-    class Meta:
-        abstract = True
-
-BillingAddressModel = deferred.MaterializedModel(BaseBillingAddress)
+AddressModel = deferred.MaterializedModel(BaseAddress)
 
 ISO_3166_CODES = (
     ('AF', _("Afghanistan")),

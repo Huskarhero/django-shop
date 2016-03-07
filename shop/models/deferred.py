@@ -80,11 +80,11 @@ class ForeignKeyBuilder(ModelBase):
                         raise AssertionError("Both Model classes '%s' and '%s' inherited from abstract"
                             "base class %s, which is disallowed in this configuration." %
                             (Model.__name__, cls._materialized_models[basename], basename))
-                elif isinstance(baseclass, cls):
+                else:
                     cls._materialized_models[basename] = Model.__name__
                     # remember the materialized model mapping in the base class for further usage
                     baseclass._materialized_model = Model
-            cls.process_pending_mappings(Model, basename)
+            ForeignKeyBuilder.process_pending_mappings(Model, basename)
 
         # search for deferred foreign fields in our Model
         for attrname in dir(Model):
