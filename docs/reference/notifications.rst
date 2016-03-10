@@ -109,10 +109,9 @@ Displaying HTML in email clients is a pain. Nobody really can say, which HTML ta
 in which client – and there are many email readers out there, far more than Internet browsers.
 
 Therefore when designing HTML templates for emails, one must be really, really conservative.
-It may seem anachronistic, but still a best practice is to use the ``<table>`` element, and if
-necessary, nest it into their ``<td>`` (tables data) elements. Moreover, use inline styles rather
-than a ``<style>`` element containing blocks of CSS. It is recommended to use a special
-`email framework`_ to avoid nasty quirks, when rendering the templates.
+Even if it seems anachronistic, but the best practice is still to use the ``<table>`` element, and
+if necessary, nest it into their ``<td>`` (tables data) elements. Moreover, use inline styles rather
+than a ``<style>`` element containing blocks of CSS.
 
 Images can be embedded into HTML emails using two different methods. One is to host the image on the
 web-server and to build an absolute URI referring it. Therefore **djangoSHOP** enriches the object
@@ -129,4 +128,3 @@ size of an email and shall only be used for small an medium sized images.
 .. _signaling framework: https://docs.djangoproject.com/en/stable/topics/signals/
 .. _Post Office: https://github.com/ui/django-post_office
 .. _Easy-thumbnails: http://easy-thumbnails.readthedocs.org/en/latest/usage/#easy_thumbnails.templatetags.thumbnail.data_uri
-.. _email framework: http://emailframe.work/
