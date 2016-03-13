@@ -14,7 +14,13 @@ RUN chown redis.redis /etc/uwsgi.d/redis.ini
 
 ADD requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
-RUN pip install uwsgi https://github.com/jrief/django-shop/archive/develop.zip
+RUN pip install uwsgi
+
+WORKDIR /usr/lib/python2.7
+RUN pip install -e git+https://github.com/jrief/django-shop.git#egg=django-shop
+WORKDIR /usr/lib/python2.7/src/django-shop
+RUN npm install
+RUN bower install --allow-root
 
 RUN useradd -M -d /web -s /bin/bash django
 RUN mkdir -p /web/{logs,workdir,elasticsearch,redis}
