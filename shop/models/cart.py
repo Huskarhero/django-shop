@@ -234,7 +234,7 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         Returns the number of items in the cart.
         """
-        return self.items.filter(quantity__gt=0).count()
+        return self.items.count()
 
     @property
     def total_quantity(self):

@@ -289,11 +289,9 @@ class BaseCartSerializer(serializers.ModelSerializer):
 
 class CartSerializer(BaseCartSerializer):
     items = CartItemSerializer(many=True, read_only=True)
-    num_items = serializers.IntegerField()
-    total_quantity = serializers.IntegerField()
 
     class Meta(BaseCartSerializer.Meta):
-        fields = ('items', 'num_items', 'total_quantity') + BaseCartSerializer.Meta.fields
+        fields = ('items',) + BaseCartSerializer.Meta.fields
 
 
 class WatchSerializer(BaseCartSerializer):
