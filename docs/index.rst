@@ -86,9 +86,3 @@ Development and Community
 
 	changelog
 	contributing
-
-
-License
-=======
-
-**DjangoSHOP** is licensed under the terms of the BSD license.
