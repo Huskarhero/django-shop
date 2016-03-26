@@ -10,7 +10,7 @@ from .plugin_base import ShopPluginBase
 class ShopCatalogPlugin(ShopPluginBase):
     name = _("Catalog List View")
     require_parent = True
-    parent_classes = ('BootstrapColumnPlugin', 'SimpleWrapperPlugin',)
+    parent_classes = ('BootstrapColumnPlugin',)
     cache = False
 
     def get_render_template(self, context, instance, placeholder):

@@ -1,5 +1,3 @@
-Obsolete documentation
-
 =======
 Signals
 =======
