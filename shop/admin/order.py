@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from django.conf import settings
 from django.conf.urls import patterns, url
 from django.contrib import admin
@@ -41,25 +40,19 @@ class OrderPaymentInline(admin.TabularInline):
 class OrderItemInline(admin.StackedInline):
     model = OrderItemModel
     extra = 0
+    readonly_fields = ('product_code', 'product_name', 'unit_price', 'line_total', 'extra',)
     fields = (
-        ('product_code', 'unit_price', 'line_total',),
-        ('quantity',),
-        'get_extra_data',
+        ('product_code', 'product_name',),
+        ('quantity', 'unit_price', 'line_total',),
+        'extra',
     )
-    readonly_fields = ('product_code', 'quantity', 'unit_price', 'line_total', 'get_extra_data',)
 
-    def has_add_permission(self, request, obj=None):
-        return False
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super(OrderItemInline, self).get_formset(request, obj, **kwargs)
+        return formset
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-    def get_max_num(self, request, obj=None, **kwargs):
-        return self.model.objects.filter(order=obj).count()
-
-    def get_extra_data(self, obj):
-        return obj.extra  # TODO: use a template to format this data
-    get_extra_data.short_description = _("Extra data")
 
 
 class StatusListFilter(admin.SimpleListFilter):
@@ -137,8 +130,8 @@ class PrintOrderAdminMixin(object):
 
     def get_urls(self):
         my_urls = patterns('',
-            url(r'^(?P<pk>\d+)/print_confirmation/$', self.admin_site.admin_view(self.render_confirmation),
-                name='print_confirmation'),
+            url(r'^(?P<pk>\d+)/print_delivery_note/$', self.admin_site.admin_view(self.render_delivery_note),
+                name='print_delivery_note'),
             url(r'^(?P<pk>\d+)/print_invoice/$', self.admin_site.admin_view(self.render_invoice),
                 name='print_invoice'),
         )
@@ -155,10 +148,10 @@ class PrintOrderAdminMixin(object):
         }))
         return HttpResponse(content)
 
-    def render_confirmation(self, request, pk=None):
+    def render_delivery_note(self, request, pk=None):
         template = select_template([
-            '{}/print/order-confirmation.html'.format(settings.SHOP_APP_LABEL.lower()),
-            'shop/print/order-confirmation.html'
+            '{}/print/delivery-note.html'.format(settings.SHOP_APP_LABEL.lower()),
+            'shop/print/delivery-note.html'
         ])
         return self._render_letter(request, pk, template)
 
@@ -171,7 +164,7 @@ class PrintOrderAdminMixin(object):
 
     def print_out(self, obj):
         if obj.status == 'pick_goods':
-            button = reverse('admin:print_confirmation', args=(obj.id,)), _("Order Confirmation")
+            button = reverse('admin:print_delivery_note', args=(obj.id,)), _("Delivery Note")
         elif obj.status == 'pack_goods':
             button = reverse('admin:print_invoice', args=(obj.id,)), _("Invoice")
         else:

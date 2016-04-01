@@ -3,15 +3,14 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import models
+from django.db.models import IntegerField
 from django.utils.translation import ugettext_lazy as _
 from shop.models import order
 from shop.models.cart import CartItemModel
 
 
 class OrderItem(order.BaseOrderItem):
-    quantity = models.IntegerField(_("Ordered quantity"))
-    canceled = models.BooleanField(_("Item canceled "), default=False)
+    quantity = IntegerField(_("Ordered quantity"))
 
     def populate_from_cart_item(self, cart_item, request):
         from .smartphone import SmartPhoneModel

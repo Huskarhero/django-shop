@@ -63,8 +63,7 @@ class CMSPageProductListView(ProductListView):
     product model.
     """
     renderer_classes = (CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer)
-    filter_backends = list(api_settings.DEFAULT_FILTER_BACKENDS)
-    filter_backends.append(CMSPagesFilterBackend())
+    filter_backends = api_settings.DEFAULT_FILTER_BACKENDS + [CMSPagesFilterBackend()]
 
     def filter_queryset(self, queryset):
         self.filter_context = None
