@@ -25,7 +25,7 @@ try:
         """
         call_command('shopcustomers', delete_expired=True)
 except ImportError:
-    print("uwsgidecorators not found. Cron and timers are disabled")
+    pass
 
 application = get_wsgi_application()
 
