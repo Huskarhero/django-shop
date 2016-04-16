@@ -42,6 +42,9 @@ class ShopLinkPluginBase(ShopPluginBase):
     Base plugin for arbitrary buttons used during various checkout pages.
     """
     allow_children = False
+    fields = (('link_type', 'cms_page',), 'glossary',)
+    glossary_field_map = {'link': ('link_type', 'cms_page',)}
+    allow_children = False
     parent_classes = []
     require_parent = False
 
@@ -75,10 +78,11 @@ class ShopButtonPluginBase(ShopLinkPluginBase):
     """
     Base plugin for arbitrary buttons used during various checkout pages.
     """
-    fields = ('link_content', ('link_type', 'cms_page', 'section',), 'glossary',)
+    fields = ('link_content', ('link_type', 'cms_page',), 'glossary',)
 
     class Media:
         css = {'all': ('cascade/css/admin/bootstrap.min.css', 'cascade/css/admin/bootstrap-theme.min.css',)}
+        js = resolve_dependencies('shop/js/admin/shoplinkplugin.js')
 
     @classmethod
     def get_identifier(cls, instance):
@@ -90,7 +94,7 @@ class HeavySelect2Widget(HeavySelect2Widget):
         try:
             result = ProductSelectSerializer(ProductModel.objects.get(pk=value))
             choices = ((value, result.data['text']),)
-        except (ProductModel.DoesNotExist, ValueError):
+        except ProductModel.DoesNotExist:
             choices = ()
         html = super(HeavySelect2Widget, self).render(name, value, attrs=attrs, choices=choices)
         return html
@@ -131,7 +135,7 @@ class CatalogLinkForm(LinkForm):
                 'pk': self.cleaned_data['product'],
             }
 
-    def set_initial_product(self, data, initial):
+    def set_initial_product(self, initial):
         try:
             # check if that product still exists, otherwise return nothing
             Model = apps.get_model(*initial['link']['model'].split('.'))
@@ -142,10 +146,17 @@ class CatalogLinkForm(LinkForm):
 
 class CatalogLinkPluginBase(LinkPluginBase):
     """
-    Modified implementation of ``cmsplugin_cascade.link.DefaultLinkPluginBase`` which adds another
-    link type, namely "Product", to set links onto arbitrary products of this shop.
+    Modified implementation of ``cmsplugin_cascade.link.LinkPluginBase`` which adds link type
+    "Product", to set links onto arbitrary products of this shop.
     """
-    fields = (('link_type', 'cms_page', 'section', 'product', 'ext_url', 'mail_to',), 'glossary',)
+#     glossary_fields = (
+#         PartialFormField('title',
+#             widgets.TextInput(),
+#             label=_("Title"),
+#             help_text=_("Link's Title")
+#         ),
+#     ) + LinkPluginBase.glossary_fields
+    glossary_field_map = {'link': ('link_type', 'cms_page', 'product', 'ext_url', 'mail_to',)}
 
     class Media:
         js = resolve_dependencies('shop/js/admin/shoplinkplugin.js')
