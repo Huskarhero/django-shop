@@ -8,24 +8,19 @@ from djangocms_text_ckeditor.fields import HTMLField
 from parler.managers import TranslatableManager, TranslatableQuerySet
 from parler.models import TranslatableModel, TranslatedFieldsModel
 from parler.fields import TranslatedField
-from polymorphic.query import PolymorphicQuerySet
 from shop.money.fields import MoneyField
-from shop.models.product import BaseProductManager, BaseProduct
-from shop.models.defaults.mapping import ProductPage, ProductImage
-from myshop.models.properties import Manufacturer
+from shop.models.product import BaseProduct
+from myshop.models.properties import Manufacturer, ProductPage, ProductImage
 
 
-class ProductQuerySet(TranslatableQuerySet, PolymorphicQuerySet):
-    pass
-
-
-class ProductManager(BaseProductManager, TranslatableManager):
-    queryset_class = ProductQuerySet
+class ProductManager(TranslatableManager):
+    queryset_class = TranslatableQuerySet
 
 
 @python_2_unicode_compatible
-class SmartCard(BaseProduct, TranslatableModel):
-    product_name = models.CharField(max_length=255, verbose_name=_("Product Name"))
+class SmartCard(TranslatableModel, BaseProduct):
+    # common product fields
+    name = models.CharField(max_length=255, verbose_name=_("Name"))
     slug = models.SlugField(verbose_name=_("Slug"))
     unit_price = MoneyField(_("Unit price"), decimal_places=3,
         help_text=_("Net price for this product"))
@@ -44,14 +39,9 @@ class SmartCard(BaseProduct, TranslatableModel):
 
     # controlling the catalog
     order = models.PositiveIntegerField(verbose_name=_("Sort by"), db_index=True)
-    cms_pages = models.ManyToManyField('cms.Page', through=ProductPage,
+    cms_pages = models.ManyToManyField('cms.Page', through=ProductPage, null=True,
         help_text=_("Choose list view this product shall appear on."))
-    images = models.ManyToManyField('filer.Image', through=ProductImage)
-
-    objects = ProductManager()
-
-    # filter expression used to lookup for a product item using the Select2 widget
-    lookup_fields = ('product_code__startswith', 'product_name__icontains',)
+    images = models.ManyToManyField('filer.Image', through=ProductImage, null=True)
 
     class Meta:
         verbose_name = _("Smart Card")
@@ -61,7 +51,11 @@ class SmartCard(BaseProduct, TranslatableModel):
     objects = ProductManager()
 
     def __str__(self):
-        return self.product_name
+        return self.name
+
+    @property
+    def product_name(self):
+        return self.name
 
     @property
     def sample_image(self):

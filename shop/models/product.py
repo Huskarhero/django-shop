@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from datetime import datetime
-from functools import reduce
-import operator
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible, force_text
 from django.utils.translation import ugettext_lazy as _
 from polymorphic.manager import PolymorphicManager
-from polymorphic.models import PolymorphicModel
+from polymorphic.polymorphic_model import PolymorphicModel
 from polymorphic.base import PolymorphicModelBase
 from . import deferred
 
@@ -19,15 +16,13 @@ class BaseProductManager(PolymorphicManager):
     """
     A base ModelManager for all non-object manipulation needs, mostly statistics and querying.
     """
-    def select_lookup(self, search_term):
+    def select_lookup(self, term):
         """
-        Returning a queryset containing the products matching the declared lookup fields together
-        with the given search term. Each product can define its own lookup fields using the
-        member list or tuple `lookup_fields`.
+        Hook to returns a queryset containing the products matching the lookup criteria given
+        be the search term. This method must be implemented by the ProductManager used by the
+        real model implementing the product.
         """
-        filter_by_term = (models.Q((sf, search_term)) for sf in self.model.lookup_fields)
-        queryset = self.get_queryset().filter(reduce(operator.or_, filter_by_term))
-        return queryset
+        raise NotImplemented("subclasses of BaseProductManager must provide a select_lookup() method")
 
     def indexable(self):
         """
@@ -67,32 +62,7 @@ class PolymorphicProductMetaclass(PolymorphicModelBase):
 
             # check for pending mappings in the ForeignKeyBuilder and in case, process them
             deferred.ForeignKeyBuilder.process_pending_mappings(Model, baseclass.__name__)
-
-        cls.perform_model_checks(Model)
         return Model
-
-    @classmethod
-    def perform_model_checks(cls, Model):
-        """
-        Perform some safety checks on the ProductModel being created.
-        """
-        if not isinstance(Model.objects, BaseProductManager):
-            msg = "Class `{}.objects` must provide ModelManager inheriting from BaseProductManager"
-            raise NotImplementedError(msg.format(Model.__name__))
-
-        if not isinstance(getattr(Model, 'lookup_fields', None), (list, tuple)):
-            msg = "Class `{}` must provide a tuple of `lookup_fields` so that we can easily lookup for Products"
-            raise NotImplementedError(msg.format(Model.__name__))
-
-        try:
-            Model().product_name
-        except AttributeError:
-            msg = "Class `{}` must provide a model field or property implementing `product_name`"
-            raise NotImplementedError(msg.format(Model.__name__))
-
-        if not callable(getattr(Model, 'get_price', None)):
-            msg = "Class `{}` must provide a method implementing `get_price(request)`"
-            raise NotImplementedError(msg.format(cls.__name__))
 
 
 @python_2_unicode_compatible
@@ -113,6 +83,8 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated at"))
     active = models.BooleanField(default=True, verbose_name=_("Active"),
         help_text=_("Is this product publicly visible."))
+
+    objects = BaseProductManager()
 
     class Meta:
         abstract = True
@@ -136,11 +108,18 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
         """
         return self.polymorphic_ctype.model
 
+    @property
+    def product_name(self):
+        """
+        Hook to return the name of this product.
+        """
+        raise NotImplemented("subclasses of BaseProduct must provide a product_name() method")
+
     def get_absolute_url(self):
         """
         Hook for returning the canonical Django URL of this product.
         """
-        msg = "Method get_absolute_url() must be implemented by subclass: `{}`"
+        msg = "Method get_absolute_url() must be implemented by subclass: {}"
         raise NotImplementedError(msg.format(self.__class__.__name__))
 
     def get_price(self, request):
@@ -168,16 +147,14 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
         """
         return [(True, datetime.max)]  # Infinite number of products available until eternity
 
-    def is_in_cart(self, cart, watched=False, **kwargs):
+    def is_in_cart(self, cart, extra, watched=False):
         """
         Checks if the product is already in the given cart, and if so, returns the corresponding
-        cart_item, otherwise this method returns None.
-        The boolean `watched` is used to determine if this check shall only be performed for the
-        watch-list.
-        Optionally one may pass arbitrary information about the product using `**kwargs`. This can
-        be used to determine if a product with variations shall be considered as the same cart item
-        increasing it quantity, or if it shall be considered as a separate cart item, resulting in
-        the creation of a new cart item.
+        cart_item, otherwise this method returns None. The dictionary `extra` is  used for passing
+        arbitrary information about the product. It can be used to determine if products with
+        variations shall be added to the cart or added as separate items.
+        The boolean `watched` can be used to determine if this check shall only be performed for
+        the watch-list.
         """
         from .cart import CartItemModel
         cart_item_qs = CartItemModel.objects.filter(cart=cart, product=self)

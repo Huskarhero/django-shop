@@ -11,10 +11,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'treebeard',
     'cms',
-    'menus',
     'post_office',
     'filer',
-    'easy_thumbnails',
     'shop',
     'testshop',
 )
@@ -25,8 +23,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'shop.middleware.CustomerMiddleware',
 )
-
-STATIC_URL = '/static/'
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',

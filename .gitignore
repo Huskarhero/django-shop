@@ -2,14 +2,12 @@
 .project
 .pydevproject
 .settings
-.tox/
 .cache
 *.coverage
 *~
 private_settings.py
 build
 docs/_build
-docs/web_build
 dist
 *egg-info*
 htmlcov

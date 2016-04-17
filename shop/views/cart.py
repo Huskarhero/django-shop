@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from django.db.models.query import QuerySet
 from django.utils.cache import add_never_cache_headers
 from rest_framework import viewsets
@@ -12,15 +11,18 @@ from shop.rest import serializers
 
 class BaseViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
-        try:
-            cart = CartModel.objects.get_from_request(self.request)
-            if self.kwargs.get(self.lookup_field):
-                # we're interest only into a certain cart item
-                return CartItemModel.objects.filter(cart=cart)
-            # otherwise the CartSerializer will show its detail view and list all its cart items
-            return cart
-        except CartModel.DoesNotExist:
-            return CartModel()
+        cart = CartModel.objects.get_from_request(self.request)
+        if cart and self.kwargs.get(self.lookup_field):
+            # we're interest only into a certain cart item
+            return CartItemModel.objects.filter(cart=cart)
+        # otherwise the CartSerializer will show its detail view and list all its cart items
+        return cart
+
+    @list_route(methods=['get'])
+    def count_items(self, request):
+        cart = self.get_queryset()
+        data = {'count_items': cart and cart.items.count() or 0}
+        return Response(data)
 
     def paginate_queryset(self, queryset):
         if isinstance(queryset, QuerySet):
@@ -44,16 +46,6 @@ class CartViewSet(BaseViewSet):
     serializer_label = 'cart'
     serializer_class = serializers.CartSerializer
     item_serializer_class = serializers.CartItemSerializer
-
-    @list_route(methods=['get'])
-    def update_caption(self, request):
-        cart = self.get_queryset()
-        if cart:
-            cart.update(request)
-            caption = cart.get_caption_data()
-        else:
-            caption = CartModel.get_default_caption_data()
-        return Response(caption)
 
 
 class WatchViewSet(BaseViewSet):

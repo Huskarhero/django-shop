@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django import forms
-from django.db import models
+from django.db.models.fields import DecimalField
+from django.db.models import SubfieldBase
+from django.utils import six
 from django.utils.html import format_html
-from django.utils.translation import ugettext_lazy as _
 from shop import settings as shop_settings
 from .money_maker import MoneyMaker, AbstractMoney
 from .iso4217 import CURRENCIES
@@ -55,33 +55,21 @@ class MoneyFormField(forms.DecimalField):
         return value
 
 
-class MoneyField(models.DecimalField):
+class MoneyField(six.with_metaclass(SubfieldBase, DecimalField)):
     """
     A MoneyField shall be used to store money related amounts in the database, keeping track of
     the used currency. Accessing a model field of type MoneyField, returns a MoneyIn<CURRENCY> type.
     """
-    description = _("Money in %(currency_code)s")
-
     def __init__(self, *args, **kwargs):
-        self.currency_code = kwargs.pop('currency', shop_settings.DEFAULT_CURRENCY)
-        self.Money = MoneyMaker(self.currency_code)
+        currency_code = kwargs.pop('currency', shop_settings.DEFAULT_CURRENCY)
+        self.Money = MoneyMaker(currency_code)
         defaults = {
             'max_digits': 30,
-            'decimal_places': CURRENCIES[self.currency_code][1],
-            'default': self.Money(0) if kwargs.get('required', True) else self.Money(),
+            'decimal_places': CURRENCIES[currency_code][1],
+            'default': '0',
         }
         defaults.update(kwargs)
         super(MoneyField, self).__init__(**defaults)
-
-    def deconstruct(self):
-        name, _, args, kwargs = super(MoneyField, self).deconstruct()
-        if 'default' in kwargs:
-            kwargs['default'] = Decimal()
-        path = 'django.db.models.fields.DecimalField'
-        return name, path, args, kwargs
-
-    def get_internal_type(self):
-        return 'MoneyField'
 
     def to_python(self, value):
         if isinstance(value, AbstractMoney):
@@ -91,41 +79,39 @@ class MoneyField(models.DecimalField):
         value = super(MoneyField, self).to_python(value)
         return self.Money(value)
 
-    def get_prep_value(self, value):
-        # force to type Decimal by using grandparent super
-        value = super(models.DecimalField, self).get_prep_value(value)
-        return super(MoneyField, self).to_python(value)
-
-    def from_db_value(self, value, expression, connection, context):
-        if value is None:
-            return
-        if isinstance(value, float):
-            value = str(value)
-        return self.Money(value)
-
-    def get_db_prep_save(self, value, connection):
-        if value.is_nan():
-            return None
-        return super(MoneyField, self).get_db_prep_save(value, connection)
-
-    def get_prep_lookup(self, lookup_type, value):
-        if isinstance(value, AbstractMoney):
-            if value.get_currency() != self.Money.get_currency():
-                msg = "This field stores money in {}, but the lookup amount is in {}"
-                raise ValueError(msg.format(value.get_currency(), self.Money.get_currency()))
-            value = value.as_decimal()
-        result = super(MoneyField, self).get_prep_lookup(lookup_type, value)
-        return result
-
-    def value_to_string(self, obj):
-        value = self._get_val_from_obj(obj)
-        # grandparent super
-        value = super(models.DecimalField, self).get_prep_value(value)
-        return self.to_python(value)
-
     def formfield(self, **kwargs):
         widget = MoneyFieldWidget(attrs={'currency_code': self.Money.currency})
         defaults = {'form_class': MoneyFormField, 'widget': widget, 'money_class': self.Money}
         defaults.update(**kwargs)
         formfield = super(MoneyField, self).formfield(**defaults)
         return formfield
+
+    def get_db_prep_save(self, value, connection):
+        if value.is_nan():
+            return None
+        return super(MoneyField, self).get_db_prep_save(value, connection)
+
+    def value_to_string(self, obj):
+        value = self._get_val_from_obj(obj)
+        return self.get_prep_value(value)
+
+    def deconstruct(self):
+        """
+        Required for Django migrations.
+        """
+        name, _, args, kwargs = super(MoneyField, self).deconstruct()
+        path = 'django.db.models.fields.DecimalField'
+        return name, path, args, kwargs
+
+    def south_field_triple(self):  # pragma: no cover
+        """
+        Returns a suitable description of this field for South.
+        This is excluded from coverage reports since it is pretty much a piece
+        of South itself, and does not influence program behavior at all in
+        case we don't use South.
+        """
+        # We'll just introspect the _actual_ field.
+        from south.modelsinspector import introspector
+        field_class = 'django.db.models.fields.DecimalField'
+        args, kwargs = introspector(self)
+        return field_class, args, kwargs

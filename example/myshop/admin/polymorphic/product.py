@@ -12,28 +12,8 @@ from polymorphic.admin import (PolymorphicParentModelAdmin, PolymorphicChildMode
     PolymorphicChildModelFilter)
 from shop.admin.product import CMSPageAsCategoryMixin, ProductImageInline
 from myshop.models.polymorphic.product import Product
-from myshop.models.polymorphic.commodity import Commodity
 from myshop.models.polymorphic.smartcard import SmartCard
 from myshop.models.polymorphic.smartphone import OperatingSystem, SmartPhone, SmartPhoneModel
-
-
-class CommodityAdmin(SortableAdminMixin, TranslatableAdmin, FrontendEditableAdminMixin,
-                     PlaceholderAdminMixin, CMSPageAsCategoryMixin, admin.ModelAdmin):
-    base_model = Product
-    fieldsets = (
-        (None, {
-            'fields': ('product_name', 'slug', 'product_code', 'unit_price', 'active',),
-        }),
-        (_("Translatable Fields"), {
-            'fields': ('description',)
-        }),
-        (_("Properties"), {
-            'fields': ('manufacturer',)
-        }),
-    )
-    filter_horizontal = ('cms_pages',)
-    inlines = (ProductImageInline,)
-    prepopulated_fields = {'slug': ('product_name',)}
 
 
 class SmartCardAdmin(SortableAdminMixin, TranslatableAdmin, FrontendEditableAdminMixin,
@@ -41,7 +21,7 @@ class SmartCardAdmin(SortableAdminMixin, TranslatableAdmin, FrontendEditableAdmi
     base_model = Product
     fieldsets = (
         (None, {
-            'fields': ('product_name', 'slug', 'product_code', 'unit_price', 'active',),
+            'fields': ('name', 'slug', 'product_code', 'unit_price', 'active',),
         }),
         (_("Translatable Fields"), {
             'fields': ('description',)
@@ -52,7 +32,7 @@ class SmartCardAdmin(SortableAdminMixin, TranslatableAdmin, FrontendEditableAdmi
     )
     filter_horizontal = ('cms_pages',)
     inlines = (ProductImageInline,)
-    prepopulated_fields = {'slug': ('product_name',)}
+    prepopulated_fields = {'slug': ('name',)}
 
 
 @admin.register(OperatingSystem)
@@ -65,12 +45,12 @@ class SmartPhoneInline(admin.TabularInline):
     extra = 0
 
 
-class SmartPhoneAdmin(SortableAdminMixin, TranslatableAdmin, FrontendEditableAdminMixin,
+class SmartPhoneAdmin(TranslatableAdmin, FrontendEditableAdminMixin,
                       CMSPageAsCategoryMixin, PlaceholderAdminMixin, PolymorphicChildModelAdmin):
     base_model = Product
     fieldsets = (
         (None, {
-            'fields': ('product_name', 'slug', 'active',),
+            'fields': ('name', 'slug', 'active',),
         }),
         (_("Translatable Fields"), {
             'fields': ('description',)
@@ -83,7 +63,7 @@ class SmartPhoneAdmin(SortableAdminMixin, TranslatableAdmin, FrontendEditableAdm
     )
     filter_horizontal = ('cms_pages',)
     inlines = (ProductImageInline, SmartPhoneInline,)
-    prepopulated_fields = {'slug': ('product_name',)}
+    prepopulated_fields = {'slug': ('name',)}
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -101,10 +81,10 @@ class SmartPhoneAdmin(SortableAdminMixin, TranslatableAdmin, FrontendEditableAdm
 @admin.register(Product)
 class ProductAdmin(SortableAdminMixin, PolymorphicParentModelAdmin):
     base_model = Product
-    child_models = ((SmartPhoneModel, SmartPhoneAdmin), (SmartCard, SmartCardAdmin), (Commodity, CommodityAdmin),)
-    list_display = ('product_name', 'get_price', 'product_type', 'active',)
-    list_display_links = ('product_name',)
-    search_fields = ('product_name',)
+    child_models = ((SmartPhoneModel, SmartPhoneAdmin), (SmartCard, SmartCardAdmin),)
+    list_display = ('name', 'get_price', 'product_type', 'active',)
+    list_display_links = ('name',)
+    search_fields = ('name',)
     list_filter = (PolymorphicChildModelFilter,)
     list_per_page = 250
     list_max_show_all = 1000

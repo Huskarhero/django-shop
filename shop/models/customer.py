@@ -75,11 +75,12 @@ class CustomerManager(models.Manager):
         """
         Decode a compact session key back to its original length and base.
         """
+        compact_session_key = compact_session_key
         base_length = len(cls.BASE64_ALPHABET)
         n = 0
         for c in compact_session_key:
             n = n * base_length + cls.REVERSE_ALPHABET[c]
-        return cls._encode(n, cls.BASE36_ALPHABET).zfill(32)
+        return cls._encode(n, cls.BASE36_ALPHABET)
 
     @classmethod
     def _encode(cls, n, base_alphabet):
@@ -195,9 +196,6 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     def get_username(self):
         return self.user.get_username()
 
-    def get_full_name(self):
-        return self.user.get_full_name()
-
     @property
     def first_name(self):
         return self.user.first_name
@@ -239,7 +237,7 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     def is_recognized(self):
         """
         Return True if the customer is associated with a User account.
-        Unrecognized customers have accessed the shop, but did not register
+        Non recognized customers have accessed the shop, but did not register
         an account nor declared themselves as guests.
         """
         return self.recognized != self.UNRECOGNIZED
