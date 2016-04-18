@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.utils.six.moves.urllib.parse import urljoin
@@ -7,19 +8,14 @@ from django.utils.encoding import python_2_unicode_compatible
 from djangocms_text_ckeditor.fields import HTMLField
 from shop.money.fields import MoneyField
 from shop.models.product import BaseProduct, BaseProductManager
-from myshop.models.properties import Manufacturer, ProductPage, ProductImage
-
-
-class ProductManager(BaseProductManager):
-    def select_lookup(self, term):
-        query = models.Q(name__icontains=term) | models.Q(slug__icontains=term)
-        return self.get_queryset().filter(query)
+from shop.models.defaults.mapping import ProductPage, ProductImage
+from myshop.models.properties import Manufacturer
 
 
 @python_2_unicode_compatible
 class SmartCard(BaseProduct):
     # common product fields
-    name = models.CharField(max_length=255, verbose_name=_("Name"))
+    product_name = models.CharField(max_length=255, verbose_name=_("Product Name"))
     slug = models.SlugField(verbose_name=_("Slug"))
     unit_price = MoneyField(_("Unit price"), decimal_places=3,
         help_text=_("Net price for this product"))
@@ -39,11 +35,14 @@ class SmartCard(BaseProduct):
 
     # controlling the catalog
     order = models.PositiveIntegerField(verbose_name=_("Sort by"), db_index=True)
-    cms_pages = models.ManyToManyField('cms.Page', through=ProductPage, null=True,
+    cms_pages = models.ManyToManyField('cms.Page', through=ProductPage,
         help_text=_("Choose list view this product shall appear on."))
-    images = models.ManyToManyField('filer.Image', through=ProductImage, null=True)
+    images = models.ManyToManyField('filer.Image', through=ProductImage)
 
-    objects = ProductManager()
+    objects = BaseProductManager()
+
+    # filter expression used to search for a product item using the Select2 widget
+    lookup_fields = ('product_code__startswith', 'product_name__icontains',)
 
     class Meta:
         verbose_name = _("Smart Card")
@@ -51,11 +50,7 @@ class SmartCard(BaseProduct):
         ordering = ('order',)
 
     def __str__(self):
-        return self.name
-
-    @property
-    def product_name(self):
-        return self.name
+        return self.product_name
 
     @property
     def sample_image(self):

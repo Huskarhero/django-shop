@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db.models.base import ModelBase
 from django.db import models
 from django.utils import six
-from django.utils.functional import SimpleLazyObject, _super, empty
+from django.utils.functional import SimpleLazyObject, empty
 from shop import settings as shop_settings
 
 
@@ -80,11 +80,11 @@ class ForeignKeyBuilder(ModelBase):
                         raise AssertionError("Both Model classes '%s' and '%s' inherited from abstract"
                             "base class %s, which is disallowed in this configuration." %
                             (Model.__name__, cls._materialized_models[basename], basename))
-                else:
+                elif isinstance(baseclass, cls):
                     cls._materialized_models[basename] = Model.__name__
                     # remember the materialized model mapping in the base class for further usage
                     baseclass._materialized_model = Model
-            ForeignKeyBuilder.process_pending_mappings(Model, basename)
+            cls.process_pending_mappings(Model, basename)
 
         # search for deferred foreign fields in our Model
         for attrname in dir(Model):
@@ -100,6 +100,7 @@ class ForeignKeyBuilder(ModelBase):
                 field.contribute_to_class(Model, attrname)
             else:
                 ForeignKeyBuilder._pending_mappings.append((Model, attrname, member,))
+        Model.perform_model_checks()
         return Model
 
     @staticmethod
@@ -117,6 +118,13 @@ class ForeignKeyBuilder(ModelBase):
             raise ImproperlyConfigured(msg.format(self.__name__))
         return object.__getattribute__(self, key)
 
+    @classmethod
+    def perform_model_checks(cls):
+        """
+        Hook for each class inheriting from ForeignKeyBuilder, to perform checks on the
+        implementation of the just created class type.
+        """
+
 
 class MaterializedModel(SimpleLazyObject):
     """
@@ -125,7 +133,7 @@ class MaterializedModel(SimpleLazyObject):
     """
     def __init__(self, base_model):
         self.__dict__['_base_model'] = base_model
-        _super(SimpleLazyObject, self).__init__()
+        super(SimpleLazyObject, self).__init__()
 
     def _setup(self):
         self._wrapped = getattr(self._base_model, '_materialized_model')
@@ -151,3 +159,8 @@ class MaterializedModel(SimpleLazyObject):
         else:
             repr_attr = self._wrapped
         return '<MaterializedModel: {}>'.format(repr_attr)
+
+    def __instancecheck__(self, instance):
+        if self._wrapped is empty:
+            self._setup()
+        return isinstance(instance, self._materialized_model)
