@@ -4,8 +4,8 @@
 Changelog for djangoSHOP
 ========================
 
-0.9.2.dev
-=========
+0.9.2
+=====
 * Bugfix: declared django-rest-auth as requirement in setup.py.
 
 
