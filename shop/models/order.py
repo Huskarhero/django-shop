@@ -328,11 +328,11 @@ class BaseOrderItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
             msg = "Class `{}` must implement a field named `quantity`."
             raise ImproperlyConfigured(msg.format(cls.__name__))
 
-    @cached_property
+    @property
     def unit_price(self):
         return MoneyMaker(self.order.currency)(self._unit_price)
 
-    @cached_property
+    @property
     def line_total(self):
         return MoneyMaker(self.order.currency)(self._line_total)
 
