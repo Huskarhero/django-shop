@@ -4,6 +4,19 @@
 Changelog for djangoSHOP
 ========================
 
+0.9.2.dev
+=========
+* Fixed :method:`shop.money.fields.decontruct` to avoid repetitive useless generation of migration
+  files.
+* Using cached_property decoration for methods ``unit_price`` and ``line_total`` in
+  :class:`shop.models.order.OrderItem`.
+* Fixed #333: Accessing the cart when there is no cart assiciated with a customer.
+* Removed Apphook :class:`shop.cms_apps.OrderApp`. This class now must be added to the project's
+  ``cms_apps.py``. This allows the merchant to override the
+  :class:`shop.rest.serializers.OrderListSerializer` and :class:`shop.rest.serializers.OrderDetailSerializer`.
+* Bugfix: declared django-rest-auth as requirement in setup.py.
+
+
 0.9.1
 =====
 
@@ -11,6 +24,7 @@ Changelog for djangoSHOP
 * Support for Django-1.9
 * Added abstract classes class:`shop.models.delivery.BaseDelivery` and class:`shop.models.delivery.BaseDeliveryItem`
   for optional partial shipping.
+
 
 0.9.0
 =====

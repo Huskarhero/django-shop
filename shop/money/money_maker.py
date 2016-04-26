@@ -107,6 +107,12 @@ class AbstractMoney(Decimal):
             s = Decimal.__str__(self)
         return float(s)
 
+    def __eq__(self, other, context=None):
+        if self.is_nan() and other.is_nan():
+            return True
+        other = self._assert_addable(other)
+        return Decimal.__eq__(self, other)
+
     def __lt__(self, other, context=None):
         other = self._assert_addable(other)
         if self.is_nan():
@@ -130,6 +136,9 @@ class AbstractMoney(Decimal):
         if self.is_nan():
             return Decimal().__ge__(other)
         return Decimal.__ge__(self, other)
+
+    def __deepcopy__(self, memo):
+        return self.__class__(self._cents)
 
     @classproperty
     def currency(cls):
