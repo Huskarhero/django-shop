@@ -296,7 +296,6 @@ LOGGING = {
 
 SILENCED_SYSTEM_CHECKS = ('auth.W004')
 
-FIXTURE_DIRS = [os.path.join(PROJECT_ROOT, 'example/fixtures')]
 
 ############################################
 # settings for sending mail
@@ -536,7 +535,16 @@ SHOP_STRIPE = {
     'PURCHASE_DESCRIPTION': _("Thanks for purchasing at MyShop"),
 }
 
-try:
-    from .private_settings import *
-except ImportError:
-    pass
+# merge settings with non-public credentioals in private_settings
+for priv_attr in ('DATABASES', 'SECRET_KEY', 'SHOP_STRIPE', 'EMAIL_HOST', 'EMAIL_PORT',
+                  'EMAIL_HOST_USER', 'DEFAULT_FROM_EMAIL', 'EMAIL_HOST_PASSWORD', 'EMAIL_USE_TLS',
+                  'EMAIL_REPLY_TO', 'EMAIL_BACKEND'):
+    try:
+        from . import private_settings
+        vars()[priv_attr].update(getattr(private_settings, priv_attr))
+    except AttributeError:
+        continue
+    except KeyError:
+        vars()[priv_attr] = getattr(private_settings, priv_attr)
+    except ImportError:
+        break

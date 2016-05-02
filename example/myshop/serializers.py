@@ -37,7 +37,7 @@ class ProductSummarySerializer(ProductSummarySerializerBase):
 class ProductDetailSerializer(ProductDetailSerializerBase):
     class Meta:
         model = Product
-        exclude = ('active', 'polymorphic_ctype',)
+        exclude = ('active',)
 
 
 class AddSmartCardToCartSerializer(AddToCartSerializer):
