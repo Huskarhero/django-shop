@@ -12,7 +12,7 @@ from parler.managers import TranslatableManager, TranslatableQuerySet
 from polymorphic.query import PolymorphicQuerySet
 from shop.models.product import BaseProductManager, BaseProduct
 from shop.models.defaults.mapping import ProductPage, ProductImage
-from ..manufacturer import Manufacturer
+from myshop.models.properties import Manufacturer
 
 
 class ProductQuerySet(TranslatableQuerySet, PolymorphicQuerySet):
