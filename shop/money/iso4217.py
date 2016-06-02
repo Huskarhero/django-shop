@@ -18,7 +18,6 @@ CURRENCIES = {
     'CZK': ('203', 2, 'Kč', _("Czech Koruna")),
     'EUR': ('978', 2, '€', _("Euro")),
     'GBP': ('826', 2, '£', _("Pound Sterling")),
-    'HRK': ('191', 2, 'kn', _("Croatian kuna")),
     'HUF': ('348', 0, 'Ft', _("Hungarian Forint")),
     'ILS': ('376', 2, '₪', _("Israeli Sheqel")),
     'JPY': ('392', 0, '¥', _("Japanese Yen")),
@@ -27,7 +26,6 @@ CURRENCIES = {
     'QAR': ('634', 2, 'ر.ق', _('Qatari riyal')),
     'RUB': ('643', 2, '₽', _("Russian Ruble")),
     'SAR': ('682', 2, 'ر.س', _('Saudi riyal')),
-    'TND': ('788', 3, 'TND', _("Tunisian Dinar")),
     'UAH': ('980', 2, '₴', _("Ukrainian Hryvnia")),
     'USD': ('840', 2, '$', _("US Dollar")),
     # feel free to add more currencies, alphabetically ordered
