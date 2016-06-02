@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.conf.urls import url
+from django.conf.urls import patterns, url
 from shop.views.catalog import AddToCartView, CMSPageProductListView, ProductRetrieveView
 from shop.search.views import SearchView
 from myshop.serializers import (ProductSummarySerializer, ProductDetailSerializer,
     AddSmartCardToCartSerializer, AddSmartPhoneToCartSerializer, CatalogSearchSerializer)
 
-urlpatterns = [
+urlpatterns = patterns('',
     url(r'^$', CMSPageProductListView.as_view(
         serializer_class=ProductSummarySerializer,
     )),
@@ -23,4 +23,4 @@ urlpatterns = [
     url(r'^(?P<slug>[\w-]+)/add-smartphone-to-cart', AddToCartView.as_view(
         serializer_class=AddSmartPhoneToCartSerializer,
     )),
-]
+)

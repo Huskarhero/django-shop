@@ -16,6 +16,7 @@ from post_office import mail
 from post_office.models import Email as OriginalEmail, EmailTemplate
 from filer.fields.file import FilerFileField
 from .customer import CustomerModel
+from .order import OrderModel
 
 
 class Email(OriginalEmail):
@@ -125,7 +126,6 @@ class EmulateHttpRequest(HttpRequest):
 
 
 def order_event_notification(sender, instance=None, target=None, **kwargs):
-    from shop.models.order import OrderModel
     from shop.rest import serializers
 
     if not isinstance(instance, OrderModel):

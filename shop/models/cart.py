@@ -10,7 +10,7 @@ from jsonfield.fields import JSONField
 from shop.modifiers.pool import cart_modifiers_pool
 from shop.money import Money
 from .product import BaseProduct
-from shop import deferred
+from . import deferred
 from shop.models.customer import CustomerModel
 
 
@@ -227,7 +227,7 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
             self.delete()
 
     def __str__(self):
-        return "{}".format(self.pk) if self.pk else '(unsaved)'
+        return "{}".format(self.pk) or '(unsaved)'
 
     @property
     def num_items(self):
