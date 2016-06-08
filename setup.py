@@ -48,6 +48,5 @@ setup(
         'django-angular>=0.8.1',
         'django-select2>=5.5.0',
         'django-rest-auth>=0.5.0',
-        'django-admin-sortable2>=0.6.3',
     ],
 )

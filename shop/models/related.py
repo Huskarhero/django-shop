@@ -19,7 +19,6 @@ class BaseProductPage(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
 
     class Meta:
         abstract = True
-        unique_together = ('page', 'product',)
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")
 

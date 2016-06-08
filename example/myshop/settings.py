@@ -326,8 +326,6 @@ FSM_ADMIN_FORCE_PERMIT = True
 
 ROBOTS_META_TAGS = ('noindex', 'nofollow')
 
-SERIALIZATION_MODULES = {'json': str('shop.money.serializers')}
-
 ############################################
 # settings for django-restframework and plugins
 
@@ -343,6 +341,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 12,
 }
+
+SERIALIZATION_MODULES = {'json': str('shop.money.serializers')}
+
 
 ############################################
 # settings for storing session data
@@ -497,7 +498,7 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'myshop-en',
     },
 }
-if SHOP_TUTORIAL in ('i18n', 'polymorphic'):
+if USE_I18N:
     HAYSTACK_CONNECTIONS['de'] = {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
         'URL': 'http://localhost:9200/',
