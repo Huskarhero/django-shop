@@ -326,6 +326,8 @@ FSM_ADMIN_FORCE_PERMIT = True
 
 ROBOTS_META_TAGS = ('noindex', 'nofollow')
 
+SERIALIZATION_MODULES = {'json': str('shop.money.serializers')}
+
 ############################################
 # settings for django-restframework and plugins
 
@@ -341,9 +343,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 12,
 }
-
-SERIALIZATION_MODULES = {'json': str('shop.money.serializers')}
-
 
 ############################################
 # settings for storing session data
@@ -471,6 +470,7 @@ CKEDITOR_SETTINGS = {
     'language': '{{ language }}',
     'skin': 'moono',
     'toolbar': 'CMS',
+    'height': 250,
     'toolbar_HTMLField': [
         ['Undo', 'Redo'],
         ['cmsplugins', '-', 'ShowBlocks'],
@@ -482,6 +482,17 @@ CKEDITOR_SETTINGS = {
         ['JustifyLeft', 'JustifyCenter', 'JustifyRight'],
         ['HorizontalRule'],
         ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Table'],
+        ['Source']
+    ],
+}
+
+CKEDITOR_SETTINGS_CAPTION = {
+    'language': '{{ language }}',
+    'skin': 'moono',
+    'height': 70,
+    'toolbar_HTMLField': [
+        ['Undo', 'Redo'],
+        ['Bold', 'Italic', 'Underline', '-', 'Subscript', 'Superscript', '-', 'RemoveFormat'],
         ['Source']
     ],
 }
