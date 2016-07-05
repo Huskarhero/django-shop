@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.utils import timezone
+import datetime
 from django.core import exceptions
 from django.core.cache import cache
 from django.db import models
@@ -348,7 +348,7 @@ class OrderDetailSerializer(OrderListSerializer):
     def update(self, order, validated_data):
         order.extra.setdefault('addenum', [])
         if validated_data.get('annotation'):
-            timestamp = timezone.now().isoformat()
+            timestamp = datetime.datetime.now().isoformat()
             order.extra['addenum'].append((timestamp, validated_data['annotation']))
         if validated_data.get('reorder'):
             cart = CartModel.objects.get_from_request(self.context['request'])
