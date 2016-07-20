@@ -9,10 +9,6 @@ from .product import Product
 
 
 class Commodity(Product):
-    """
-    This Commodity model inherits from polymorphic Product, and therefore has to be redefined.
-    """
-
     # common product fields
     unit_price = MoneyField(_("Unit price"), decimal_places=3,
         help_text=_("Net price for this product"))
@@ -20,7 +16,6 @@ class Commodity(Product):
 
     # controlling the catalog
     placeholder = PlaceholderField("Commodity Details")
-    show_breadcrumb = True  # hard coded to always show the product's breadcrumb
 
     class Meta:
         verbose_name = _("Commodity")
