@@ -10,7 +10,7 @@ from jsonfield.fields import JSONField
 from shop.modifiers.pool import cart_modifiers_pool
 from shop.money import Money
 from .product import BaseProduct
-from shop import deferred
+from . import deferred
 from shop.models.customer import CustomerModel
 
 
@@ -165,9 +165,8 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         self._cached_cart_items = None
         self._dirty = True
 
-    def save(self, force_update=False, *args, **kwargs):
-        if self.pk or force_update is False:
-            super(BaseCart, self).save(force_update=force_update, *args, **kwargs)
+    def save(self, *args, **kwargs):
+        super(BaseCart, self).save(*args, **kwargs)
         self._dirty = True
 
     def update(self, request):
@@ -228,7 +227,7 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
             self.delete()
 
     def __str__(self):
-        return "{}".format(self.pk) if self.pk else '(unsaved)'
+        return "{}".format(self.pk) or '(unsaved)'
 
     @property
     def num_items(self):
@@ -242,7 +241,8 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         Returns the total quantity of all items in the cart.
         """
-        return self.items.aggregate(models.Sum('quantity'))['quantity__sum']
+        aggr = self.items.aggregate(quantity=models.Sum('quantity'))
+        return aggr['quantity'] or 0
         # if we would know, that self.items is already evaluated, then this might be faster:
         # return sum([ci.quantity for ci in self.items.all()])
 

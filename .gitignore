@@ -13,7 +13,6 @@ docs/web_build
 dist
 *egg-info*
 htmlcov
-test-reports
 bin/
 include/
 lib/
