@@ -26,6 +26,3 @@ elif settings.SHOP_TUTORIAL == 'polymorphic':
     from shop.models.defaults.delivery import Delivery, DeliveryItem
 
 from shop.models.defaults.order import Order
-
-__all__ = ['ShippingAddress', 'BillingAddress', 'Cart', 'CartItem', 'Customer', 'Order', 'OrderItem',
-    'Commodity', 'SmartCard', 'SmartPhoneModel', 'SmartPhone', 'Delivery', 'DeliveryItem']

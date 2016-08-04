@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.utils import timezone
+import datetime
 from django.core import exceptions
 from django.core.cache import cache
 from django.db import models
@@ -257,7 +257,7 @@ class BaseCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartModel
-        fields = ('subtotal', 'total', 'extra_rows')
+        fields = ('subtotal', 'extra_rows', 'total',)
 
     def to_representation(self, cart):
         cart.update(self.context['request'])
@@ -267,19 +267,18 @@ class BaseCartSerializer(serializers.ModelSerializer):
 
 class CartSerializer(BaseCartSerializer):
     items = CartItemSerializer(many=True, read_only=True)
-    total_quantity = serializers.IntegerField()
     num_items = serializers.IntegerField()
+    total_quantity = serializers.IntegerField()
 
     class Meta(BaseCartSerializer.Meta):
-        fields = ('items', 'total_quantity', 'num_items') + BaseCartSerializer.Meta.fields
+        fields = ('items', 'num_items', 'total_quantity') + BaseCartSerializer.Meta.fields
 
 
 class WatchSerializer(BaseCartSerializer):
     items = WatchItemSerializer(many=True, read_only=True)
-    num_items = serializers.IntegerField()
 
     class Meta(BaseCartSerializer.Meta):
-        fields = ('items', 'num_items')
+        fields = ('items',)
 
     def to_representation(self, cart):
         # grandparent super
@@ -348,7 +347,7 @@ class OrderDetailSerializer(OrderListSerializer):
     def update(self, order, validated_data):
         order.extra.setdefault('addenum', [])
         if validated_data.get('annotation'):
-            timestamp = timezone.now().isoformat()
+            timestamp = datetime.datetime.now().isoformat()
             order.extra['addenum'].append((timestamp, validated_data['annotation']))
         if validated_data.get('reorder'):
             cart = CartModel.objects.get_from_request(self.context['request'])

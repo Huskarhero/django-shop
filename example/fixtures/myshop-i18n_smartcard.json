@@ -11283,11 +11283,11 @@
   "pk": 1,
   "fields": {
     "priority": 1,
-    "name": "John Doe",
-    "address2": "",
-    "address1": "31 Orwell Road",
+    "addressee": "John Doe",
+    "supplement": "",
+    "street": "31 Orwell Road",
     "zip_code": "L41RG",
-    "city": "Liverpool",
+    "location": "Liverpool",
     "country": "GB",
     "customer": 1
   }
@@ -11320,8 +11320,8 @@
   "model": "myshop.customer",
   "pk": 1,
   "fields": {
-    "recognized": "REGISTERED",
-    "salutation": "na",
+    "recognized": 2,
+    "salutation": "mrs",
     "last_access": "2016-04-07T11:41:57.393Z",
     "extra": "{}",
     "number": 1
@@ -11331,8 +11331,8 @@
   "model": "myshop.customer",
   "pk": 3,
   "fields": {
-    "recognized": "UNRECOGNIZED",
-    "salutation": "na",
+    "recognized": 0,
+    "salutation": "",
     "last_access": "2016-04-07T11:09:00.260Z",
     "extra": "{}",
     "number": null

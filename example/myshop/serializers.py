@@ -27,8 +27,8 @@ class ProductSummarySerializer(ProductSummarySerializerBase):
 
     class Meta:
         model = Product
-        fields = ('id', 'product_name', 'product_url', 'product_model', 'price',
-            'media', 'caption')
+        fields = ('id', 'product_name', 'product_url', 'product_type', 'product_model', 'price',
+                  'media',)
 
     def get_media(self, product):
         return self.render_html(product, 'media')
@@ -70,7 +70,7 @@ class AddSmartPhoneToCartSerializer(AddToCartSerializer):
         instance = {
             'product': product.id,
             'unit_price': variant.unit_price,
-            'extra': {'product_code': variant.product_code, 'storage': variant.storage}
+            'extra': {'product_code': variant.product_code}
         }
         return instance
 
@@ -82,7 +82,7 @@ class ProductSearchSerializer(ProductSearchSerializerBase):
     media = serializers.SerializerMethodField()
 
     class Meta(ProductSearchSerializerBase.Meta):
-        fields = ProductSearchSerializerBase.Meta.fields + ('media', 'caption')
+        fields = ProductSearchSerializerBase.Meta.fields + ('media',)
         index_classes = myshop_search_index_classes
 
     def get_media(self, search_result):
@@ -90,8 +90,5 @@ class ProductSearchSerializer(ProductSearchSerializerBase):
 
 
 class CatalogSearchSerializer(ProductSearchSerializer):
-    """
-    Serializer to restrict products in the catalog
-    """
     def get_media(self, search_result):
         return search_result.catalog_media
