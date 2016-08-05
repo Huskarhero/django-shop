@@ -5,9 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 from shop.money import Money, MoneyMaker
-from djangocms_text_ckeditor.fields import HTMLField
 from shop.money.fields import MoneyField
-from parler.models import TranslatedFields
 from .product import Product
 
 
@@ -57,9 +55,6 @@ class SmartPhoneModel(Product):
     screen_size = models.DecimalField(_("Screen size"), max_digits=4,
         decimal_places=2,
         help_text=_("Diagonal screen size in inch"))
-    multilingual = TranslatedFields(description=HTMLField(verbose_name=_("Description"),
-        configuration='CKEDITOR_SETTINGS_DESCRIPTION',
-        help_text=_("Full description used in the catalog's detail view of Smart Cards.")))
 
     class Meta:
         verbose_name = _("Smart Phone")
@@ -89,7 +84,7 @@ class SmartPhoneModel(Product):
             if cart_item.extra.get('product_code') == product_code:
                 return cart_item
 
-    def get_product_variant(self, product_code):
+    def get_product_markedness(self, product_code):
         try:
             return self.smartphone_set.get(product_code=product_code)
         except SmartPhone.DoesNotExist as e:

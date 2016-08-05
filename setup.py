@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from setuptools import setup, find_packages
 import shop
 try:
@@ -33,25 +29,7 @@ setup(
     license='BSD License',
     platforms=['OS Independent'],
     classifiers=CLASSIFIERS,
-    packages=find_packages(exclude=['example', 'docs', 'testshop']),
+    packages=find_packages(exclude=['example', 'docs', 'tests']),
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        'Django>=1.9',
-        'beautifulsoup4>=4.4.0',
-        'django-cms>=3.2.0',
-        'django-post-office>=2.0.5',
-        'django-filer>=1.0.6',
-        'django-ipware>=1.1.1',
-        'django-fsm>=2.2.1',
-        'djangorestframework>=3.1',
-        'django-angular>=0.8.1',
-        'django-select2>=5.5.0',
-        'django-rest-auth>=0.5.0',
-        'django-admin-sortable2>=0.6.3',
-    ],
-    # Note: this requires setuptools >= 18.0.
-    extras_require={
-        ':python_version<"3.4"': ['enum34'],
-    },
 )

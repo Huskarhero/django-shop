@@ -10,14 +10,14 @@ different elements, without having to craft templates by hand – with one excep
 detail views.
 
 Therefore all we have to focus on, is a default page template with one big placeholder. This
-placeholder then is subdivided into containers, rows, columns and other elements of the **Cascade**
+placeholder then is subdivided into containers, rows, columns and other elements of the Cascade
 plugin collection.
 
 This however requires a completely different approach, from the designer point of view. The way web
-design has been done a few years ago, starting with the screenshot of a finished page, must be
-rethought. This has been discussed in length by many web-designers, especially by Brad Frost in his
-excellent book on `Atomic Web Design`_. He propagates to reverse the design process and start with
-the smallest entity, which he calls Atoms. They form to bigger components, named Molecules, which
+design was done a few years ago, starting with the screenshot of a finished page, must be rethought.
+This has been discussed in length by many web-designers, especially by Brad Frost in his excellent
+book on `Atomic Web Design`_. He propagates to reverse the design process and start with the
+smallest entity, which he calls Atoms. They form to bigger components, named Molecules, which
 themselves aggregate to Organisms.
 
 Some designers nowadays build those components directly in HTML and CSS or SASS, instead of drawing
@@ -51,19 +51,6 @@ This is in contrast to Django's own implementation for searching the template, b
 exiting templates more easily.
 
 
-Breadcrumb
-==========
-
-The **BreadcrumbPlugin** has four different rendering options: *Default*, *Soft-Root*,
-*With Catalog Count* and *Empty*. It can be added exclusively to the placeholder named
-**Breadcrumb**, unless otherwise configured.
-
-The *Default* breadcrumb behaves as expected. *Soft-Root* appends the page title to the existing
-breadcrumb, it shall be used for pages marked as soft root. A breadcrumb of type
-*With Catalog Count* adds a badge containing the number of items. Use an *Empty* to hide the
-breadcrumb otherwise displayed by the placeholder as default.
-
-
 Cart
 ====
 
@@ -85,30 +72,14 @@ A nice aspect of this approach is, that ...
   rendered HTML as well.
 * we get client side form validation for free, without having to write any Javascript nor HTML.
 * if we add, change or delete attributes in a form, this modification propagates down to both
-  form validation controllers: That one in Javascript used on the client as well as the final one,
-  validating the form on the server.
+  form validation controllers, one in Javascript on the client as well as the final one on the
+  server.
 * if our forms are made out of models, all of the above works as well.
 * we can arrange each of those form components using the **Structure** editor from **djangoCMS**
   toolbar. This is much faster, than by crafting templates manually.
 
 As we can see from this approach, **djangoSHOP**  places great value on the principles of a
 `Single Source of Truth`_, when working with customized database models and forms.
-
-Many of these Forms can be rendered using two different approaches:
-
-Form dialog
-~~~~~~~~~~~
-
-Here we render all model fields as input fields and group them into an editable form. This is the
-normal use case.
-
-
-Static summary
-~~~~~~~~~~~~~~
-
-Here we render all model fields as static strings without wrapping it into a form. This shall be
-used to summarize all inputs, preferably on the last process step.
-
 
 These are the currently available plugins provided by **djangoSHOP** to build the checkout page:
 
@@ -209,7 +180,7 @@ so on. All this authentication forms are handled by one single plugin
 
 
 Authentication Plugin
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 This plugin handles a bunch of authentication related forms. Lets list them:
 
@@ -359,21 +330,11 @@ Viewing Orders
 ==============
 
 The **Order Views** plugin is used to render the list- and detail views of orders, specific to the
-currently logged in customer. Without a number in the URL, a list of all orders belonging to the
-current customer is shown. By adding the primary key of a specific order to the URL, all ordered
-items from that specific order are shown. We name this the order detail view, although it is a list
-of items.
+currently logged in customer. Without a number in the URL, a list of all orders is shown. By
+adding the primary key to the URL, all ordered items from that specific order are shown.
 
-This plugin requires a CMS page, which as uses the CMSApp **OrderApp**. This CMS application is part
-of the shop framework and always available in the *Advanced Settings* of each CMS page.
-
-
-Caveat when editing the Order Detail Page
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The Order List- and Detail Pages share one common entity in our CMS page tree. The Order Detail
-view just rendered in a different way. Editing this pseudo page therefore is not possible because
-it is not part of the CMS.
+This plugin requires a CMS page, which uses the CMSApp **OrderApp**. This app is part of the shop
+framework and loaded automatically.
 
 
 Search Results

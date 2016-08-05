@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from django.db import models
-from django.utils import timezone
+from django.utils.datetime_safe import datetime
 from django.utils.translation import ugettext_lazy as _, pgettext_lazy
 from shop.models import order
 
@@ -25,8 +24,8 @@ class Order(order.BaseOrder):
         current year. The last five digits represent a zero-padded incremental counter.
         """
         if self.number is None:
-            epoch = timezone.now().date()
-            epoch = epoch.replace(epoch.year, 1, 1)
+            epoch = datetime.now()
+            epoch = epoch.replace(epoch.year, 1, 1, 0, 0, 0, 0)
             aggr = Order.objects.filter(number__isnull=False, created_at__gt=epoch).aggregate(models.Max('number'))
             try:
                 epoc_number = int(str(aggr['number__max'])[4:]) + 1
@@ -41,5 +40,5 @@ class Order(order.BaseOrder):
 
     def populate_from_cart(self, cart, request):
         self.shipping_address_text = cart.shipping_address.as_text()
-        self.billing_address_text = cart.billing_address.as_text() if cart.billing_address else self.shipping_address_text
+        self.billing_address_text = cart.shipping_address.as_text()
         super(Order, self).populate_from_cart(cart, request)

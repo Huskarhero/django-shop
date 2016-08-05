@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
+from django.db.models import Max
 from django.forms.fields import CharField
-from django.forms import widgets
 from django.template import Engine
 from django.template.loader import select_template
-from django.utils.html import strip_tags, strip_entities
+from django.utils.html import format_html, strip_tags, strip_entities
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
 from django.utils.translation import ugettext_lazy as _
@@ -54,12 +53,10 @@ class ShopProceedButton(BootstrapButtonMixin, ShopButtonPluginBase):
 
     def render(self, context, instance, placeholder):
         super(ShopProceedButton, self).render(context, instance, placeholder)
-        try:
-            cart = CartModel.objects.get_from_request(context['request'])
+        cart = CartModel.objects.get_from_request(context['request'])
+        if cart:
             cart.update(context['request'])
             context['cart'] = cart
-        except CartModel.DoesNotExist:
-            pass
         return context
 
 plugin_pool.register_plugin(ShopProceedButton)
@@ -69,13 +66,11 @@ class CustomerFormPluginBase(DialogFormPluginBase):
     """
     Base class for CustomerFormPlugin and GuestFormPlugin to share common methods.
     """
-    template_leaf_name = 'customer-{}.html'
+    template_leaf_name = 'customer.html'
     cache = False
 
-    def get_form_data(self, context, instance, placeholder):
-        form_data = super(CustomerFormPluginBase, self).get_form_data(context, instance, placeholder)
-        form_data.update(instance=context['request'].customer)
-        return form_data
+    def get_form_data(self, request):
+        return {'instance': request.customer}
 
     def get_render_template(self, context, instance, placeholder):
         if 'error_message' in context:
@@ -118,46 +113,22 @@ DialogFormPluginBase.register_plugin(GuestFormPlugin)
 
 
 class CheckoutAddressPluginBase(DialogFormPluginBase):
-    glossary_fields = DialogFormPluginBase.glossary_fields + (
-        PartialFormField('multi_addr',
-            widgets.CheckboxInput(),
-            label=_("Multiple Addresses"),
-            initial=False,
-            help_text=_("Shall the customer be allowed to edit multiple addresses."),
-        ),
-    )
-
-    def get_form_data(self, context, instance, placeholder):
-        form_data = super(CheckoutAddressPluginBase, self).get_form_data(context, instance, placeholder)
-
+    def get_form_data(self, request):
+        filter_args = {'customer': request.customer, '{}__isnull'.format(self.FormClass.priority_field): False}
         AddressModel = self.FormClass.get_model()
-        assert form_data['cart'] is not None, "Can not proceed to checkout without cart"
-        address = self.get_address(form_data['cart'])
-        form_data.update(instance=address)
-
-        if instance.glossary.get('multi_addr'):
-            addresses = AddressModel.objects.filter(customer=context['request'].customer).order_by('priority')
-            form_entities = [dict(value=str(addr.priority),
-                            label="{}. {}".format(number, addr.as_text().replace('\n', ' – ')))
-                             for number, addr in enumerate(addresses, 1)]
-            form_data.update(multi_addr=True, form_entities=form_entities)
+        address = AddressModel.objects.filter(**filter_args).order_by(self.FormClass.priority_field).first()
+        if address:
+            return {'instance': address}
         else:
-            form_data.update(multi_addr=False)
-        return form_data
+            aggr = AddressModel.objects.filter(customer=request.customer).aggregate(Max(self.FormClass.priority_field))
+            initial = {'priority': aggr['{}__max'.format(self.FormClass.priority_field)] or 0}
+            return {'initial': initial}
 
 
 class ShippingAddressFormPlugin(CheckoutAddressPluginBase):
     name = _("Shipping Address Form")
     form_class = 'shop.forms.checkout.ShippingAddressForm'
-    template_leaf_name = 'shipping-address-{}.html'
-
-    def get_address(self, cart):
-        if cart.shipping_address is None:
-            # fallback to another existing shipping address
-            address = self.FormClass.get_model().objects.get_fallback(customer=cart.customer)
-            cart.shipping_address = address
-            cart.save()
-        return cart.shipping_address
+    template_leaf_name = 'shipping-address.html'
 
 DialogFormPluginBase.register_plugin(ShippingAddressFormPlugin)
 
@@ -165,20 +136,7 @@ DialogFormPluginBase.register_plugin(ShippingAddressFormPlugin)
 class BillingAddressFormPlugin(CheckoutAddressPluginBase):
     name = _("Billing Address Form")
     form_class = 'shop.forms.checkout.BillingAddressForm'
-    template_leaf_name = 'billing-address-{}.html'
-
-    glossary_fields = CheckoutAddressPluginBase.glossary_fields + (
-        PartialFormField('allow_use_shipping',
-            widgets.CheckboxInput(),
-            label=_("Use shipping address"),
-            initial=True,
-            help_text=_("Allow the customer to use the shipping address for billing."),
-        ),
-    )
-
-    def get_address(self, cart):
-        # if billing address is None, we use the shipping address
-        return cart.billing_address
+    template_leaf_name = 'billing-address.html'
 
 DialogFormPluginBase.register_plugin(BillingAddressFormPlugin)
 
@@ -186,14 +144,12 @@ DialogFormPluginBase.register_plugin(BillingAddressFormPlugin)
 class PaymentMethodFormPlugin(DialogFormPluginBase):
     name = _("Payment Method Form")
     form_class = 'shop.forms.checkout.PaymentMethodForm'
-    template_leaf_name = 'payment-method-{}.html'
+    template_leaf_name = 'payment-method.html'
 
-    def get_form_data(self, context, instance, placeholder):
-        form_data = super(PaymentMethodFormPlugin, self).get_form_data(context, instance, placeholder)
-        cart = form_data.get('cart')
-        if cart:
-            form_data.update(initial={'payment_modifier': cart.extra.get('payment_modifier')})
-        return form_data
+    def get_form_data(self, request):
+        cart = CartModel.objects.get_from_request(request)
+        initial = {'payment_modifier': getattr(cart, 'extra', {}).get('payment_modifier')}
+        return {'initial': initial}
 
     def render(self, context, instance, placeholder):
         super(PaymentMethodFormPlugin, self).render(context, instance, placeholder)
@@ -209,14 +165,12 @@ if cart_modifiers_pool.get_payment_modifiers():
 class ShippingMethodFormPlugin(DialogFormPluginBase):
     name = _("Shipping Method Form")
     form_class = 'shop.forms.checkout.ShippingMethodForm'
-    template_leaf_name = 'shipping-method-{}.html'
+    template_leaf_name = 'shipping-method.html'
 
-    def get_form_data(self, context, instance, placeholder):
-        form_data = super(ShippingMethodFormPlugin, self).get_form_data(context, instance, placeholder)
-        cart = form_data.get('cart')
-        if cart:
-            form_data.update(initial={'shipping_modifier': cart.extra.get('shipping_modifier')})
-        return form_data
+    def get_form_data(self, request):
+        cart = CartModel.objects.get_from_request(request)
+        initial = {'shipping_modifier': getattr(cart, 'extra', {}).get('shipping_modifier')}
+        return {'initial': initial}
 
     def render(self, context, instance, placeholder):
         super(ShippingMethodFormPlugin, self).render(context, instance, placeholder)
@@ -232,14 +186,12 @@ if cart_modifiers_pool.get_shipping_modifiers():
 class ExtraAnnotationFormPlugin(DialogFormPluginBase):
     name = _("Extra Annotation Form")
     form_class = 'shop.forms.checkout.ExtraAnnotationForm'
-    template_leaf_name = 'extra-annotation-{}.html'
+    template_leaf_name = 'extra-annotation.html'
 
-    def get_form_data(self, context, instance, placeholder):
-        form_data = super(ExtraAnnotationFormPlugin, self).get_form_data(context, instance, placeholder)
-        cart = form_data.get('cart')
-        if cart:
-            form_data.update(initial={'annotation': cart.extra.get('annotation', '')})
-        return form_data
+    def get_form_data(self, request):
+        cart = CartModel.objects.get_from_request(request)
+        initial = {'annotation': getattr(cart, 'extra', {}).get('annotation', '')}
+        return {'initial': initial}
 
 DialogFormPluginBase.register_plugin(ExtraAnnotationFormPlugin)
 
@@ -256,10 +208,11 @@ class AcceptConditionFormPlugin(DialogFormPluginBase):
 
     @classmethod
     def get_identifier(cls, instance):
+        identifier = super(AcceptConditionFormPlugin, cls).get_identifier(instance)
         html_content = cls.html_parser.unescape(instance.glossary.get('html_content', ''))
         html_content = strip_entities(strip_tags(html_content))
         html_content = Truncator(html_content).words(3, truncate=' ...')
-        return mark_safe(html_content)
+        return format_html('{}{}', identifier, html_content)
 
     def get_form(self, request, obj=None, **kwargs):
         if obj:

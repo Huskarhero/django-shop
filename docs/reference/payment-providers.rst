@@ -48,9 +48,9 @@ The Purchasing Operation
 
 During checkout, the clients final step is to click onto a button labeled something like "Buy Now".
 This button belongs to an AngularJS controller, provided by the directive ``shop-dialog-proceed``.
-It may look similar to this::
+It may look similar to this:
 
-.. code-block:: html
+.. code-block:: javascript
 
 	<button shop-dialog-proceed ng-click="proceedWith('PURCHASE_NOW')" class="btn btn-success">Buy Now</button>
 
@@ -74,8 +74,8 @@ PSP.
 
 While processing the payment, PSPs usually need to communicate with the shop framework, in order to
 inform us about success or failure of the payment. To communicate with us, they may need a few
-endpoints. Each Payment provider may override the method ``get_urls()`` returning a list of
-urlpatterns, which then is used by the Django URL resolving engine.
+endpoints. Each Payment provider may override the method ``get_urls()`` returning an ``urlpattern``,
+which then is used by the Django URL resolving engine.
 
 .. code-block:: python
 
@@ -83,10 +83,10 @@ urlpatterns, which then is used by the Django URL resolving engine.
 	    namespace = 'my-psp-payment'
 	
 	    def get_urls(self):
-	        urlpatterns = [
+	        urlpatterns = patterns('',
 	            url(r'^success$', self.success_view, name='success'),
 	            url(r'^failure$', self.failure_view, name='failure'),
-	        ]
+	        )
 	        return urlpatterns
 	
 	    def get_payment_request(self, cart, request):

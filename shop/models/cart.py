@@ -5,12 +5,13 @@ from six import with_metaclass
 from collections import OrderedDict
 from django.db import models
 from django.core.exceptions import ImproperlyConfigured
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from jsonfield.fields import JSONField
 from shop.modifiers.pool import cart_modifiers_pool
 from shop.money import Money
 from .product import BaseProduct
-from shop import deferred
+from . import deferred
 from shop.models.customer import CustomerModel
 
 
@@ -93,7 +94,7 @@ class BaseCartItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     def __init__(self, *args, **kwargs):
         # reduce the given fields to what the model actually can consume
         all_field_names = self._meta.get_all_field_names()
-        model_kwargs = {k: v for k, v in kwargs.items() if k in all_field_names}
+        model_kwargs = {k: v for k, v in six.iteritems(kwargs) if k in all_field_names}
         super(BaseCartItem, self).__init__(*args, **model_kwargs)
         self.extra_rows = OrderedDict()
         self._dirty = True
@@ -119,23 +120,20 @@ CartItemModel = deferred.MaterializedModel(BaseCartItem)
 
 
 class CartManager(models.Manager):
-    """
-    The Model Manager for any Cart inheriting from BaseCart.
-    """
-
     def get_from_request(self, request):
         """
         Return the cart for current customer.
         """
         if request.customer.is_visitor():
-            raise self.model.DoesNotExist("Cart for visiting customer does not exist.")
-        cart, temp = self.get_or_create(customer=request.customer)
+            cart = None
+        else:
+            cart = self.get_or_create(customer=request.customer)[0]
         return cart
 
     def get_or_create_from_request(self, request):
         if request.customer.is_visitor():
             request.customer = CustomerModel.objects.get_or_create_from_request(request)
-        cart, temp = self.get_or_create(customer=request.customer)
+        cart = self.get_or_create(customer=request.customer)[0]
         return cart
 
 
@@ -165,9 +163,8 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         self._cached_cart_items = None
         self._dirty = True
 
-    def save(self, force_update=False, *args, **kwargs):
-        if self.pk or force_update is False:
-            super(BaseCart, self).save(force_update=force_update, *args, **kwargs)
+    def save(self, *args, **kwargs):
+        super(BaseCart, self).save(*args, **kwargs)
         self._dirty = True
 
     def update(self, request):
@@ -228,22 +225,21 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
             self.delete()
 
     def __str__(self):
-        return "{}".format(self.pk) if self.pk else '(unsaved)'
+        return "{}".format(self.pk) or '(unsaved)'
 
     @property
     def num_items(self):
         """
         Returns the number of items in the cart.
         """
-        return self.items.filter(quantity__gt=0).count()
+        return self.items.count()
 
     @property
     def total_quantity(self):
         """
         Returns the total quantity of all items in the cart.
         """
-        aggr = self.items.aggregate(quantity=models.Sum('quantity'))
-        return aggr['quantity'] or 0
+        return self.items.aggregate(models.Sum('quantity'))['quantity__sum']
         # if we would know, that self.items is already evaluated, then this might be faster:
         # return sum([ci.quantity for ci in self.items.all()])
 

@@ -4,24 +4,23 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.contrib import admin
 from shop.admin.customer import CustomerProxy, CustomerAdmin
+from shop.admin.order import (PrintOrderAdminMixin, BaseOrderAdmin, OrderPaymentInline, OrderItemInline)
 from shop.models.order import OrderModel
+from . import properties
 
-__all__ = ['OrderModel', 'commodity']
-
-# models defined by the myshop instance itself
-if settings.SHOP_TUTORIAL in ('commodity', 'i18n_commodity'):
-    from shop.admin.defaults import commodity
-    from . import order
-elif settings.SHOP_TUTORIAL == 'smartcard':
-    from . import manufacturer
-    from .smartcard import smartcard
-    from . import order
-elif settings.SHOP_TUTORIAL == 'i18n_smartcard':
-    from . import manufacturer
-    from . import i18n_smartcard
-    from . import order
+if settings.SHOP_TUTORIAL == 'simple':
+    from .simple import smartcard
+elif settings.SHOP_TUTORIAL == 'i18n':
+    from .i18n import smartcard
 elif settings.SHOP_TUTORIAL == 'polymorphic':
-    from . import manufacturer
-    from .polymorphic import product, order
+    from .polymorphic import product
 
 admin.site.register(CustomerProxy, CustomerAdmin)
+
+
+@admin.register(OrderModel)
+class OrderAdmin(PrintOrderAdminMixin, BaseOrderAdmin):
+    search_fields = BaseOrderAdmin.search_fields + ('shipping_address_text',
+        'billing_address_text', 'number',)
+    fields = BaseOrderAdmin.fields + (('shipping_address_text', 'billing_address_text',),)
+    inlines = (OrderItemInline, OrderPaymentInline,)
