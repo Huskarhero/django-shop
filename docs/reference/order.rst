@@ -22,7 +22,7 @@ fields to the order, as the merchant requires for his special implementation.
 In most use-cases, the default order implementation will do the job. These default classes can be
 found at :class:`shop.models.defaults.order.Order` and
 :class:`shop.models.defaults.order_item.OrderItem`. To materialize the default implementation, it
-is enough to ``import`` these two files into the merchants shop project. Otherwise the programmer
+is enough to ``import`` these two files into the merchant's shop project. Otherwise the programmer
 may create his own order implementation inheriting from ``BaseOrder`` and/or ``BaseOrderItem``.
 
 .. note:: Assure that the model ``OrderItem`` is imported (and materialized) before model
@@ -50,8 +50,8 @@ This operation is atomic and can take some time. It normally is performed by the
 whenever a successful payment was received.
 
 Since the merchants implementation of ``Cart``, ``CartItem``, ``Order`` and ``OrderItem`` may
-contain extra fields the shop framework isn't aware of, these fields have to be converted from the
-cart to the order objects during the purchasing operation.
+contain extra fields the shop framework isn't aware of, the content of these fields has to be
+transferred, whenever a cart is converted into an order object, during the purchasing operation.
 
 If required the merchant's implementation of ``Order`` shall override the method
 ``populate_from_cart(cart, request)``, which provides a hook to copy those extra fields from the cart
@@ -62,10 +62,52 @@ Similarly the merchant's implementation of ``OrderItem`` shall override the meth
 from the cart item to the order item object.
 
 
+Order Numbers
+-------------
+
+In commerce it is mandatory that orders are numbered using a unique and continuously increasing
+sequence. Each merchant has his own way to generate this sequence numbers and in some
+implementations it may even come from an external generator, such as an ERP system. Therefore
+**djangoSHOP** does not impose any numbering scheme for the orders. This intentionally is left
+over to the merchant's implementation.
+
+Each Order model must implement two methods, one to create and and one to retrieve the order
+numbers. A simple implementation may look like this:
+
+.. code-block:: python
+
+	from django.db import models
+	from django.utils.datetime_safe import datetime
+	from shop.models import order
+	
+	class Order(order.BaseOrder):
+	    number = models.PositiveIntegerField("Order Number", null=True, default=None, unique=True)
+	
+	    def get_or_assign_number(self):
+	        if self.number is None:
+	            epoch = datetime.now().date()
+	            epoch = epoch.replace(epoch.year, 1, 1)
+	            qs = Order.objects.filter(number__isnull=False, created_at__gt=epoch)
+	            qs = qs.aggregate(models.Max('number'))
+	            try:
+	                epoc_number = int(str(qs['number__max'])[4:]) + 1
+	                self.number = int('{0}{1:05d}'.format(epoch.year, epoc_number))
+	            except (KeyError, ValueError):
+	                # the first order this year
+	                self.number = int('{0}00001'.format(epoch.year))
+	        return self.get_number()
+	
+	    def get_number(self):
+	        return '{0}-{1}'.format(str(self.number)[:4], str(self.number)[4:])
+
+Here the first four digits specify the year in which the order was generated, whereas the last five
+digits are a continuous increasing sequence.
+
+
 Order Views
 ===========
 
-Displaying the last or former orders in **djangoSHOP** is as simple, as adding two page to the CMS.
+Displaying the last or former orders in **djangoSHOP** is as simple, as adding two pages to the CMS.
 Change into the Django admin backend and enter into the CMS page tree. At an appropriate location
 in that tree add a new page. As page title use "My Orders", "Ihre Bestellungen", "Mis Pedidos", or
 whatever is appropriate in the natural language used for that site. Multilingual CMS installations
@@ -86,6 +128,61 @@ Bestellung" or "Gracias por su pedido". Change into the **Advanced Settings** vi
 rendering template select "*Inherit the template of the nearest ancestor*". Next enter
 "*shop-order-last*" into the **Id**-field just below. As **Application** chose again
 "*View Orders*".
+
+
+CMS Apphook for the Order
+-------------------------
+
+The apphook for the Order View must be provided by the Django project. This is a simple snippet of
+boilerplate which has to be added to the merchant's implementation of the ``cms_apps.py`` file:
+
+.. code-block:: python
+	:caption: myshop/cms_apps.py
+
+	from cms.app_base import CMSApp
+	from cms.apphook_pool import apphook_pool
+
+	class OrderApp(CMSApp):
+	    name = "View Orders"
+	    urls = ['shop.urls.order']
+	    cache_placeholders = False
+
+	apphook_pool.register(OrderApp)
+
+
+This apphook uses the class :class:`shop.views.order.OrderView` to render the order's list- and
+detail views using the serializers :class:`shop.rest.serializers.OrderListSerializer` and
+:class:`shop.rest.serializers.OrderDetailSerializer`. Sometimes these defaults aren't enough and
+must be extended by a customized serializer. Say, our Order class contains the rendered
+shipping and billing addresses. Then we can extend our serializer class by adding them:
+
+.. code-block:: python
+	:caption: myshop/serializers.py
+
+	from shop.rest.serializers import OrderDetailSerializer
+
+	class CustomOrderSerializer(OrderDetailSerializer):
+	    shipping_address_text = serializers.CharField(read_only=True)
+	    billing_address_text = serializers.CharField(read_only=True)
+
+We now can replace the ``urls`` attribute in our apphook class with, say ``['myshop.urls.order']``
+and exchange the default serializer with our customized one:
+
+.. code-block:: python
+	:caption: myshop/urls/order.py
+
+	from django.conf.urls import url
+	from shop.views.order import OrderView
+	from myshop.serializers import CustomOrderSerializer
+
+	urlpatterns = [
+	    url(r'^$', OrderView.as_view()),
+	    url(r'^(?P<pk>\d+)$', OrderView.as_view(many=False,
+	        detail_serializer_class=CustomOrderSerializer)),
+	]
+
+Now, when invoking the order detail page appending ``?format=api`` to the URL, then two new fields,
+``shipping_address_text`` and ``billing_address_text`` shall appear in our context.
 
 
 Add the Order list view via CMS-Cascade Plugin
@@ -148,13 +245,19 @@ framework offers a `Finite State Machine`_, where only selected state transition
 possible. These transition further can trigger other events themselves. This prevents to accidently
 perform invalid actions such as fulfilling orders, which haven't been paid yet.
 
-In class ``Order`` there is an attribute ``status`` which is of type ``FSMField``. In practice this
-is a char-field, which can hold preconfigured states, but which can't be changed by program code.
-Instead, by calling specially decorated class methods, this state changes from one or more allowed
-source states into one predefined target state. An incomplete example:
+In class :class:`shop.models.order.BaseOrder` contains an attribute ``status`` which is of type
+``FSMField``. In practice this is a char-field, which can hold preconfigured states, but which
+*can not* be changed by program code. Instead, by calling specially decorated class methods, this
+state then changes from one or more allowed source states into one predefined target state. We
+denote this as a *state transition*.
+
+An incomplete example:
 
 .. code-block:: python
 
+	class Order(models.Model):
+	    # other attributes
+	
 	    @transition(field=status, source='new', target='created')
 	    def populate_from_cart(self, cart, request):
 	        # perform some side effects ...
@@ -166,7 +269,7 @@ proceeding to our payment providers.
 
 In **djangoSHOP** the merchant can add as many payment providers he wants. This is done in
 ``settings.py`` through the configuration directive ``SHOP_ORDER_WORKFLOWS`` which takes a list of
-so called "*Order Workflox Mixin*" classes. On bootstrapping the application and constructing the
+so called "*Order Workflow Mixin*" classes. On bootstrapping the application and constructing the
 ``Order`` class, it additionally inherits from these mixin classes. This gives the merchant an easy
 to configure, yet very powerful tool to model the selling process of his e-commerce site according
 to his needs. Say, we want to accept bank transfer in advance, so we must add
@@ -216,7 +319,7 @@ the admin view. Whenever the merchant clicks on this button, the above method
 sending a payment confirmation email to the customer.
 
 Now that the order has been paid, it time to fulfill it. For this a merchant can use the workflow
-mixin class ``'shop.payment.defaults.CommissionGoodsWorkflowMixin'``, which gives him a
+mixin class :class:`shop.shipping.defaults.CommissionGoodsWorkflowMixin`, which gives him a
 hand to keep track on the fulfillment of each order. Since this class doesn't know anything
 about an order status of "*prepayment_deposited*" (this is a private definition of the class
 ``PayInAdvanceWorkflowMixin``), **djangoSHOP** provides a status to mark the payment of an order as
@@ -225,20 +328,55 @@ by the framework whenever the status changes to "*prepayment_deposited*":
 
 .. code-block:: python
 
-    @transition(field='status', source=['prepayment_deposited',
-        'no_payment_required'], custom=dict(auto=True))
-    def acknowledge_prepayment(self):
-        """Acknowledge the payment."""
-        self.acknowledge_payment()
+	@transition(field='status', source=['prepayment_deposited',
+	    'no_payment_required'], custom=dict(auto=True))
+	def acknowledge_prepayment(self):
+	    """Acknowledge the payment."""
+	    self.acknowledge_payment()
 
 This status, "*payment_confirmed*", is known by all other workflow mixin classes and must be used
 as the source argument for their transition methods.
 
 For further details on Finite State Machine transitions, please refer to the `FSM docs`_. This
 however does not cover the contents of dictionary ``custom``. One of the attributes in ``custom``
-is ``button = _("Any Label")`` as explained in the `FSM admin docs`_. The other is ``auto = True``
-and has been introduced by **djangoSHOP** itself. It shall be used to automatically proceed from
+is ``button="Any Label"`` as explained in the `FSM admin docs`_. The other is ``auto=True``
+and has been introduced by **djangoSHOP** itself. It is used to automatically proceed from
 one target to another one, without manual intervention, such as clicking onto a button.
+
+
+Signals
+-------
+
+Each state transition emits a signal_ before and after performing the status change. These signals,
+``pre_transition`` and ``post_transition`` can be received by any registered signal handler. In
+**djangoSHOP**, the notification framework listens for these events and creates appropriate
+notification e-mails, if configured.
+
+But sometimes simple notifications are not enough, and the merchant's implementation must perform
+actions in a programmatic way. This for instance could be a query, which shall be sent to the goods
+management database, whenever a payment has been confirmed successfully.
+
+In Django, we typically register signal handlers in the ``ready`` method of the merchant's
+`application configuration`_:
+
+.. code-block:: python
+	:caption: myshop/apps.py
+
+	from django.apps import AppConfig
+	
+	class MyShopConfig(AppConfig):
+	    name = 'my_shop'
+	
+	    def ready(self):
+	        from django_fsm.signals import post_transition
+	        post_transition.connect(order_event_notification)
+	
+	def order_event_notification(sender, instance=None, target=None, **kwargs):
+	    if target == 'payment_confirmed':
+	        # do whatever appropriate
+
+In the above order event notification, use ``instance`` to access the corresponding ``Order``
+object.
 
 
 Finite State Machine Diagram
@@ -303,6 +441,13 @@ The template for the invoice and delivery note can easily be adopted to the corp
 plain HTML and CSS.
 
 
+Re-adding an Order to the Cart
+==============================
+
+Sometimes it can be useful to re-add the content of an order back to the cart. This functionality
+is implemented via the REST-API and can be allowed
+
+
 .. _apphook: http://docs.django-cms.org/en/latest/how_to/apphooks.html
 .. _djangocms-cascade: http://djangocms-cascade.readthedocs.org/en/latest/
 .. _placeholder: http://django-cms.readthedocs.org/en/latest/introduction/templates_placeholders.html#placeholders
@@ -310,3 +455,5 @@ plain HTML and CSS.
 .. _graphviz: http://www.graphviz.org/
 .. _FSM docs: https://github.com/kmmbvnr/django-fsm
 .. _FSM admin docs: https://github.com/gadventures/django-fsm-admin
+.. _signal: https://docs.djangoproject.com/en/stable/topics/signals/
+.. _application configuration: https://docs.djangoproject.com/en/1.9/ref/applications/#application-configuration

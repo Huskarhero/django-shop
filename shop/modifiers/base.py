@@ -27,7 +27,9 @@ class BaseCartModifier(object):
     change you make here must be consistent!
 
     Each method accepts the HTTP `request` object. It shall be used to let implementations
-    determine their prices according to the session, and other request information.
+    determine their prices according to the session, and other request information. The `request`
+    object also can be used to store arbitrary data to be passed between modifers using the
+    temporary dict `request.cart_modifiers_state`.
     """
 
     def __init__(self, identifier=None):

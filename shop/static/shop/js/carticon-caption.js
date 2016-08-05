@@ -2,12 +2,12 @@
 'use strict';
 
 // module: django.shop, TODO: move this into a summary JS file
-var djangoShopModule = angular.module('django.shop.carticon_caption', ['ng.django.urls']);
+var djangoShopModule = angular.module('django.shop.carticon_caption', ['djng.urls']);
 
 // Directive <ANY shop-carticon-caption caption-data="{num_items: 7}">
 // Use this directive to handle the caption often displayed near a cart item. This caption
-// can for instance show the number of items in the cart, to total quantity of all items, the
-// final total of the cart, or whatever the merchant requires.
+// can for instance show the number of items in the cart, the total quantity of all items, the
+// final total of the cart, or whatever the merchant desires.
 // Whenever this directive receives an event of type `shopUpdateCarticonCaption`, then it updates
 // the cart-icon caption with the current state of the cart. The emitter of that event may pass in
 // the new caption object itself, otherwise this directive will fetch that data from the server.

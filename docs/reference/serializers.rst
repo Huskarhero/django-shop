@@ -75,35 +75,33 @@ We now must add routes for all sub-URLs of the given CMS page implementing the c
 .. code-block:: python
 	:caption: myshop/urls/catalog.py
 
-	from django.conf.urls import patterns, url
+	from django.conf.urls import url
 	from rest_framework.settings import api_settings
 	from shop.rest.filters import CMSPagesFilterBackend
-	from shop.views.catalog import (AddToCartView, ProductListView,
+	from shop.views.catalog import (AddToCartView, CMSPageProductListView,
 	    ProductRetrieveView)
 	from myshop.serializers import (ProductSummarySerializer,
 	    ProductDetailSerializer)
 
-	urlpatterns = patterns('',
-	    url(r'^$', ProductListView.as_view(
+	urlpatterns = [
+	    url(r'^$', CMSPageProductListView.as_view(
 	        serializer_class=ProductSummarySerializer,
-	        filter_backends=api_settings.DEFAULT_FILTER_BACKENDS + [
-	            CMSPagesFilterBackend()],
 	    )),
 	    url(r'^(?P<slug>[\w-]+)$', ProductRetrieveView.as_view(
 	        serializer_class=ProductDetailSerializer,
 	    )),
 	    url(r'^(?P<slug>[\w-]+)/add-to-cart', AddToCartView.as_view()
 	    ),
-	)
+	]
 
 
 Products List View
 ~~~~~~~~~~~~~~~~~~
 
 The urlpattern matching the regular expression ``^$`` routes onto the catalog list view class
-:class:`shop.views.catalog.ProductListView` passing in a special serializer class, for example
-:class:`myshop.serializers.ProductSummarySerializer`. This has been customized to represent our
-product models in our catalog templates. Since the serialized data now is available as a Python
+:class:`shop.views.catalog.CMSPageProductListView` passing in a special serializer class, for
+example :class:`myshop.serializers.ProductSummarySerializer`. This has been customized to represent
+our product models in our catalog templates. Since the serialized data now is available as a Python
 dictionary or as a plain Javascript object, these templates then can be rendered by the Django
 template engine, as well as by the client using for instance AngularJS.
 
@@ -174,11 +172,11 @@ at a project level:
 .. code-block:: python
 	:caption: myshop/urls.py
 
-	urlpatterns = patterns('',
+	urlpatterns = [
 	    ...
 	    url(r'^shop/', include('shop.urls', namespace='shop')),
 	    ...
-	)
+	]
 
 The serializers of the cart then can be accessed at http://localhost:8000/shop/api/cart/ ,
 those of the watch-list at http://localhost:8000/shop/api/watch/ and those handling the various

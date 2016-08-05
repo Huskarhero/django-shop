@@ -12,7 +12,6 @@ yet, reading their excellent `Django Tutorial`_ is highly recommended.
 
 The steps outlined in this tutorial are meant to be followed in order.
 
-.. _Django Tutorial: https://docs.djangoproject.com/en/stable/intro/tutorial01/
 
 .. _tutorial/prepare-installation:
 
@@ -27,19 +26,23 @@ folder.
 Also ensure that these packages are installed using the favorite package manager of your operating
 system:
 
+* Python 2.7
 * Redis: http://redis.io/
 * SQLite: https://www.sqlite.org/
 * bower: http://bower.io/
 * Node Package Manager: https://www.npmjs.com/
+* Python 2.7 (Latest minor version recommended)
+* Django 1.9 (Latest minor version recommended)
 
 .. code-block:: shell
 
 	$ virtualenv shoptutorial
 	$ source shoptutorial/bin/activate
-	(shoptutorial)$ git clone https://github.com/jrief/django-shop
+	$ mkdir Tutorial; cd Tutorial
+	(shoptutorial)$ git clone --depth 1 https://github.com/awesto/django-shop
 	(shoptutorial)$ cd django-shop
-	(shoptutorial)$ pip install -r requirements/demo.txt
 	(shoptutorial)$ pip install -e .
+	(shoptutorial)$ pip install -r requirements/tutorial.txt
 	(shoptutorial)$ npm install
 	(shoptutorial)$ bower install
 
@@ -59,6 +62,7 @@ Finally we must create a database to run our example project:
 .. code-block:: shell
 
 	(shoptutorial)$ cd example
+	(shoptutorial)$ export DJANGO_DEBUG=1
 	(shoptutorial)$ ./manage.py migrate
 	(shoptutorial)$ ./manage.py createsuperuser
 	Email address: admin@example.org
@@ -86,10 +90,13 @@ and add a Page. As its **Title** chose “Smart Cards”. Then change into the *
 at the bottom of the page. In this editor window, locate the field **Application** and select
 **Products List**. Then save the page and click on **View on site**.
 
-Now change into **Structure** mode and locate the placeholder named **Main content container**.
+Now change into **Structure** mode and locate the placeholder named **Main Content**.
 Add a plugin from section **Bootstrap** named **Row**. Below that Row add a Column with a width of
 12 units. Finally, below the last Column add a plugin from section **Shop** named **Catalog List
 View**.
 
 Now we have a working catalog list view, but since we havn't added any products to the database
 yet, we won't see any items on our page.
+
+
+.. _Django Tutorial: https://docs.djangoproject.com/en/stable/intro/tutorial01/

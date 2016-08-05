@@ -29,21 +29,18 @@ class ProductIndex(indexes.SearchIndex):
     def prepare(self, product):
         if hasattr(product, 'translations'):
             product.set_current_language(self.language)
-            with translation.override(self.language):
-                data = super(ProductIndex, self).prepare(product)
-        else:
+        with translation.override(self.language):
             data = super(ProductIndex, self).prepare(product)
-        print data['django_ct']
         return data
 
     def render_html(self, prefix, product, postfix):
         """
-        Render a HTML snippet to be stored inside the index database.
+        Render a HTML snippet to be stored inside the index database, so that rendering of the
+        product's list views can be performed without database queries.
         """
         app_label = product._meta.app_label.lower()
-        product_type = product.__class__.__name__.lower()
         params = [
-            (app_label, prefix, product_type, postfix),
+            (app_label, prefix, product.product_model, postfix),
             (app_label, prefix, 'product', postfix),
             ('shop', prefix, 'product', postfix),
         ]

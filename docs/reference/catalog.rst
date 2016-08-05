@@ -13,8 +13,8 @@ implementation, but some sites may require categories implemented independently 
 
 Using an external **djangoSHOP** plugin for managing categories is a very conceivable solution,
 and we will see separate implementations for this feature request. Using such an external category
-plugin can make sense, if this e-commerce site requires hundreds of hierarchical levels
-or these categories require a set of attributes which are not available in CMS pages. If you are
+plugin can make sense, if this e-commerce site requires hundreds of hierarchical levels and/or
+these categories require a set of attributes which are not available in CMS pages. If you are
 going to use externally implemented categories, please refer to their documentation, since here we
 proceed using CMS pages as categories.
 
@@ -62,27 +62,22 @@ as all apphooks, it requires a file defining its urlpatterns:
 .. code-block:: python
 	:caption: myshop/urls/products.py
 
-	from django.conf.urls import patterns, url
+	from django.conf.urls import url
 	from rest_framework.settings import api_settings
-	from shop.rest.filters import CMSPagesFilterBackend
-	from shop.views.catalog import ProductListView
+	from shop.views.catalog import CMSPageProductListView
 	from myshop.serializers import ProductSummarySerializer
 	
-	filter_backends = list(api_settings.DEFAULT_FILTER_BACKENDS)
-	filter_backends.append(CMSPagesFilterBackend())
-	
-	urlpatterns = patterns('',
-	    url(r'^$', ProductListView.as_view(
+	urlpatterns = [
+	    url(r'^$', CMSPageProductListView.as_view(
 	        serializer_class=ProductSummarySerializer,
-	        filter_backends=filter_backends,
 	    )),
 	    # other patterns
-	)
+	]
 
 Here the ``ProductSummarySerializer`` serializes the product models into a representation suitable
 for being rendered inside a CMS page, as well as being converted to JSON. This allows us to reuse
-the same Django View (``ProductListView``) whenever the catalog list switches into infinite scroll
-mode, where it only requires the product's summary digested as JavaScript objects.
+the same Django View (``CMSPageProductListView``) whenever the catalog list switches into infinite
+scroll mode, where it only requires the product's summary digested as JavaScript objects.
 
 In case we need :ref:`reference/additional-serializer-fields`, lets add them to this class using the
 `serializer fields`_ from the Django RESTFramework library.
@@ -102,12 +97,12 @@ As a template we use one with a big placeholder, since it must display our list 
 As **Application**, select "*Catalog List*" or whatever we named our ``ProductsListApp``. This
 selects the apphook we created in the previous section.
 
-Then we save the page, change into **Structure** mode and locate the Main Content Container. Here
-we add a container with a Row and Column. As the child of this column we chose a
-**Catalog List View** plugin from section **Shop**.
+Then we save the page, change into **Structure** mode and locate the placeholder named
+**Main Content**. Add a Container plugin, followed by a Row and then a Column plugin. As the
+child of this column chose the **Catalog List View** plugin from section **Shop**.
 
-Finally we publish the page and enter some text into the search field. Since we haven't assigned
-any products to the CMS page, we won't see anything yet.
+Finally we publish the page. If we have assigned products to that CMS page, they should be rendered
+now.
 
 
 .. _reference/catalog-detail:
@@ -149,17 +144,17 @@ requests on all of its sub-URLs. This is done by expanding the current list of u
 .. code-block:: python
 	:caption: myshop/urls/products.py
 
-	from django.conf.urls import patterns, url
+	from django.conf.urls import url
 	from shop.views.catalog import ProductRetrieveView
 	from myshop.serializers import ProductDetailSerializer
 	
-	urlpatterns = patterns('',
+	urlpatterns = [
 	    # previous patterns
 	    url(r'^(?P<slug>[\w-]+)$', ProductRetrieveView.as_view(
 	        serializer_class=ProductDetailSerializer,
 	    )),
 	    # other patterns
-	)
+	]
 
 All business logic regarding our product now goes into our customized serializer class named
 ``ProductDetailSerializer``. This class then may access the various attributes of our product model
