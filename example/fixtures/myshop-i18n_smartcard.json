@@ -11283,11 +11283,11 @@
   "pk": 1,
   "fields": {
     "priority": 1,
-    "name": "John Doe",
-    "address2": "",
-    "address1": "31 Orwell Road",
+    "addressee": "John Doe",
+    "supplement": "",
+    "street": "31 Orwell Road",
     "zip_code": "L41RG",
-    "city": "Liverpool",
+    "location": "Liverpool",
     "country": "GB",
     "customer": 1
   }
