@@ -26,9 +26,10 @@ folder.
 Also ensure that these packages are installed using the favorite package manager of your operating
 system:
 
-* Python 2.7 or 3.4 and later
+* Python 2.7
 * Redis: http://redis.io/
 * SQLite: https://www.sqlite.org/
+* bower: http://bower.io/
 * Node Package Manager: https://www.npmjs.com/
 * Python 2.7 (Latest minor version recommended)
 * Django 1.9 (Latest minor version recommended)
@@ -43,6 +44,7 @@ system:
 	(shoptutorial)$ pip install -e .
 	(shoptutorial)$ pip install -r requirements/tutorial.txt
 	(shoptutorial)$ npm install
+	(shoptutorial)$ bower install
 
 these statements will setup an environment, which runs a demo shop out of the box.
 
