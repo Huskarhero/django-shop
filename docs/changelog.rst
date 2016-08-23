@@ -21,7 +21,7 @@ Changelog for djangoSHOP
 * Prepared for Django-1.10: Replaced all occurrences of :method:`django.conf.urls.patterns` by
   a simple list.
 * Method ``get_render_context`` in classes extending from ``django_filters.FilterSet`` now must be a
-  ``classmethod`` accepting a request object and the querystring.
+  ``classmethod`` and accepts the request object.
 * Method ``get_renderer_context`` in class ``CMSPageProductListView`` now fetches the rendering
   context for filtering *after* the queryset have been determined. This allows us to adopt the
   context.
@@ -37,6 +37,7 @@ Changelog for djangoSHOP
   * ``personal-details`` -> ``shop-customer-details`` to access the Customer Detail Page.
   * ``reset-password`` -> ``shop-password-reset`` to access the Reset Password Page.
   * new: ``shop-register-customer`` to access the Register User Page.
+* Moved all non-Python dependencies from ``bower_components`` into ``node_modules``.
 
 0.9.1
 =====
