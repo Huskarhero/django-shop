@@ -26,9 +26,6 @@ class CustomerInlineAdmin(admin.StackedInline):
     def has_add_permission(self, request):
         return False
 
-    def has_delete_permission(self, request, obj=None):
-        return False
-
     def get_number(self, customer):
         return customer.get_number()
     get_number.short_description = pgettext_lazy('customer', "Number")

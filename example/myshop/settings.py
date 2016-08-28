@@ -224,6 +224,7 @@ STATICFILES_FINDERS = (
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
+    ('bower_components', os.path.join(PROJECT_ROOT, 'bower_components')),
     ('node_modules', os.path.join(PROJECT_ROOT, 'node_modules')),
 )
 
@@ -317,7 +318,6 @@ NODE_MODULES_URL = STATIC_URL + 'node_modules/'
 
 SASS_PROCESSOR_INCLUDE_DIRS = (
     os.path.join(PROJECT_ROOT, 'node_modules'),
-    os.path.join(PROJECT_ROOT, 'shop/static'),
 )
 
 COERCE_DECIMAL_TO_STRING = True
@@ -526,8 +526,8 @@ CKEDITOR_SETTINGS_DESCRIPTION = {
     ],
 }
 
-SELECT2_CSS = 'node_modules/select2/dist/css/select2.min.css'
-SELECT2_JS = 'node_modules/select2/dist/js/select2.min.js'
+SELECT2_CSS = 'bower_components/select2/dist/css/select2.min.css'
+SELECT2_JS = 'bower_components/select2/dist/js/select2.min.js'
 
 
 #############################################
