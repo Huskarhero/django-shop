@@ -1,7 +1,4 @@
-{% load i18n static sekizai_tags %}{% spaceless %}
-
-{% addtoblock "js" %}<script src="{% static 'node_modules/angular-inview/angular-inview.js' %}"></script>{% endaddtoblock %}
-{% addtoblock "ng-requires" %}angular-inview{% endaddtoblock %}
+{% load i18n %}{% spaceless %}
 
 {% if paginator.count > 0 %}
 <div class="row" ng-if="catalog.count===undefined">
