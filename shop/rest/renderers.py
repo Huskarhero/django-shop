@@ -13,13 +13,15 @@ class CMSPageRenderer(renderers.TemplateHTMLRenderer):
     are not compatible with this renderer.
     """
     def render(self, data, accepted_media_type=None, context=None):
-        request = context['request']
-        response = context['response']
+        request = context.pop('request')
+        response = context.pop('response')
+        context.pop('args')
+        context.pop('kwargs')
 
         if response.exception:
             template = self.get_exception_template(response)
         else:
-            view = context['view']
+            view = context.pop('view')
             template_names = self.get_template_names(response, view)
             template = self.resolve_template(template_names)
             context['paginator'] = view.paginator
@@ -27,11 +29,5 @@ class CMSPageRenderer(renderers.TemplateHTMLRenderer):
             context['edit_mode'] = request.current_page.publisher_is_draft
 
         context['data'] = data
-        try:
-            # DRF >= 3.4.2
-            template_context = self.get_template_context(data, context)
-        except AttributeError:
-            # Fallback for DRF < 3.4.2
-            template_context = self.resolve_context(context, request, response)
-        template_context.update(context)
-        return template.render(template_context, request=request)
+        context = self.resolve_context(context, request, response)
+        return template.render(context, request=request)
