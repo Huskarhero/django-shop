@@ -3,18 +3,13 @@
 from __future__ import unicode_literals
 
 from setuptools import setup, find_packages
-import sys
 import shop
 try:
     from pypandoc import convert
 except ImportError:
     def convert(filename, fmt):
-        if sys.version_info[0] < 3:
-            with open(filename) as fd:
-                return fd.read()
-        else:
-            with open(filename, encoding="utf-8") as fd:
-                return fd.read()
+        with open(filename) as fd:
+            return fd.read()
 
 CLASSIFIERS = [
     'Environment :: Web Environment',
@@ -42,7 +37,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'Django>=1.9',
+        'Django>=1.8,<1.10',
         'beautifulsoup4>=4.4.0',
         'django-cms>=3.2.0',
         'django-post-office>=2.0.5',
@@ -55,8 +50,4 @@ setup(
         'django-rest-auth>=0.5.0',
         'django-admin-sortable2>=0.6.3',
     ],
-    # Note: this requires setuptools >= 18.0.
-    extras_require={
-        ':python_version<"3.4"': ['enum34'],
-    },
 )
