@@ -84,7 +84,8 @@ autodiscovery, therefore this class must be added to a file named ``search_index
 product model ``SmartCard``, this indexing class then may look like:
 
 .. code-block:: python
-	:caption: myshop/search_indexes.py
+    :caption: myshop/search_indexes.py
+    :name: smartcard-search-indexes
 
 	from shop.search.indexes import ProductIndex
 	from haystack import indexes
@@ -166,7 +167,8 @@ this is done by the fields ``catalog_media`` and ``search_media``. Since we do n
 a model attribute, we must provide two methods, which creates this content:
 
 .. code-block:: python
-	:caption: myshop/search_indexes.py
+    :caption: myshop/search_indexes.py
+    :name: searchindex-media
 
 	class SmartCardIndex(ProductIndex, indexes.Indexable):
 	    # other fields and methods ...
@@ -205,7 +207,8 @@ to Django database models when serializing their fields. The serializer used to 
 for this demo site, may look like:
 
 .. code-block:: python
-	:caption: myshop/serializers.py
+    :caption: myshop/serializers.py
+    :name: serializers
 
 	from rest_framework import serializers
 	from shop.search.serializers import ProductSearchSerializer as ProductSearchSerializerBase
@@ -235,7 +238,8 @@ In the Search View we link the serializer together with a `djangoCMS apphook`_. 
 ``ProductsListApp`` used to render the catalog view:
 
 .. code-block:: python
-	:caption: myshop/cms_app.py
+    :caption: myshop/cms_apps.py
+    :name: search-app
 
 	from cms.app_base import CMSApp
 	from cms.apphook_pool import apphook_pool
@@ -251,15 +255,15 @@ as all apphooks, it requires a file defining its urlpatterns:
 .. code-block:: python
 	:caption: myshop/urls/search.py
 
-	from django.conf.urls import patterns, url
+	from django.conf.urls import url
 	from shop.search.views import SearchView
 	from myshop.serializers import ProductSearchSerializer
 	
-	urlpatterns = patterns('',
+	urlpatterns = [
 	    url(r'^', SearchView.as_view(
 	        serializer_class=ProductSearchSerializer,
 	    )),
-	)
+	]
 
 
 Search Results
@@ -280,9 +284,9 @@ Set the input field **Soft root** to checked. This hides this special page from 
 
 As **Application**, select "*Search*". This selects the apphook we created in the previous section.
 
-Then save the page, change into **Structure** mode and locate the Main Content Container. Add
-a container with a Row and Column. As the child of this column chose the **Search Results** plugin
-from section **Shop**.
+Then save the page, change into **Structure** mode and locate the placeholder named
+**Main Content**. Add a Container plugin, followed by a Row and then a Column plugin. As the
+child of this column chose the **Search Results** plugin from section **Shop**.
 
 Finally publish the page and enter some text into the search field. It should render a list of
 found products.
@@ -313,17 +317,17 @@ Into these urlpatterns add the following entry:
 
 .. code-block:: python
 
-	from django.conf.urls import patterns, url
+	from django.conf.urls import url
 	from shop.search.views import SearchView
 	from myshop.serializers import CatalogSearchSerializer
 	
-	urlpatterns = patterns('',
+	urlpatterns = [
 	    # previous patterns
 	    url(r'^search-catalog$', SearchView.as_view(
 	        serializer_class=CatalogSearchSerializer,
 	    )),
 	    # other patterns
-	)
+	]
 
 .. note:: Be careful the the regular expression for ``^search-catalog$`` matches before the
 		product's detail view, which usually is looks for patterns matching ``^(?P<slug>[\w-]+)$``.
