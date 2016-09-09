@@ -9,13 +9,13 @@ from django.contrib import admin
 from django.utils.html import format_html_join
 from django.utils.timezone import localtime
 from django.utils.translation import pgettext_lazy, ugettext_lazy as _
-from shop.models.customer import CustomerModel, CustomerState
+from shop.models.customer import CustomerModel
 
 
 class CustomerInlineAdmin(admin.StackedInline):
     model = CustomerModel
     fieldsets = (
-        (None, {'fields': ('salutation', 'get_number')}),
+        (None, {'fields': ('salutation', 'get_number', 'recognized')}),
         (_("Shipping Addresses"), {'fields': ('get_shipping_addresses',)})
     )
     readonly_fields = ('get_number', 'get_shipping_addresses',)
@@ -24,9 +24,6 @@ class CustomerInlineAdmin(admin.StackedInline):
         return 0 if obj is None else 1
 
     def has_add_permission(self, request):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
         return False
 
     def get_number(self, customer):
@@ -75,11 +72,13 @@ class CustomerListFilter(admin.SimpleListFilter):
     parameter_name = 'custate'
 
     def lookups(self, request, model_admin):
-        return CustomerState.choices()
+        return CustomerModel.CUSTOMER_STATES
 
     def queryset(self, request, queryset):
         try:
-            queryset = queryset.filter(customer__recognized=CustomerState(int(self.value())))
+            custate = int(self.value())
+            if custate in dict(CustomerModel.CUSTOMER_STATES):
+                queryset = queryset.filter(customer__recognized=custate)
         finally:
             return queryset
 

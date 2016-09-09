@@ -1,10 +1,10 @@
 (function(angular, undefined) {
 'use strict';
 
-var djangoShopModule = angular.module('django.shop.catalog', ['ui.bootstrap', 'django.shop.utils']);
+var djangoShopModule = angular.module('django.shop.catalog', ['ui.bootstrap']);
 
 djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$modal',
-                                      function($scope, $http, $window, $modal) {
+                                               function($scope, $http, $window, $modal) {
 	var isLoading = false, prevContext = null, updateUrl;
 
 	this.setUpdateUrl = function(update_url) {
@@ -53,9 +53,8 @@ djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$mo
 
 }]);
 
-djangoShopModule.controller('ModalInstanceCtrl',
-    ['$scope', '$http', '$modalInstance', 'modal_context',
-    function($scope, $http, $modalInstance, modal_context) {
+djangoShopModule.controller('ModalInstanceCtrl', ['$scope', '$http', '$modalInstance', 'modal_context',
+                                        function($scope, $http, $modalInstance, modal_context) {
 	var isLoading = false;
 	$scope.proceed = function(next_url) {
 		if (isLoading)
@@ -95,9 +94,8 @@ djangoShopModule.directive('shopAddToCart', function() {
 });
 
 
-djangoShopModule.controller('CatalogListController', [
-    '$scope', '$http', 'djangoShop', function($scope, $http, djangoShop) {
-	var self = this, fetchURL = djangoShop.getLocationPath();
+djangoShopModule.controller('CatalogListController', ['$scope', '$http', '$window', function($scope, $http, $window) {
+	var self = this, fetchURL = $window.location.pathname;
 
 	this.loadProducts = function(config) {
 		if ($scope.isLoading || fetchURL === null)
@@ -115,9 +113,8 @@ djangoShopModule.controller('CatalogListController', [
 	}
 
 	$scope.loadMore = function() {
-		var config = {params: djangoShop.paramsFromSearchQuery.apply(this, arguments)};
 		console.log('load more products ...');
-		self.loadProducts(config);
+		self.loadProducts();
 	};
 
 	// listen on events of type `shopCatalogSearch`
@@ -127,7 +124,7 @@ djangoShopModule.controller('CatalogListController', [
 		} catch (err) {
 			config = null;
 		}
-		fetchURL = djangoShop.getLocationPath() + 'search-catalog';
+		fetchURL = $window.location.pathname + 'search-catalog';
 		$scope.catalog.products = [];  // reset list of products
 		self.loadProducts(config);
 	});
@@ -140,7 +137,7 @@ djangoShopModule.controller('CatalogListController', [
 		} catch (err) {
 			config = null;
 		}
-		fetchURL = djangoShop.getLocationPath();
+		fetchURL = $window.location.pathname;
 		$scope.catalog.products = [];  // reset list of products
 		self.loadProducts(config);
 	});

@@ -19,8 +19,7 @@ class ShopOrderViewsForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(ShopOrderViewsForm, self).clean()
         if self.instance.page and self.instance.page.application_urls != 'OrderApp':
-            msg = "This plugin only makes sense if used on a CMS page with an application of type 'OrderApp'."
-            raise ValidationError(msg)
+            raise ValidationError("This plugin only makes sense if used on a CMS page with an application of type 'OrderApp'.")
         return cleaned_data
 
 
@@ -51,7 +50,7 @@ class ShopOrderViewsPlugin(ShopPluginBase):
 plugin_pool.register_plugin(ShopOrderViewsPlugin)
 
 
-class ReorderButtonForm(ShopOrderViewsForm):
+class ReorderButtonForm(forms.ModelForm):
     button_content = fields.CharField(required=False, label=_("Button Content"),
                                       widget=widgets.TextInput())
 
@@ -77,6 +76,10 @@ class ShopReorderFormPlugin(BootstrapButtonMixin, ShopPluginBase):
 
     class Media:
         css = {'all': ('cascade/css/admin/bootstrap.min.css', 'cascade/css/admin/bootstrap-theme.min.css',)}
+
+    def has_change_permission(self, request):
+        print('has_change_permission')
+        return False
 
     def get_render_template(self, context, instance, placeholder):
         template_names = [

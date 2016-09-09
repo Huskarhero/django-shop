@@ -26,9 +26,10 @@ folder.
 Also ensure that these packages are installed using the favorite package manager of your operating
 system:
 
-* Python 2.7 or 3.4 and later
+* Python 2.7
 * Redis: http://redis.io/
 * SQLite: https://www.sqlite.org/
+* bower: http://bower.io/
 * Node Package Manager: https://www.npmjs.com/
 * Python 2.7 (Latest minor version recommended)
 * Django 1.9 (Latest minor version recommended)
@@ -43,6 +44,7 @@ system:
 	(shoptutorial)$ pip install -e .
 	(shoptutorial)$ pip install -r requirements/tutorial.txt
 	(shoptutorial)$ npm install
+	(shoptutorial)$ bower install
 
 these statements will setup an environment, which runs a demo shop out of the box.
 
@@ -88,7 +90,7 @@ and add a Page. As its **Title** chose “Smart Cards”. Then change into the *
 at the bottom of the page. In this editor window, locate the field **Application** and select
 **Products List**. Then save the page and click on **View on site**.
 
-Now change into **Structure** mode and locate the placeholder named **Main Content**.
+Now change into **Structure** mode and locate the placeholder named **Main content container**.
 Add a plugin from section **Bootstrap** named **Row**. Below that Row add a Column with a width of
 12 units. Finally, below the last Column add a plugin from section **Shop** named **Catalog List
 View**.

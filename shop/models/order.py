@@ -19,7 +19,7 @@ from shop import settings as shop_settings
 from shop.models.cart import CartItemModel
 from shop.money.fields import MoneyField, MoneyMaker
 from .product import BaseProduct
-from shop import deferred
+from . import deferred
 
 
 class OrderManager(models.Manager):
