@@ -15,7 +15,6 @@ import os
 from decimal import Decimal
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
-from cmsplugin_cascade.extra_fields.config import PluginExtraFieldsConfig
 
 SHOP_APP_LABEL = 'myshop'
 BASE_DIR = os.path.dirname(__file__)
@@ -103,14 +102,13 @@ INSTALLED_APPS = (
     'filer',
     'easy_thumbnails',
     'easy_thumbnails.optimize',
+    'parler',
     'post_office',
     'haystack',
     'shop',
     'shop_stripe',
     'myshop',
 )
-if SHOP_TUTORIAL in ('i18n_commodity', 'i18n_smartcard', 'polymorphic'):
-    INSTALLED_APPS += ('parler',)
 
 MIDDLEWARE_CLASSES = (
     'djng.middleware.AngularUrlMiddleware',
@@ -226,6 +224,7 @@ STATICFILES_FINDERS = (
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
+    ('bower_components', os.path.join(PROJECT_ROOT, 'bower_components')),
     ('node_modules', os.path.join(PROJECT_ROOT, 'node_modules')),
 )
 
@@ -319,7 +318,6 @@ NODE_MODULES_URL = STATIC_URL + 'node_modules/'
 
 SASS_PROCESSOR_INCLUDE_DIRS = (
     os.path.join(PROJECT_ROOT, 'node_modules'),
-    os.path.join(PROJECT_ROOT, 'shop/static'),
 )
 
 COERCE_DECIMAL_TO_STRING = True
@@ -416,9 +414,11 @@ CMS_PLACEHOLDER_CONF = {
         'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
     'Commodity Details': {
-        'plugins': ['BootstrapContainerPlugin', 'BootstrapJumbotronPlugin'],
+        'plugins': ['BootstrapContainerPlugin'],
         'text_only_plugins': ['TextLinkPlugin'],
-        'parent_classes': {'BootstrapContainerPlugin': None, 'BootstrapJumbotronPlugin': None},
+        'parent_classes': {'BootstrapContainerPlugin': None},
+        #'parent_classes': {'BootstrapRowPlugin': None},
+        #'require_parent': False,
         'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
     'Main Content': {
@@ -451,10 +451,19 @@ CMSPLUGIN_CASCADE = {
     'bootstrap3': {
         'template_basedir': 'angular-ui',
     },
+    'plugins_with_extra_fields': (
+        'BootstrapButtonPlugin',
+        'BootstrapRowPlugin',
+        'CarouselPlugin',
+        'SimpleWrapperPlugin',
+        'HorizontalRulePlugin',
+        'ExtraAnnotationFormPlugin',
+        'ShopProceedButton',
+        'ShopAddToCartPlugin',
+    ),
     'plugins_with_extra_render_templates': {
         'CustomSnippetPlugin': [
-            ('shop/catalog/product-heading.html', _("Product Heading")),
-            ('myshop/catalog/manufacturer-filter.html', _("Manufacturer Filter")),
+            ('shop/catalog/product-heading.html', _("Product Heading"))
         ],
     },
     'plugins_with_sharables': {
@@ -517,8 +526,8 @@ CKEDITOR_SETTINGS_DESCRIPTION = {
     ],
 }
 
-SELECT2_CSS = 'node_modules/select2/dist/css/select2.min.css'
-SELECT2_JS = 'node_modules/select2/dist/js/select2.min.js'
+SELECT2_CSS = 'bower_components/select2/dist/css/select2.min.css'
+SELECT2_JS = 'bower_components/select2/dist/js/select2.min.js'
 
 
 #############################################
