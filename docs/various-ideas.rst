@@ -30,7 +30,7 @@ Shops normally sell some kind of product. These products may be very
 differnt, so the trick here is to stay very flexible and
 extensible.
 
-See `products` for current discussion details.
+See :ref:`products` for current discussion details.
 
 
 Catalog and Categories
@@ -62,7 +62,7 @@ Cart
 
 Should be rather simple: A list of products.
 
-See also `cart`
+See also :ref:`cart`
 
 
 Orders
@@ -91,7 +91,7 @@ Prices
 
 Prices may get rather complicated.
 
-See also `prices` for some generic notes.
+See also :ref:`prices` for some generic notes.
 
 
 

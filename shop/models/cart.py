@@ -6,7 +6,7 @@ from collections import OrderedDict
 from django.db import models
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
-from shop.models.fields import JSONField
+from jsonfield.fields import JSONField
 from shop.modifiers.pool import cart_modifiers_pool
 from shop.money import Money
 from .product import BaseProduct
@@ -18,7 +18,6 @@ class CartItemManager(models.Manager):
     """
     Customized model manager for our CartItem model.
     """
-
     def get_or_create(self, **kwargs):
         """
         Create a unique cart item. If the same product exists already in the given cart,
@@ -116,7 +115,6 @@ class BaseCartItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
             modifier.process_cart_item(self, request)
         self._dirty = False
 
-
 CartItemModel = deferred.MaterializedModel(BaseCartItem)
 
 
@@ -150,7 +148,7 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     customer = deferred.OneToOneField('BaseCustomer', verbose_name=_("Customer"), related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated at"))
-    extra = JSONField(verbose_name=_("Arbitrary information for this cart"))
+    extra = JSONField(default={}, verbose_name=_("Arbitrary information for this cart"))
 
     # our CartManager determines the cart object from the request.
     objects = CartManager()
@@ -244,8 +242,7 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         Returns the total quantity of all items in the cart.
         """
-        aggr = self.items.aggregate(quantity=models.Sum('quantity'))
-        return aggr['quantity'] or 0
+        return self.items.aggregate(models.Sum('quantity'))['quantity__sum']
         # if we would know, that self.items is already evaluated, then this might be faster:
         # return sum([ci.quantity for ci in self.items.all()])
 
@@ -260,6 +257,5 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     @classmethod
     def get_default_caption_data(cls):
         return {'num_items': 0, 'total_quantity': 0, 'subtotal': Money(), 'total': Money()}
-
 
 CartModel = deferred.MaterializedModel(BaseCart)

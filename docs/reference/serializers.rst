@@ -59,42 +59,40 @@ attach it to this page. These catalog apphooks are not part of the shop framewor
 created and added to the project:
 
 .. code-block:: python
-    :caption: myshop/cms_app.py
-    :name: routing-catalog-list-app
+	:caption: myshop/cms_app.py
 
-    from cms.app_base import CMSApp
-    from cms.apphook_pool import apphook_pool
+	from cms.app_base import CMSApp
+	from cms.apphook_pool import apphook_pool
 
-    class CatalogListApp(CMSApp):
-        name = "Catalog List"
-        urls = ['myshop.urls.catalog']
+	class CatalogListApp(CMSApp):
+	    name = "Catalog List"
+	    urls = ['myshop.urls.catalog']
 
-    apphook_pool.register(CatalogListApp)
+	apphook_pool.register(CatalogListApp)
 
 We now must add routes for all sub-URLs of the given CMS page implementing the catalog list:
 
 .. code-block:: python
-    :caption: myshop/urls/catalog.py
-    :name: routing-catalog-list-app-cms-pages
+	:caption: myshop/urls/catalog.py
 
-    from django.conf.urls import url
-    from rest_framework.settings import api_settings
-    from shop.rest.filters import CMSPagesFilterBackend
-    from shop.views.catalog import (AddToCartView, CMSPageProductListView,
-        ProductRetrieveView)
-    from myshop.serializers import (ProductSummarySerializer,
-        ProductDetailSerializer)
+	from django.conf.urls import url
+	from rest_framework.settings import api_settings
+	from shop.rest.filters import CMSPagesFilterBackend
+	from shop.views.catalog import (AddToCartView, CMSPageProductListView,
+	    ProductRetrieveView)
+	from myshop.serializers import (ProductSummarySerializer,
+	    ProductDetailSerializer)
 
-    urlpatterns = [
-        url(r'^$', CMSPageProductListView.as_view(
-            serializer_class=ProductSummarySerializer,
-        )),
-        url(r'^(?P<slug>[\w-]+)$', ProductRetrieveView.as_view(
-            serializer_class=ProductDetailSerializer,
-        )),
-        url(r'^(?P<slug>[\w-]+)/add-to-cart', AddToCartView.as_view()
-        ),
-    ]
+	urlpatterns = [
+	    url(r'^$', CMSPageProductListView.as_view(
+	        serializer_class=ProductSummarySerializer,
+	    )),
+	    url(r'^(?P<slug>[\w-]+)$', ProductRetrieveView.as_view(
+	        serializer_class=ProductDetailSerializer,
+	    )),
+	    url(r'^(?P<slug>[\w-]+)/add-to-cart', AddToCartView.as_view()
+	    ),
+	]
 
 
 Products List View
@@ -172,14 +170,13 @@ in the URL line of our browser. Those endpoints are configured by adding them to
 at a project level:
 
 .. code-block:: python
-    :caption: myshop/urls.py
-    :name: checkout-urls
+	:caption: myshop/urls.py
 
-    urlpatterns = [
-        ...
-        url(r'^shop/', include('shop.urls', namespace='shop')),
-        ...
-    ]
+	urlpatterns = [
+	    ...
+	    url(r'^shop/', include('shop.urls', namespace='shop')),
+	    ...
+	]
 
 The serializers of the cart then can be accessed at http://localhost:8000/shop/api/cart/ ,
 those of the watch-list at http://localhost:8000/shop/api/watch/ and those handling the various
