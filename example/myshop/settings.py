@@ -103,14 +103,13 @@ INSTALLED_APPS = (
     'filer',
     'easy_thumbnails',
     'easy_thumbnails.optimize',
+    'parler',
     'post_office',
     'haystack',
     'shop',
     'shop_stripe',
     'myshop',
 )
-if SHOP_TUTORIAL in ('i18n_commodity', 'i18n_smartcard', 'polymorphic'):
-    INSTALLED_APPS += ('parler',)
 
 MIDDLEWARE_CLASSES = (
     'djng.middleware.AngularUrlMiddleware',
@@ -319,7 +318,6 @@ NODE_MODULES_URL = STATIC_URL + 'node_modules/'
 
 SASS_PROCESSOR_INCLUDE_DIRS = (
     os.path.join(PROJECT_ROOT, 'node_modules'),
-    os.path.join(PROJECT_ROOT, 'shop/static'),
 )
 
 COERCE_DECIMAL_TO_STRING = True
@@ -450,6 +448,16 @@ CMSPLUGIN_CASCADE = {
     'alien_plugins': ('TextPlugin', 'TextLinkPlugin',),
     'bootstrap3': {
         'template_basedir': 'angular-ui',
+    },
+    'plugins_with_extra_fields': {
+        'BootstrapButtonPlugin': PluginExtraFieldsConfig(allow_id_tag=True),
+        'BootstrapRowPlugin': PluginExtraFieldsConfig(),
+        'CarouselPlugin': PluginExtraFieldsConfig(),
+        'SimpleWrapperPlugin': PluginExtraFieldsConfig(),
+        'HorizontalRulePlugin': PluginExtraFieldsConfig(),
+        'ExtraAnnotationFormPlugin': PluginExtraFieldsConfig(),
+        'ShopProceedButton': PluginExtraFieldsConfig(),
+        'ShopAddToCartPlugin': PluginExtraFieldsConfig(),
     },
     'plugins_with_extra_render_templates': {
         'CustomSnippetPlugin': [

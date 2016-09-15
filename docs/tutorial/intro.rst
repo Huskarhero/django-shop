@@ -41,13 +41,10 @@ system:
 	(shoptutorial)$ git clone --depth 1 https://github.com/awesto/django-shop
 	(shoptutorial)$ cd django-shop
 	(shoptutorial)$ pip install -e .
-	(shoptutorial)$ pip install -r requirements/py3/common.txt
+	(shoptutorial)$ pip install -r requirements/tutorial.txt
 	(shoptutorial)$ npm install
 
-These statements will setup an environment that runs a demo shop out of the box.
-
-Note: replace ``py3`` with ``py2`` above if you want to use Python 2. We
-recommend that you use Python 3.
+these statements will setup an environment, which runs a demo shop out of the box.
 
 You may populate the database with your own products, or if impatient, :ref:`tutorial/quickstart`
 using prepared CMS page layouts, products and media files.
