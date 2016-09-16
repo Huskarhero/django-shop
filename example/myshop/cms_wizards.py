@@ -11,6 +11,7 @@ if settings.SHOP_TUTORIAL in ('commodity', 'i18n_commodity'):
     from shop.models.defaults.commodity import Commodity
     from shop.forms.wizards import CommodityWizardForm
 
+
     commodity_wizard = Wizard(
         title=_("New Commodity"),
         weight=200,

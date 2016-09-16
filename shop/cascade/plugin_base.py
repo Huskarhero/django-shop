@@ -85,21 +85,20 @@ class ShopButtonPluginBase(ShopLinkPluginBase):
         return mark_safe(instance.glossary.get('link_content', ''))
 
 
-class ProductSelect2Widget(HeavySelect2Widget):
+class HeavySelect2Widget(HeavySelect2Widget):
     def render(self, name, value, attrs=None, choices=None):
         try:
             result = ProductSelectSerializer(ProductModel.objects.get(pk=value))
             choices = ((value, result.data['text']),)
         except (ProductModel.DoesNotExist, ValueError):
             choices = ()
-        html = super(ProductSelect2Widget, self).render(name, value, attrs=attrs, choices=choices)
-        print(html)
+        html = super(HeavySelect2Widget, self).render(name, value, attrs=attrs, choices=choices)
         return html
 
 
 class ProductSelectField(ChoiceField):
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('widget', ProductSelect2Widget(data_view='shop:select-product'))
+        kwargs.setdefault('widget', HeavySelect2Widget(data_view='shop:select-product'))
         super(ProductSelectField, self).__init__(*args, **kwargs)
 
     def clean(self, value):

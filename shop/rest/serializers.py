@@ -89,9 +89,6 @@ class SerializerRegistryMetaclass(serializers.SerializerMetaclass):
         return new_class
 
 product_summary_serializer_class = None
-"""
-Global reference to the common ProductSerializer
-"""
 
 
 class ProductSummarySerializerBase(with_metaclass(SerializerRegistryMetaclass, ProductCommonSerializer)):
