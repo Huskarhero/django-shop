@@ -14,6 +14,7 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.dateformat import format, time_format
 from cms.models import Placeholder as PlaceholderModel
+from cms.plugin_rendering import render_placeholder
 from classytags.arguments import Argument
 from classytags.helpers import AsTag, InclusionTag
 from classytags.core import Options, Tag
@@ -22,17 +23,6 @@ from shop.models.cart import CartModel
 from shop.rest.money import JSONRenderer
 
 register = template.Library()
-
-
-def render_placeholder(request, placeholder):
-    renderer = ContentRenderer(request)
-    context = RequestContext(request)
-    context['request'] = request
-    content = content_renderer.render_placeholder(
-        placeholder,
-        context=context,
-    )
-    return content
 
 
 class CartIcon(InclusionTag):
@@ -150,7 +140,8 @@ class RenderPlaceholder(AsTag):
         request.current_page = None
         context['request'] = request
         obj = context.get('object')
-        content = render_placeholder(context['request'], obj.placeholder)
+        content = render_placeholder(obj.placeholder, context, name_fallback=placeholder, lang=lang,
+                                     default=None, editable=True, use_cache=True) #, editable=False, use_cache=False)
         return strip_tags(content)
 
 register.tag(RenderPlaceholder)
