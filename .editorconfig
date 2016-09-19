@@ -13,10 +13,10 @@ charset = utf-8
 indent_style = space
 indent_size = 4
 
-[*.{html,js,rst,scss}]
+[*.{html,rst,css,scss}]
 indent_style = tab
 indent_size = 4
 
-[*.{json,yml,css}]
+[*.{json,yml}]
 indent_style = space
 indent_size = 2
