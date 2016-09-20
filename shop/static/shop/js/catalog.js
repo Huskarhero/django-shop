@@ -53,9 +53,8 @@ djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$mo
 
 }]);
 
-djangoShopModule.controller('ModalInstanceCtrl',
-    ['$scope', '$http', '$modalInstance', 'modal_context',
-    function($scope, $http, $modalInstance, modal_context) {
+djangoShopModule.controller('ModalInstanceCtrl', ['$scope', '$http', '$modalInstance', 'modal_context',
+                                        function($scope, $http, $modalInstance, modal_context) {
 	var isLoading = false;
 	$scope.proceed = function(next_url) {
 		if (isLoading)
@@ -88,15 +87,14 @@ djangoShopModule.directive('shopAddToCart', function() {
 		link: function(scope, element, attrs, AddToCartCtrl) {
 			if (!attrs.shopAddToCart)
 				throw new Error("Directive shop-add-to-cart must point onto an URL");
-			AddToCartCtrl.setUpdateUrl(attrs.shopAddToCart);
+			AddToCartCtrl.setUpdateUrl(attrs.shopAddToCart); 
 			AddToCartCtrl.loadContext();
 		}
 	};
 });
 
 
-djangoShopModule.controller('CatalogListController', [
-    '$scope', '$http', 'djangoShop', function($scope, $http, djangoShop) {
+djangoShopModule.controller('CatalogListController', ['$scope', '$http', 'djangoShop', function($scope, $http, djangoShop) {
 	var self = this, fetchURL = djangoShop.getLocationPath();
 
 	this.loadProducts = function(config) {
@@ -133,10 +131,10 @@ djangoShopModule.controller('CatalogListController', [
 	});
 
 	// listen on events of type `shopCatalogFilter`
-	$scope.$root.$on('shopCatalogFilter', function(event, params) {
+	$scope.$root.$on('shopCatalogFilter', function(event, filter) {
 		var config;
 		try {
-			config = {params: params};
+			config = {params: filter};
 		} catch (err) {
 			config = null;
 		}

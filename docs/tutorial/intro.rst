@@ -26,9 +26,10 @@ folder.
 Also ensure that these packages are installed using the favorite package manager of your operating
 system:
 
-* Python 2.7 or 3.4 and later
+* Python 2.7
 * Redis: http://redis.io/
 * SQLite: https://www.sqlite.org/
+* bower: http://bower.io/
 * Node Package Manager: https://www.npmjs.com/
 * Python 2.7 (Latest minor version recommended)
 * Django 1.9 (Latest minor version recommended)
@@ -43,6 +44,7 @@ system:
 	(shoptutorial)$ pip install -e .
 	(shoptutorial)$ pip install -r requirements/py3/common.txt
 	(shoptutorial)$ npm install
+	(shoptutorial)$ bower install
 
 These statements will setup an environment that runs a demo shop out of the box.
 
@@ -63,7 +65,7 @@ Finally we must create a database to run our example project:
 .. code-block:: shell
 
 	(shoptutorial)$ cd example
-	(shoptutorial)$ export DJANGO_DEBUG=1
+	(shoptutorial)$ export DJANGO_SHOP_TUTORIAL=polymorphic DJANGO_DEBUG=1
 	(shoptutorial)$ ./manage.py migrate
 	(shoptutorial)$ ./manage.py createsuperuser
 	Email address: admin@example.org
