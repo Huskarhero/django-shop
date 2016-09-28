@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 import requests
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import BytesIO as StringIO
+import StringIO
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
@@ -21,7 +18,7 @@ class Command(BaseCommand):
     help = _("Initialize the workdir to run the demo of myshop.")
     download_url = 'http://downloads.django-shop.org/django-shop-workdir_{tutorial}-{version}.zip'
     version = '0.9.2'
-    pwd = b'z7xv'
+    pwd = 'z7xv'
 
     def add_arguments(self, parser):
         parser.add_argument('--noinput', '--no-input',
@@ -44,8 +41,8 @@ class Command(BaseCommand):
         self.stdout.write(msg)
         download_url = self.download_url.format(tutorial=settings.SHOP_TUTORIAL, version=self.version)
         response = requests.get(download_url, stream=True)
-        zip_ref = zipfile.ZipFile(StringIO(response.content))
         try:
+            zip_ref = zipfile.ZipFile(StringIO.StringIO(response.content))
             zip_ref.extractall(settings.PROJECT_ROOT, pwd=self.pwd)
         finally:
             zip_ref.close()
