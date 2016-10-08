@@ -53,6 +53,5 @@ class Command(BaseCommand):
             zip_ref.close()
 
         call_command('migrate')
-        fixture = '{workdir}/{tutorial}/fixtures/myshop.json'
-        call_command('loaddata', fixture.format(workdir=settings.WORK_DIR,
-                                                tutorial=settings.SHOP_TUTORIAL))
+        fixture = '../workdir/{tutorial}/fixtures/myshop.json'.format(tutorial=settings.SHOP_TUTORIAL)
+        call_command('loaddata', fixture)
