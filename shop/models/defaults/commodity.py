@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-In django-SHOP, a commodity is considered a very basic product without any attributes, which can
+In djangoSHOP, a commodity is considered a very basic product without any attributes, which can
 be used on a generic CMS page to describe anything.
 """
 from __future__ import unicode_literals
