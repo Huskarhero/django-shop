@@ -28,9 +28,8 @@ class CustomerForm(DialogModelForm):
         exclude = ('user', 'recognized', 'number', 'last_access',)
         custom_fields = ('email', 'first_name', 'last_name',)
 
-    def __init__(self, initial=None, instance=None, *args, **kwargs):
-        initial = dict(initial) if initial else {}
-        assert instance is not None
+    def __init__(self, initial={}, instance=None, *args, **kwargs):
+        assert instance is not None and isinstance(initial, dict)
         initial.update(dict((f, getattr(instance, f)) for f in self.Meta.custom_fields))
         super(CustomerForm, self).__init__(initial=initial, instance=instance, *args, **kwargs)
 
