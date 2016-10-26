@@ -414,4 +414,5 @@ class BaseOrderItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         self._line_total = BaseOrder.round_amount(self._line_total)
         super(BaseOrderItem, self).save(*args, **kwargs)
 
+
 OrderItemModel = deferred.MaterializedModel(BaseOrderItem)
