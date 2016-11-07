@@ -1,9 +1,5 @@
-include LICENSE.txt
+include LICENSE
 include README.md
-include setup.py
-include package.json
-recursive-include email_auth *.py
-recursive-include shop *.py
-recursive-include shop/static *
-recursive-include shop/templates *
-recursive-include shop/locale *
+recursive-include email_auth *
+recursive-include shop *
+recursive-exclude * *.pyc

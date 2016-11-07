@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from django.contrib.auth import get_user_model, authenticate, login
-from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.sites.models import get_current_site
 from django.core.exceptions import ValidationError
 from django.forms import fields, widgets, ModelForm
 from django.template import Context
@@ -20,10 +19,8 @@ class RegisterUserForm(NgModelFormMixin, NgFormValidationMixin, Bootstrap3ModelF
     field_css_classes = 'input-group has-feedback'
 
     email = fields.EmailField(label=_("Your e-mail address"))
-    preset_password = fields.BooleanField(
-        label=_("Preset password"),
+    preset_password = fields.BooleanField(required=False, label=_("Preset password"),
         widget=widgets.CheckboxInput(),
-        required=False,
         help_text=_("Send a randomly generated password to your e-mail address."))
 
     password1 = fields.CharField(label=_("Choose a password"), widget=widgets.PasswordInput,
@@ -68,7 +65,7 @@ class RegisterUserForm(NgModelFormMixin, NgFormValidationMixin, Bootstrap3ModelF
         password = self.cleaned_data['password1']
         if self.cleaned_data['preset_password']:
             self._send_password(request, customer.user, password)
-        user = authenticate(username=customer.user.username, password=password)
+        user = authenticate(username=customer.user.get_username(), password=password)
         login(request, user)
         return customer
 

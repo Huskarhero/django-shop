@@ -8,7 +8,7 @@ from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.db import models
 from django.db.models import Q
 from django.http.request import HttpRequest
-from django.template import Context, engines
+from django.template import Context, Template
 from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _, override as translation_override
 from django.utils.six.moves.urllib.parse import urlparse
@@ -33,9 +33,9 @@ class Email(OriginalEmail):
             render_language = self.context.get('render_language', settings.LANGUAGE_CODE)
             context = Context(self.context)
             with translation_override(render_language):
-                subject = engines['django'].from_string(self.template.subject).render(context)
-                message = engines['django'].from_string(self.template.content).render(context)
-                html_message = engines['django'].from_string(self.template.html_content).render(context)
+                subject = Template(self.template.subject).render(context)
+                message = Template(self.template.content).render(context)
+                html_message = Template(self.template.html_content).render(context)
         else:
             subject = self.subject
             message = self.message
@@ -73,10 +73,10 @@ class Notification(models.Model):
     """
     name = models.CharField(max_length=50, verbose_name=_("Name"))
     transition_target = models.CharField(max_length=50, verbose_name=_("Event"))
-    mail_to = models.PositiveIntegerField(verbose_name=_("Mail to"), null=True,
-                                          blank=True, default=None)
+    mail_to = models.PositiveIntegerField(verbose_name=_("Mail to"), null=True, blank=True,
+                                          default=None)
     mail_template = models.ForeignKey(EmailTemplate, verbose_name=_("Template"),
-                                      limit_choices_to=Q(language__isnull=True) | Q(language=''))
+                            limit_choices_to=Q(language__isnull=True) | Q(language=''))
 
     class Meta:
         app_label = 'shop'
@@ -125,11 +125,8 @@ class EmulateHttpRequest(HttpRequest):
 
 
 def order_event_notification(sender, instance=None, target=None, **kwargs):
-    from shop.models.order import OrderModel
     from shop.rest import serializers
 
-    if not isinstance(instance, OrderModel):
-        return
     for notification in Notification.objects.filter(transition_target=target):
         recipient = notification.get_recipient(instance)
         if recipient is None:

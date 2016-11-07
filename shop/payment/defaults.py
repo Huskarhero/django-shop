@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from django.utils.translation import ugettext_lazy as _
 from django_fsm import transition
 from shop.models.order import OrderModel
@@ -42,7 +41,7 @@ class PayInAdvanceWorkflowMixin(object):
     @transition(field='status', source=['created'], target='no_payment_required')
     def no_payment_required(self):
         """
-        Signals that an Order can proceed directly, by confirming a payment of value zero.
+        Signals that an Order can proceed directly and by confirming a payment of value zero.
         """
 
     @transition(field='status', source=['created'], target='awaiting_payment')
@@ -58,23 +57,17 @@ class PayInAdvanceWorkflowMixin(object):
     @transition(field='status', source=['awaiting_payment'], target='awaiting_payment',
         conditions=[deposited_too_little], custom=dict(admin=True, button_name=_("Deposited too little")))
     def prepayment_partially_deposited(self):
-        """
-        Signals that the current Order received a payment, which was not enough.
-        """
+        """Signals that the current Order received a payment, which was not enough."""
 
     @transition(field='status', source=['awaiting_payment'], target='prepayment_deposited',
         conditions=[is_fully_paid], custom=dict(admin=True, button_name=_("Mark as Paid")))
     def prepayment_fully_deposited(self):
-        """
-        Signals that the current Order received a payment, which fully covers the requested sum.
-        """
+        """Signals that the current Order received a payment, which fully covers the requested sum."""
 
     @transition(field='status', source=['prepayment_deposited', 'no_payment_required'],
         custom=dict(auto=True))
     def acknowledge_prepayment(self):
-        """
-        Acknowledge the payment. This method is invoked automatically.
-        """
+        """Acknowledge the payment. This method is invoked automatically."""
         self.acknowledge_payment()
 
 
@@ -90,9 +83,29 @@ class CancelOrderWorkflowMixin(object):
     def no_open_deposits(self):
         return self.amount_paid == 0
 
-    @transition(field='status', source=['*'], target='order_canceled',
+    @transition(field='status', source=['awaiting_payment'], target='order_canceled',
         conditions=[no_open_deposits], custom=dict(admin=True, button_name=_("Cancel Order")))
     def cancel_order(self):
-        """
-        Signals that an Order shall be canceled.
-        """
+        """Signals that an Order shall be canceled."""
+
+
+class CommissionGoodsWorkflowMixin(object):
+    """
+    Add this class to `settings.SHOP_ORDER_WORKFLOWS` to mix it into your `OrderModel`.
+    It adds all the methods required for state transitions, while picking and packing the
+    ordered goods for delivery.
+    """
+    TRANSITION_TARGETS = {
+        'pick_goods': _("Picking goods"),
+        'pack_goods': _("Packing goods"),
+    }
+
+    @transition(field='status', source=['payment_confirmed'], target='pick_goods',
+        custom=dict(admin=True, button_name=_("Pick the goods")))
+    def pick_goods(self, by=None):
+        """Change status to 'pick_goods'."""
+
+    @transition(field='status', source=['pick_goods'],
+        target='pack_goods', custom=dict(admin=True, button_name=_("Pack the goods")))
+    def pack_goods(self, by=None):
+        """Change status to 'pack_goods'."""

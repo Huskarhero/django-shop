@@ -8,15 +8,16 @@ msgstr ""
 "Project-Id-Version: django-shop\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-10-01 15:02+0100\n"
-"PO-Revision-Date: 2011-07-14 12:10+0000\n"
+"PO-Revision-Date: 2016-11-07 14:51+0100\n"
 "Last-Translator: mrbox <jakub@paczkowski.eu>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2)\n"
+"|| n%100>=20) ? 1 : 2);\n"
+"Language-Team: \n"
+"X-Generator: Poedit 1.8.11\n"
 
 #: admin/customer.py:19 models/defaults/address.py:25
 #, fuzzy
@@ -41,42 +42,40 @@ msgstr "Użytkownik"
 
 #: admin/customer.py:122 models/customer.py:216
 msgid "Salutation"
-msgstr ""
+msgstr "Zwrot grzecznościowy"
 
 #: admin/customer.py:129
 msgid "Staff"
-msgstr ""
+msgstr "Zespół"
 
 #: admin/customer.py:131
 msgid "User"
 msgstr "Użytkownik"
 
 #: admin/customer.py:132
-#, fuzzy
 msgid "State"
 msgstr "Województwo"
 
 #: admin/customer.py:137
 msgid "No data"
-msgstr ""
+msgstr "Brak danych"
 
 #: admin/customer.py:138 models/customer.py:217
-#, fuzzy
 msgid "Last accessed"
-msgstr "Data modyfikacji"
+msgstr "Ostatnio dostępny"
 
 #: admin/customer.py:145
 msgid "Unexpired"
-msgstr ""
+msgstr "Niewygasłe"
 
 #: admin/customer.py:156 admin/notification.py:19 models/cart.py:147
 #: models/order.py:150
 msgid "Customer"
-msgstr ""
+msgstr "Klient"
 
 #: admin/customer.py:157
 msgid "Customers"
-msgstr ""
+msgstr "Klienci"
 
 #: admin/defaults/commodity.py:23
 msgid "Common Fields"
@@ -91,28 +90,22 @@ msgid "The number of items to deliver exceeds the ordered quantity"
 msgstr ""
 
 #: admin/delivery.py:86
-#, fuzzy
 msgid "Deliver quantity"
 msgstr "Pozycja zamówienia"
 
 #: admin/delivery.py:95
-#, fuzzy
-#| msgid "Cart item"
 msgid "Cancel this item"
 msgstr "Produkt w koszyku"
 
 #: admin/delivery.py:102 models/defaults/delivery.py:15
-#, fuzzy
 msgid "Delivered quantity"
 msgstr "Pozycja zamówienia"
 
 #: admin/delivery.py:107
 msgid "Ready for delivery"
-msgstr ""
+msgstr "Gotowe do wysyłki"
 
 #: admin/delivery.py:139
-#, fuzzy
-#| msgid "Quantity"
 msgid "Quantity/Items"
 msgstr "Ilość"
 
@@ -146,33 +139,26 @@ msgid "Attachments"
 msgstr ""
 
 #: admin/order.py:63
-#, fuzzy
 msgctxt "admin"
 msgid "Extra data"
-msgstr "Dodatkowe pola ceny zamówienia"
+msgstr "Dodatkowe dane"
 
 #: admin/order.py:67
-#, fuzzy
-#| msgid "Status"
 msgctxt "admin"
 msgid "Status"
 msgstr "Status"
 
 #: admin/order.py:96
-#, fuzzy
-#| msgid "Order item"
 msgctxt "admin"
 msgid "Order number"
-msgstr "Pozycja zamówienia"
+msgstr "Numer zamówienia"
 
 #: admin/order.py:100
-#, fuzzy
 msgctxt "admin"
 msgid "Total"
-msgstr "Kwota zamówienia"
+msgstr "Razem"
 
 #: admin/order.py:104
-#, fuzzy
 msgctxt "admin"
 msgid "Subtotal"
 msgstr "Kwota zamówienia"
@@ -185,22 +171,20 @@ msgstr ""
 #: admin/order.py:122
 msgctxt "admin"
 msgid "Customer"
-msgstr ""
+msgstr "Klient"
 
 #: admin/order.py:183
 msgid "Order Confirmation"
-msgstr ""
+msgstr "Potwierdzenie zamówienia"
 
 #: admin/order.py:185 templates/shop/print/invoice.html:4
 #: templates/shop/print/invoice.html:7
 msgid "Invoice"
-msgstr ""
+msgstr "Faktura"
 
 #: admin/product.py:33 models/related.py:56
-#, fuzzy
-#| msgid "Countries"
 msgid "Categories"
-msgstr "Kraje"
+msgstr "Kategorie"
 
 #: admin/product.py:51
 msgid "CMS Pages"
@@ -208,11 +192,11 @@ msgstr ""
 
 #: admin/product.py:99 models/related.py:55
 msgid "Category"
-msgstr ""
+msgstr "Kategoria"
 
 #: apps.py:12
 msgid "Shop"
-msgstr ""
+msgstr "Sklep"
 
 #: cascade/auth.py:15
 msgid "Login Form"
@@ -437,11 +421,11 @@ msgstr ""
 
 #: cascade/checkout.py:271
 msgid "HTML content"
-msgstr ""
+msgstr "Kod HTML"
 
 #: cascade/checkout.py:292
 msgid "Required Form Fields"
-msgstr ""
+msgstr "Wymagane pola formularza"
 
 #: cascade/order.py:28
 #, fuzzy
@@ -464,11 +448,11 @@ msgstr ""
 
 #: cascade/plugin_base.py:122
 msgid "External URL"
-msgstr ""
+msgstr "Zewnętrzny URL"
 
 #: cascade/plugin_base.py:122
 msgid "Mail To"
-msgstr ""
+msgstr "Wyślij Do"
 
 #: cascade/plugin_base.py:124
 msgid "An internal link onto a product from the shop"
@@ -493,7 +477,7 @@ msgstr ""
 
 #: cascade/processbar.py:26
 msgid "Steps"
-msgstr ""
+msgstr "Kroki"
 
 #: cascade/processbar.py:27
 msgid "Number of steps for this proceed bar."
@@ -501,7 +485,7 @@ msgstr ""
 
 #: cascade/processbar.py:31
 msgid "Process Bar"
-msgstr ""
+msgstr "Pasek postępu"
 
 #: cascade/processbar.py:41
 msgid "with {} page"
@@ -524,12 +508,12 @@ msgstr ""
 
 #: cascade/search.py:22
 msgid "Search Results"
-msgstr ""
+msgstr "Wyniki Wyszukiwania"
 
 #: forms/auth.py:21 templates/shop/auth/login-reset.html:11
 #: templates/shop/auth/login.html:9 templates/shop/auth/reset.html:8
 msgid "Your e-mail address"
-msgstr ""
+msgstr "Twój adres e-mail"
 
 #: forms/auth.py:23
 msgid "Preset password"
@@ -545,15 +529,15 @@ msgstr ""
 
 #: forms/auth.py:29
 msgid "Minimum length is 6 characters."
-msgstr ""
+msgstr "Minimalna długość wynosi 6 znaków."
 
 #: forms/auth.py:30
 msgid "Repeat password"
-msgstr ""
+msgstr "Powtórz hasło"
 
 #: forms/auth.py:31
 msgid "Confirm password."
-msgstr ""
+msgstr "Potwierdź hasło."
 
 #: forms/auth.py:47
 #, python-brace-format
@@ -561,29 +545,28 @@ msgid ""
 "A customer with the e-mail address ‘{email}’ already exists.\n"
 "If you have used this address previously, try to reset the password."
 msgstr ""
+"Klient o podanym adresie e-mail ‘{email}’ już istnieje.\n"
+"Jeżeli ten adres e-mail należy do Ciebie możesz zresetować hasło."
 
 #: forms/auth.py:57
 msgid "Passwords do not match"
-msgstr ""
+msgstr "Hasło nie pasuje"
 
 #: forms/checkout.py:20
 msgid "Customer's Details"
 msgstr ""
 
 #: forms/checkout.py:22 forms/checkout.py:55
-#, fuzzy
 msgid "Email address"
-msgstr "Adres do rachunku"
+msgstr "Adres e-mali"
 
 #: forms/checkout.py:23
-#, fuzzy
 msgid "First Name"
-msgstr "Nazwa produktu"
+msgstr "Imię"
 
 #: forms/checkout.py:24
-#, fuzzy
 msgid "Last Name"
-msgstr "Data modyfikacji"
+msgstr "Nazwisko"
 
 #: forms/checkout.py:53
 msgid "Customer's Email"
@@ -595,6 +578,8 @@ msgid ""
 "A registered customer with the e-mail address '{email}' already exists.\n"
 "If you have used this address previously, try to reset the password."
 msgstr ""
+"Klient o podanym adresie e-mail ‘{email}’ już istnieje.\n"
+"Jeżeli ten adres e-mail należy do Ciebie możesz zresetować hasło."
 
 #: forms/checkout.py:193 models/defaults/address.py:24
 #: models/defaults/order.py:13
@@ -611,9 +596,8 @@ msgid "Billing Address"
 msgstr "Adres do faktury"
 
 #: forms/checkout.py:217
-#, fuzzy
 msgid "Use shipping address for billing"
-msgstr "Adres dostawy"
+msgstr "Dane do faktury takie same jak do dostawy."
 
 #: forms/checkout.py:264
 #, fuzzy
@@ -621,13 +605,12 @@ msgid "Payment Method"
 msgstr "Metoda płatności"
 
 #: forms/checkout.py:293
-#, fuzzy
 msgid "Shipping Method"
-msgstr "Dostawa"
+msgstr "Sposób dostawy"
 
 #: forms/checkout.py:321
 msgid "Extra annotation for this order"
-msgstr ""
+msgstr "Notatki do zamówienia"
 
 #: forms/wizards.py:15 models/defaults/commodity.py:85
 #: models/defaults/commodity.py:103
@@ -1367,9 +1350,8 @@ msgid "Peru"
 msgstr ""
 
 #: models/address.py:244
-#, fuzzy
 msgid "Philippines"
-msgstr "Adres dostawy"
+msgstr ""
 
 #: models/address.py:245
 msgid "Pitcairn"
@@ -1608,9 +1590,8 @@ msgid "United Kingdom"
 msgstr ""
 
 #: models/address.py:304
-#, fuzzy
 msgid "United States"
-msgstr "Zaktualizowany"
+msgstr ""
 
 #: models/address.py:305
 msgid "United States Minor Outlying Islands"
@@ -1677,28 +1658,24 @@ msgid "Cart items"
 msgstr "Produkty w koszyku"
 
 #: models/cart.py:148 models/order.py:156 models/product.py:123
-#, fuzzy
 msgid "Created at"
-msgstr "Stworzony"
+msgstr "Utworzony o "
 
 #: models/cart.py:149 models/order.py:157 models/product.py:124
-#, fuzzy
 msgid "Updated at"
-msgstr "Zaktualizowany"
+msgstr "Zaktualizowany o"
 
 #: models/cart.py:150
 msgid "Arbitrary information for this cart"
 msgstr ""
 
 #: models/cart.py:157
-#, fuzzy
 msgid "Shopping Cart"
-msgstr "Opróżnij koszyk"
+msgstr "Koszyk"
 
 #: models/cart.py:158
-#, fuzzy
 msgid "Shopping Carts"
-msgstr "Opróżnij koszyk"
+msgstr "Koszyki"
 
 #: models/customer.py:28
 msgid "CustomerState.Unrecognized"
@@ -1718,11 +1695,11 @@ msgstr ""
 
 #: models/customer.py:211
 msgid "Mrs."
-msgstr ""
+msgstr "Pani"
 
 #: models/customer.py:211
 msgid "Mr."
-msgstr ""
+msgstr "Pan"
 
 #: models/customer.py:211
 msgid "(n/a)"
@@ -1730,7 +1707,7 @@ msgstr ""
 
 #: models/customer.py:214
 msgid "Recognized as"
-msgstr ""
+msgstr "Rozpoznany jako"
 
 #: models/customer.py:215
 msgid "Designates the state the customer is recognized as."
@@ -1738,27 +1715,23 @@ msgstr ""
 
 #: models/customer.py:218
 msgid "Extra information about this customer"
-msgstr ""
+msgstr "Dodatkowe informacje o kliencie"
 
 #: models/defaults/address.py:10
 msgid "Full name"
 msgstr ""
 
 #: models/defaults/address.py:11
-#, fuzzy
-#| msgid "Addresses"
 msgid "Address line 1"
-msgstr "Adresy"
+msgstr "Adres linia 1"
 
 #: models/defaults/address.py:12
-#, fuzzy
-#| msgid "Address2"
 msgid "Address line 2"
-msgstr "Adres 2"
+msgstr "Adres linia 2"
 
 #: models/defaults/address.py:13
 msgid "ZIP / Postal code"
-msgstr ""
+msgstr "Kod pocztowy"
 
 #: models/defaults/address.py:14
 msgid "City"
@@ -1775,10 +1748,8 @@ msgstr "Adres do faktury"
 
 #: models/defaults/commodity.py:46 models/defaults/commodity.py:104
 #: models/order.py:318
-#, fuzzy
-#| msgid "Product name"
 msgid "Product code"
-msgstr "Nazwa produktu"
+msgstr "Kod produktu"
 
 #: models/defaults/commodity.py:47 models/defaults/commodity.py:105
 #: models/order.py:322
@@ -1787,11 +1758,11 @@ msgstr "Cena jednostkowa"
 
 #: models/defaults/commodity.py:48 models/defaults/commodity.py:106
 msgid "Net price for this product"
-msgstr ""
+msgstr "Cena netto dla produktu"
 
 #: models/defaults/commodity.py:51 models/defaults/commodity.py:109
 msgid "Sort by"
-msgstr ""
+msgstr "Sortuj"
 
 #: models/defaults/commodity.py:53 models/defaults/commodity.py:111
 msgid "Choose list view this product shall appear on."
@@ -1799,15 +1770,15 @@ msgstr ""
 
 #: models/defaults/commodity.py:54 models/defaults/commodity.py:112
 msgid "Sample Image"
-msgstr ""
+msgstr "Przykładowe zdjęcie"
 
 #: models/defaults/commodity.py:55 models/defaults/commodity.py:113
 msgid "Sample image used in the catalog's list view."
-msgstr ""
+msgstr "Przykładowe zdjęcie - widok na liście produktów."
 
 #: models/defaults/commodity.py:56 models/defaults/commodity.py:114
 msgid "Show Breadcrumb"
-msgstr ""
+msgstr "Pokaż okruszki."
 
 #: models/defaults/commodity.py:57 models/defaults/commodity.py:115
 msgid "Shall the detail page show the product's breadcrumb."
@@ -1830,10 +1801,8 @@ msgid "Customer Number"
 msgstr ""
 
 #: models/defaults/order.py:12
-#, fuzzy
-#| msgid "Order item"
 msgid "Order Number"
-msgstr "Pozycja zamówienia"
+msgstr "Numer zamówienia"
 
 #: models/defaults/order.py:14
 msgid "Shipping address at the moment of purchase."
@@ -1863,23 +1832,20 @@ msgid "Ordered quantity"
 msgstr "Pozycja zamówienia"
 
 #: models/delivery.py:17
-#, fuzzy
 msgid "Shipping ID"
-msgstr "Dostawa"
+msgstr "ID Wysyłki"
 
 #: models/delivery.py:18 models/order.py:300
 msgid "The transaction processor's reference"
 msgstr ""
 
 #: models/delivery.py:20
-#, fuzzy
 msgid "Shipped at"
-msgstr "Dostawa"
+msgstr "Data wysyłki"
 
 #: models/delivery.py:21
-#, fuzzy
 msgid "Shipping method"
-msgstr "Dostawa"
+msgstr "Metoda wysyłki"
 
 #: models/delivery.py:22
 msgid "The shipping backend used to deliver the items for this order"
@@ -1887,33 +1853,27 @@ msgstr ""
 
 #: models/delivery.py:26 models/delivery.py:44
 msgid "Delivery"
-msgstr ""
+msgstr "Dostawa"
 
 #: models/delivery.py:27
 msgid "Deliveries"
-msgstr ""
+msgstr "Dostawy"
 
 #: models/delivery.py:45
 msgid "Refer to the shipping provider used to ship this item"
 msgstr ""
 
 #: models/delivery.py:46
-#, fuzzy
-#| msgid "Order item"
 msgid "Ordered item"
-msgstr "Pozycja zamówienia"
+msgstr "Pozycje zamówienia"
 
 #: models/delivery.py:50
-#, fuzzy
-#| msgid "Order item"
 msgid "Deliver item"
-msgstr "Pozycja zamówienia"
+msgstr "Pozycja dostawy"
 
 #: models/delivery.py:51
-#, fuzzy
-#| msgid "Order items"
 msgid "Deliver items"
-msgstr "Pozycje zamówienia"
+msgstr "Pozycje dostawy"
 
 #: models/notification.py:74
 msgid "Name"
@@ -1921,23 +1881,23 @@ msgstr "Imię i nazwisko"
 
 #: models/notification.py:76
 msgid "Mail to"
-msgstr ""
+msgstr "Wysyłka Do"
 
 #: models/notification.py:78
 msgid "Template"
-msgstr ""
+msgstr "Szablon"
 
 #: models/notification.py:83
 msgid "Notification"
-msgstr ""
+msgstr "Powiadomienie"
 
 #: models/notification.py:84
 msgid "Notifications"
-msgstr ""
+msgstr "Powiadomienia"
 
 #: models/order.py:70
 msgid "Only signed in customers can view their orders"
-msgstr ""
+msgstr "Tylko zalogowani klienci mogą przeglądać zamówienia"
 
 #: models/order.py:140
 msgid "New order without content"
@@ -1948,10 +1908,8 @@ msgid "Order freshly created"
 msgstr ""
 
 #: models/order.py:142
-#, fuzzy
-#| msgid "Payment method"
 msgid "Payment confirmed"
-msgstr "Metoda płatności"
+msgstr "Płatność potwierdzona"
 
 #: models/order.py:151 templates/shop/order/list.html:16
 msgid "Status"
@@ -1975,14 +1933,12 @@ msgstr ""
 #: templates/shop/email/order.html:51 templates/shop/order/detail.html:18
 #: templates/shop/order/detail.html:62 templates/shop/print/order.html:12
 #: templates/shop/print/order.html:58
-#, fuzzy
 msgid "Total"
-msgstr "Kwota zamówienia"
+msgstr ""
 
 #: models/order.py:158 models/order.py:328
-#, fuzzy
 msgid "Extra fields"
-msgstr "Dodatkowe pola ceny zamówienia"
+msgstr ""
 
 #: models/order.py:159
 msgid "Arbitrary information for this order object on the moment of purchase."
@@ -1993,19 +1949,17 @@ msgid "Parts of the Request objects on the moment of purchase."
 msgstr ""
 
 #: models/order.py:286
-#, fuzzy
 msgctxt "order_models"
 msgid "State"
-msgstr "Województwo"
+msgstr ""
 
 #: models/order.py:296 models/order.py:315 templates/shop/order/detail.html:8
 msgid "Order"
 msgstr "Zamówienie"
 
 #: models/order.py:297
-#, fuzzy
 msgid "Amount paid"
-msgstr "Ilość"
+msgstr "Zapłacono"
 
 #: models/order.py:298
 msgid "How much was paid with this particular transfer."
@@ -2028,17 +1982,14 @@ msgid "The payment backend used to process the purchase"
 msgstr ""
 
 #: models/order.py:306
-#, fuzzy
 msgctxt "order_models"
 msgid "Order payment"
-msgstr "Pozycja zamówienia"
+msgstr ""
 
 #: models/order.py:307
-#, fuzzy
-#| msgid "Order Status"
 msgctxt "order_models"
 msgid "Order payments"
-msgstr "Status zamówienia"
+msgstr ""
 
 #: models/order.py:316
 msgid "Product name"
@@ -2089,25 +2040,20 @@ msgid "Products"
 msgstr "Produkty"
 
 #: models/product.py:138
-#, fuzzy
 msgid "Product type"
-msgstr "Nazwa produktu"
+msgstr "Rodzaj produktu"
 
 #: models/related.py:39
 msgid "."
 msgstr ""
 
 #: models/related.py:71
-#, fuzzy
-#| msgid "Product name"
 msgid "Product Image"
-msgstr "Nazwa produktu"
+msgstr "Zdjęcie produktu"
 
 #: models/related.py:72
-#, fuzzy
-#| msgid "Product name"
 msgid "Product Images"
-msgstr "Nazwa produktu"
+msgstr "Zdjęcia produktów"
 
 #: modifiers/defaults.py:40
 msgid "Pay in advance"
@@ -2115,7 +2061,7 @@ msgstr ""
 
 #: modifiers/defaults.py:52
 msgid "Self collection"
-msgstr ""
+msgstr "Odbiór osobisty"
 
 #: modifiers/taxes.py:25
 msgid "plus {}% VAT"
@@ -2219,14 +2165,12 @@ msgid "Awaiting a forward fund payment"
 msgstr ""
 
 #: payment/defaults.py:35
-#, fuzzy
 msgid "Prepayment deposited"
-msgstr "Metoda płatności"
+msgstr ""
 
 #: payment/defaults.py:36
-#, fuzzy
 msgid "No Payment Required"
-msgstr "Metoda płatności"
+msgstr "Niw wymaga płatności"
 
 #: payment/defaults.py:59
 msgid "Deposited too little"
@@ -2234,17 +2178,15 @@ msgstr ""
 
 #: payment/defaults.py:64
 msgid "Mark as Paid"
-msgstr ""
+msgstr "Oznacz jako zapłacone"
 
 #: payment/defaults.py:81
-#, fuzzy
 msgid "Order Canceled"
-msgstr "Pozycja zamówienia"
+msgstr "Zamówienie anulowane"
 
 #: payment/defaults.py:88
-#, fuzzy
 msgid "Cancel Order"
-msgstr "Zamówienia"
+msgstr "Anuluj zamówienie"
 
 #: shipping/defaults.py:24 shipping/delivery.py:20
 msgid "Picking goods"
@@ -2263,47 +2205,44 @@ msgid "Pack the goods"
 msgstr ""
 
 #: shipping/delivery.py:22
-#, fuzzy
 msgid "Ship goods"
-msgstr "Adres dostawy"
+msgstr ""
 
 #: shipping/delivery.py:53
-#, fuzzy
 msgid "Ship the goods"
-msgstr "Dostawa"
+msgstr ""
 
 #: templates/shop/auth/change.html:4
 msgid "Change Password"
-msgstr ""
+msgstr "Zmień hasło"
 
 #: templates/shop/auth/change.html:8 templates/shop/auth/change.html:11
 #: templates/shop/auth/password-reset-confirm.html:12
 msgid "New Password"
-msgstr ""
+msgstr "Nowe hasło"
 
 #: templates/shop/auth/change.html:14 templates/shop/auth/change.html:17
 #: templates/shop/auth/password-reset-confirm.html:18
 msgid "Confirm Password"
-msgstr ""
+msgstr "Potwierdź hasło"
 
 #: templates/shop/auth/change.html:21
 msgid "Submit Changes"
-msgstr ""
+msgstr "Wyślij zmiany"
 
 #: templates/shop/auth/continue-as-guest.html:4
-#, fuzzy
 msgid "Proceed as guest"
-msgstr "Przejdź do płatności"
+msgstr "Kontynuuj jako gość"
 
 #: templates/shop/auth/login-reset.html:6 templates/shop/auth/login.html:29
 #: templates/shop/navbar/login-logout.html:49
 msgid "Login"
-msgstr ""
+msgstr "Zaloguj"
 
 #: templates/shop/auth/login-reset.html:7 templates/shop/auth/reset.html:4
 #: templates/shop/navbar/login-logout.html:54
 msgid "Password Forgotten?"
-msgstr ""
+msgstr "Zapomniałeś hasła?"
 
 #: templates/shop/auth/login-reset.html:14 templates/shop/auth/login.html:12
 #: templates/shop/auth/reset.html:11
@@ -2313,21 +2252,21 @@ msgstr ""
 
 #: templates/shop/auth/login-reset.html:18 templates/shop/auth/reset.html:15
 msgid "Reset Password"
-msgstr ""
+msgstr "Reset hasła"
 
 #: templates/shop/auth/login.html:4
 msgid "Sign In"
-msgstr ""
+msgstr "Zaloguj"
 
 #: templates/shop/auth/login.html:15 templates/shop/auth/register-user.html:15
 msgid "Please provide a valid email address"
-msgstr ""
+msgstr "Proszę wprowadzić poprawny adres e-mail"
 
 #: templates/shop/auth/login.html:20 templates/shop/auth/login.html:23
 #: templates/shop/navbar/login-logout.html:43
 #: templates/shop/navbar/login-logout.html:46
 msgid "Password"
-msgstr ""
+msgstr "Hasło"
 
 #: templates/shop/auth/logout.html:4
 #, python-format
@@ -2336,12 +2275,12 @@ msgstr ""
 
 #: templates/shop/auth/logout.html:8 templates/shop/navbar/login-logout.html:22
 msgid "Logout"
-msgstr ""
+msgstr "Wyloguj"
 
 #: templates/shop/auth/password-reset-confirm.html:5
 #, python-format
 msgid "New password for '%(user_name)s'"
-msgstr ""
+msgstr "Nowe hasło dla '%(user_name)s'"
 
 #: templates/shop/auth/password-reset-confirm.html:11
 msgid ""
@@ -2410,9 +2349,8 @@ msgid "Watch Item"
 msgstr ""
 
 #: templates/shop/cart/summary.html:6
-#, fuzzy
 msgid "Number of items"
-msgstr "Pozycje zamówienia"
+msgstr ""
 
 #: templates/shop/cart/watch.html:46
 #: templates/shop/catalog/product-add2cart.html:47
@@ -2428,9 +2366,8 @@ msgid "No products found"
 msgstr ""
 
 #: templates/shop/catalog/product-add2cart.html:10
-#, fuzzy
 msgid "Order Product"
-msgstr "Produkt"
+msgstr ""
 
 #: templates/shop/catalog/product-add2cart.html:34
 msgid ""
@@ -2442,9 +2379,8 @@ msgid ""
 msgstr ""
 
 #: templates/shop/catalog/product-add2cart.html:44
-#, fuzzy
 msgid "Watch product"
-msgstr "Produkt"
+msgstr ""
 
 #: templates/shop/catalog/product-add2cart.html:60
 msgid "The product has been successfully placed in the shopping cart:"
@@ -2469,38 +2405,33 @@ msgstr ""
 
 #: templates/shop/catalog/product-add2cart.html:78
 msgid "Cancel"
-msgstr ""
+msgstr "Anuluj"
 
 #: templates/shop/catalog/product-figure.html:10
 #: templates/shop/email/order.html:13
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: templates/shop/checkout/billing-address-form.html:15
 msgid "Chose a previously used billing address"
 msgstr ""
 
 #: templates/shop/checkout/billing-address-form.html:18
-#, fuzzy
-#| msgid "Billing address"
 msgid "Add another billing address"
-msgstr "Adres do faktury"
+msgstr "Dodatkowy adres do faktury"
 
 #: templates/shop/checkout/billing-address-form.html:22
-#, fuzzy
-#| msgid "Billing address"
 msgid "Add a new billing address"
-msgstr "Adres do faktury"
+msgstr "Dodaj nowy adres do faktury"
 
 #: templates/shop/checkout/billing-address-form.html:29
 #: templates/shop/checkout/shipping-address-form.html:24
-#, fuzzy
 msgid "Remove this address"
-msgstr "Adres do rachunku"
+msgstr "Usuń ten adres"
 
 #: templates/shop/checkout/required-form-fields.html:1
 msgid "These fields are required"
-msgstr ""
+msgstr "Wymagane pola"
 
 #: templates/shop/checkout/shipping-address-form.html:10
 msgid "Chose a previously used shipping address"
@@ -2508,10 +2439,8 @@ msgstr ""
 
 #: templates/shop/checkout/shipping-address-form.html:13
 #: templates/shop/checkout/shipping-address-form.html:17
-#, fuzzy
-#| msgid "Shipping address"
 msgid "Add a new shipping address"
-msgstr "Adres dostawy"
+msgstr "Dodaj nowy adres dostawy"
 
 #: templates/shop/email/customer-information.html:4
 msgid "Your Details"
@@ -2610,9 +2539,8 @@ msgid "Thereof Paid"
 msgstr ""
 
 #: templates/shop/order/list.html:13
-#, fuzzy
 msgid "Order Date"
-msgstr "Pozycja zamówienia"
+msgstr "Data zamówienia"
 
 #: templates/shop/order/list.html:14
 msgid "Sum"
@@ -2620,10 +2548,8 @@ msgstr ""
 
 #: templates/shop/print/delivery-note.html:6
 #: templates/shop/print/order-confirmation.html:6
-#, fuzzy
-#| msgid "Order extra info"
 msgid "Order confirmation for"
-msgstr "Dodatkowe informacje do zamówienia"
+msgstr "Potwierdzenie zamówienia dla"
 
 #: templates/shop/search/results.html:14
 msgid "Searching for '{{ searchQuery }}' did not return any results"
@@ -2634,13 +2560,12 @@ msgid "{{ search_data.count }} matching products found"
 msgstr ""
 
 #: templates/shop/search/results.html:21
-#, fuzzy
 msgid "Base Price"
-msgstr "Cena jednostkowa"
+msgstr "Cena bazowa"
 
 #: templates/shop/search/results.html:35
 msgid "Details"
-msgstr ""
+msgstr "Szczegóły"
 
 #: templates/shop/search/results.html:46
 msgid "Loading search results"
@@ -2668,6 +2593,7 @@ msgstr ""
 #, python-brace-format
 msgid "Instructions on how to reset the password have been sent to '{email}'."
 msgstr ""
+"Instrukcja procedury resetowania hasła została wysłana na adres '{email}'."
 
 #: views/auth.py:136
 msgid "Password has been reset with the new password."
