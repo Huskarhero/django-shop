@@ -15,7 +15,10 @@ from django.utils.translation import ugettext_lazy as _
 
 class UserManager(BaseUserManager):
     def get_by_natural_key(self, username):
-        return self.get(username=username)
+        try:
+            return self.get(username=username)
+        except self.model.DoesNotExist:
+            return self.get(is_active=True, email=username)
 
 
 @python_2_unicode_compatible
@@ -63,6 +66,7 @@ class User(AbstractUser):
         for them.
         """
         super(User, self).validate_unique(exclude)
-        if self.email and get_user_model().objects.exclude(id=self.id).filter(is_active=True, email__exact=self.email).exists():
+        if self.email and get_user_model().objects.exclude(id=self.id).filter(is_active=True,
+                                                                              email__exact=self.email).exists():
             msg = _("A customer with the e-mail address ‘{email}’ already exists.")
             raise ValidationError({'email': msg.format(email=self.email)})

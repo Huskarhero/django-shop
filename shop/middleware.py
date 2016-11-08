@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from django.utils.functional import SimpleLazyObject
 from django.utils import timezone
 from shop.models.customer import CustomerModel
@@ -13,8 +14,12 @@ def get_customer(request, force=False):
 
 class CustomerMiddleware(object):
     def process_request(self, request):
-        assert hasattr(request, 'session'), "The djangoSHOP middleware requires session middleware to be installed. Edit your MIDDLEWARE_CLASSES setting to insert 'django.contrib.sessions.middleware.SessionMiddleware'."
-        assert hasattr(request, 'user'), "The djangoSHOP middleware requires an authentication middleware to be installed. Edit your MIDDLEWARE_CLASSES setting to insert 'django.contrib.auth.middleware.AuthenticationMiddleware'."
+        assert hasattr(request, 'session'), (
+            "The django-SHOP middleware requires session middleware to be installed. "
+            "Edit your MIDDLEWARE_CLASSES setting to insert 'django.contrib.sessions.middleware.SessionMiddleware'.")
+        assert hasattr(request, 'user'), (
+            "The django-SHOP middleware requires an authentication middleware to be installed. "
+            "Edit your MIDDLEWARE_CLASSES setting to insert 'django.contrib.auth.middleware.AuthenticationMiddleware'.")
         request.customer = SimpleLazyObject(lambda: get_customer(request))
 
     def process_response(self, request, response):
@@ -27,3 +32,14 @@ class CustomerMiddleware(object):
         except AttributeError:
             pass
         return response
+
+
+class MethodOverrideMiddleware(object):
+    METHOD_OVERRIDE_HEADER = 'HTTP_X_HTTP_METHOD_OVERRIDE'
+
+    def process_view(self, request, callback, callback_args, callback_kwargs):
+        if request.method != 'POST':
+            return
+        if self.METHOD_OVERRIDE_HEADER not in request.META:
+            return
+        request.method = request.META[self.METHOD_OVERRIDE_HEADER]

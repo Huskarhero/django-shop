@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib import admin
+from django.utils.html import format_html_join
 from django.utils.timezone import localtime
 from django.utils.translation import pgettext_lazy, ugettext_lazy as _
-from shop.models.customer import CustomerModel
+from shop.models.customer import CustomerModel, CustomerState
 
 
 class CustomerInlineAdmin(admin.StackedInline):
     model = CustomerModel
-    fields = ('salutation', 'get_number', 'recognized')
-    readonly_fields = ('get_number',)
+    fieldsets = (
+        (None, {'fields': ('salutation', 'get_number')}),
+        (_("Shipping Addresses"), {'fields': ('get_shipping_addresses',)})
+    )
+    readonly_fields = ('get_number', 'get_shipping_addresses',)
 
     def get_extra(self, request, obj=None, **kwargs):
         return 0 if obj is None else 1
@@ -21,9 +26,17 @@ class CustomerInlineAdmin(admin.StackedInline):
     def has_add_permission(self, request):
         return False
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def get_number(self, customer):
         return customer.get_number()
     get_number.short_description = pgettext_lazy('customer', "Number")
+
+    def get_shipping_addresses(self, customer):
+        addresses = [(a.as_text(),) for a in customer.shippingaddress_set.all()]
+        return format_html_join('', '<address>{0}</address>', addresses)
+    get_shipping_addresses.short_description = ''
 
 
 class CustomerCreationForm(UserCreationForm):
@@ -61,13 +74,11 @@ class CustomerListFilter(admin.SimpleListFilter):
     parameter_name = 'custate'
 
     def lookups(self, request, model_admin):
-        return CustomerModel.CUSTOMER_STATES
+        return CustomerState.choices()
 
     def queryset(self, request, queryset):
         try:
-            custate = int(self.value())
-            if custate in dict(CustomerModel.CUSTOMER_STATES):
-                queryset = queryset.filter(customer__recognized=custate)
+            queryset = queryset.filter(customer__recognized=CustomerState(int(self.value())))
         finally:
             return queryset
 
