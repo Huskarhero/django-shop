@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 Django settings for myshop project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/stable/topics/settings/
+https://docs.djangoproject.com/en/1.8/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/stable/ref/settings/
+https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -15,16 +15,12 @@ import os
 from decimal import Decimal
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
-from cmsplugin_cascade.extra_fields.config import PluginExtraFieldsConfig
 
 SHOP_APP_LABEL = 'myshop'
 BASE_DIR = os.path.dirname(__file__)
-
-SHOP_TUTORIAL = os.environ.get('DJANGO_SHOP_TUTORIAL')
-if SHOP_TUTORIAL is None:
-    raise ImproperlyConfigured("Environment variable DJANGO_SHOP_TUTORIAL is not set")
-if SHOP_TUTORIAL not in ('commodity', 'i18n_commodity', 'smartcard', 'i18n_smartcard', 'polymorphic',):
-    raise ImproperlyConfigured("Environment variable DJANGO_SHOP_TUTORIAL has an invalid value `{}`".format(SHOP_TUTORIAL))
+SHOP_TUTORIAL = os.environ.get('DJANGO_SHOP_TUTORIAL', 'simple')
+if SHOP_TUTORIAL not in ('simple', 'i18n', 'polymorphic',):
+    raise ImproperlyConfigured("Environment DJANGO_SHOP_TUTORIAL has an invalid value `{}`".format(SHOP_TUTORIAL))
 
 # Root directory for this django project
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, os.path.pardir))
@@ -71,10 +67,10 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'email_auth',
     'polymorphic',
-    #'djangocms_admin_style',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    #'djangocms_admin_style', the default style in Django-1.9 is good enough
     'django.contrib.admin',
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
@@ -103,14 +99,13 @@ INSTALLED_APPS = (
     'filer',
     'easy_thumbnails',
     'easy_thumbnails.optimize',
+    'parler',
     'post_office',
     'haystack',
     'shop',
     'shop_stripe',
     'myshop',
 )
-if SHOP_TUTORIAL in ('i18n_commodity', 'i18n_smartcard', 'polymorphic'):
-    INSTALLED_APPS += ('parler',)
 
 MIDDLEWARE_CLASSES = (
     'djng.middleware.AngularUrlMiddleware',
@@ -123,7 +118,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.gzip.GZipMiddleware',
-    'shop.middleware.MethodOverrideMiddleware',
     'cms.middleware.language.LanguageCookieMiddleware',
     'cms.middleware.user.CurrentUserMiddleware',
     'cms.middleware.page.CurrentPageMiddleware',
@@ -142,7 +136,7 @@ WSGI_APPLICATION = 'wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(WORK_DIR, SHOP_TUTORIAL, 'db.sqlite3'),
+        'NAME': os.path.join(WORK_DIR, 'db-{}.sqlite3'.format(SHOP_TUTORIAL)),
     }
 }
 
@@ -151,7 +145,7 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en'
 
-if SHOP_TUTORIAL in ('i18n_smartcard', 'i18n_commodity', 'polymorphic'):
+if SHOP_TUTORIAL in ('i18n', 'polymorphic'):
     USE_I18N = True
 
     LANGUAGES = (
@@ -203,7 +197,7 @@ USE_X_FORWARDED_HOST = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = os.path.join(WORK_DIR, SHOP_TUTORIAL, 'media')
+MEDIA_ROOT = os.path.join(WORK_DIR, 'media')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -212,7 +206,7 @@ MEDIA_URL = '/media/'
 
 # Absolute path to the directory that holds static files.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = os.path.join(WORK_DIR, SHOP_TUTORIAL, 'static')
+STATIC_ROOT = os.path.join(WORK_DIR, 'static')
 
 # URL that handles the static files served from STATIC_ROOT.
 # Example: "http://media.lawrence.com/static/"
@@ -227,6 +221,7 @@ STATICFILES_FINDERS = (
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
+    ('bower_components', os.path.join(PROJECT_ROOT, 'bower_components')),
     ('node_modules', os.path.join(PROJECT_ROOT, 'node_modules')),
 )
 
@@ -255,7 +250,6 @@ TEMPLATES = [{
             'cms.context_processors.cms_settings',
             'shop.context_processors.customer',
             'shop.context_processors.version',
-            'shop.context_processors.ng_model_options',
             'shop_stripe.context_processors.public_keys',
         )
     }
@@ -299,7 +293,6 @@ LOGGING = {
 
 SILENCED_SYSTEM_CHECKS = ('auth.W004')
 
-FIXTURE_DIRS = [os.path.join(WORK_DIR, SHOP_TUTORIAL, 'fixtures')]
 
 ############################################
 # settings for sending mail
@@ -329,8 +322,6 @@ FSM_ADMIN_FORCE_PERMIT = True
 
 ROBOTS_META_TAGS = ('noindex', 'nofollow')
 
-SERIALIZATION_MODULES = {'json': str('shop.money.serializers')}
-
 ############################################
 # settings for django-restframework and plugins
 
@@ -346,6 +337,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 12,
 }
+
+SERIALIZATION_MODULES = {'json': str('shop.money.serializers')}
+
 
 ############################################
 # settings for storing session data
@@ -413,60 +407,47 @@ CACSCADE_WORKAREA_GLOSSARY = {
 CMS_PLACEHOLDER_CONF = {
     'Breadcrumb': {
         'plugins': ['BreadcrumbPlugin'],
-        'parent_classes': {'BreadcrumbPlugin': None},
         'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
     'Commodity Details': {
-        'plugins': ['BootstrapContainerPlugin', 'BootstrapJumbotronPlugin'],
+        'plugins': ['BootstrapRowPlugin', 'TextPlugin', 'ImagePlugin', 'PicturePlugin'],
         'text_only_plugins': ['TextLinkPlugin'],
-        'parent_classes': {'BootstrapContainerPlugin': None, 'BootstrapJumbotronPlugin': None},
-        'glossary': CACSCADE_WORKAREA_GLOSSARY,
-    },
-    'Main Content': {
-        'plugins': ['BootstrapContainerPlugin', 'BootstrapJumbotronPlugin'],
-        'text_only_plugins': ['TextLinkPlugin'],
-        'parent_classes': {'BootstrapContainerPlugin': None, 'BootstrapJumbotronPlugin': None},
-        'glossary': CACSCADE_WORKAREA_GLOSSARY,
-    },
-    'Static Footer': {
-        'plugins': ['BootstrapContainerPlugin', ],
-        'parent_classes': {'BootstrapContainerPlugin': None},
+        'parent_classes': {'BootstrapRowPlugin': []},
+        'require_parent': False,
         'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
 }
+
 
 CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.segmentation', 'cmsplugin_cascade.generic',
     'cmsplugin_cascade.link', 'shop.cascade', 'cmsplugin_cascade.bootstrap3',)
 
 CMSPLUGIN_CASCADE = {
-    'fontawesome_css_url': 'node_modules/font-awesome/css/font-awesome.css',
     'dependencies': {
         'shop/js/admin/shoplinkplugin.js': 'cascade/js/admin/linkpluginbase.js',
     },
-    'link_plugin_classes': (
-        'shop.cascade.plugin_base.CatalogLinkPluginBase',
-        'cmsplugin_cascade.link.plugin_base.LinkElementMixin',
-        'shop.cascade.plugin_base.CatalogLinkForm',
-    ),
     'alien_plugins': ('TextPlugin', 'TextLinkPlugin',),
     'bootstrap3': {
         'template_basedir': 'angular-ui',
     },
-    'plugins_with_extra_render_templates': {
-        'CustomSnippetPlugin': [
-            ('shop/catalog/product-heading.html', _("Product Heading")),
-            ('myshop/catalog/manufacturer-filter.html', _("Manufacturer Filter")),
-        ],
-    },
-    'plugins_with_sharables': {
-        'BootstrapImagePlugin': ('image-shapes', 'image-width-responsive', 'image-width-fixed', 'image-height', 'resize-options',),
-        'BootstrapPicturePlugin': ('image-shapes', 'responsive-heights', 'image-size', 'resize-options',),
-    },
-    'bookmark_prefix': '/',
+    'plugins_with_extra_fields': (
+        'BootstrapButtonPlugin',
+        'BootstrapRowPlugin',
+        'SimpleWrapperPlugin',
+        'HorizontalRulePlugin',
+        'ExtraAnnotationFormPlugin',
+        'ShopProceedButton',
+    ),
     'segmentation_mixins': (
         ('shop.cascade.segmentation.EmulateCustomerModelMixin', 'shop.cascade.segmentation.EmulateCustomerAdminMixin'),
     ),
 }
+
+CMSPLUGIN_CASCADE_LINKPLUGIN_CLASSES = (
+    'shop.cascade.plugin_base.CatalogLinkPluginBase',
+    'cmsplugin_cascade.link.plugin_base.LinkElementMixin',
+    'shop.cascade.plugin_base.CatalogLinkForm',
+)
 
 CKEDITOR_SETTINGS = {
     'language': '{{ language }}',
@@ -487,39 +468,8 @@ CKEDITOR_SETTINGS = {
     ],
 }
 
-CKEDITOR_SETTINGS_CAPTION = {
-    'language': '{{ language }}',
-    'skin': 'moono',
-    'height': 70,
-    'toolbar_HTMLField': [
-        ['Undo', 'Redo'],
-        ['Format', 'Styles'],
-        ['Bold', 'Italic', 'Underline', '-', 'Subscript', 'Superscript', '-', 'RemoveFormat'],
-        ['Source']
-    ],
-}
-
-CKEDITOR_SETTINGS_DESCRIPTION = {
-    'language': '{{ language }}',
-    'skin': 'moono',
-    'height': 250,
-    'toolbar_HTMLField': [
-        ['Undo', 'Redo'],
-        ['cmsplugins', '-', 'ShowBlocks'],
-        ['Format', 'Styles'],
-        ['TextColor', 'BGColor', '-', 'PasteText', 'PasteFromWord'],
-        ['Maximize', ''],
-        '/',
-        ['Bold', 'Italic', 'Underline', '-', 'Subscript', 'Superscript', '-', 'RemoveFormat'],
-        ['JustifyLeft', 'JustifyCenter', 'JustifyRight'],
-        ['HorizontalRule'],
-        ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Table'],
-        ['Source']
-    ],
-}
-
-SELECT2_CSS = 'node_modules/select2/dist/css/select2.min.css'
-SELECT2_JS = 'node_modules/select2/dist/js/select2.min.js'
+SELECT2_CSS = 'bower_components/select2/dist/css/select2.min.css'
+SELECT2_JS = 'bower_components/select2/dist/js/select2.min.js'
 
 
 #############################################
@@ -532,7 +482,7 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'myshop-en',
     },
 }
-if USE_I18N:
+if SHOP_TUTORIAL in ('i18n', 'polymorphic'):
     HAYSTACK_CONNECTIONS['de'] = {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
         'URL': 'http://localhost:9200/',
@@ -552,28 +502,34 @@ SHOP_CART_MODIFIERS = (
     'shop.modifiers.taxes.CartExcludedTaxModifier',
     'myshop.modifiers.PostalShippingModifier',
     'myshop.modifiers.CustomerPickupModifier',
+    'myshop.modifiers.StripePaymentModifier',
     'shop.modifiers.defaults.PayInAdvanceModifier',
 )
-if 'shop_stripe' in INSTALLED_APPS:
-    SHOP_CART_MODIFIERS += ('myshop.modifiers.StripePaymentModifier',)
-
 SHOP_EDITCART_NG_MODEL_OPTIONS = "{updateOn: 'default blur', debounce: {'default': 2500, 'blur': 0}}"
 
 SHOP_ORDER_WORKFLOWS = (
     'shop.payment.defaults.PayInAdvanceWorkflowMixin',
-    'shop.payment.defaults.CancelOrderWorkflowMixin',
     'shop.shipping.delivery.PartialDeliveryWorkflowMixin' if SHOP_TUTORIAL == 'polymorphic'
     else 'shop.shipping.defaults.CommissionGoodsWorkflowMixin',
     'shop_stripe.payment.OrderWorkflowMixin',
 )
 
 SHOP_STRIPE = {
-    'PUBKEY': 'pk_test_HlEp5oZyPonE21svenqowhXp',
-    'APIKEY': 'sk_test_xUdHLeFasmOUDvmke4DHGRDP',
+    'PUBKEY': 'pk_test_stripe_secret',
+    'APIKEY': 'sk_test_stripe_secret',
     'PURCHASE_DESCRIPTION': _("Thanks for purchasing at MyShop"),
 }
 
-try:
-    from .private_settings import *
-except ImportError:
-    pass
+# merge settings with non-public credentioals in private_settings
+for priv_attr in ('DATABASES', 'SECRET_KEY', 'SHOP_STRIPE', 'EMAIL_HOST', 'EMAIL_PORT',
+                  'EMAIL_HOST_USER', 'DEFAULT_FROM_EMAIL', 'EMAIL_HOST_PASSWORD', 'EMAIL_USE_TLS',
+                  'EMAIL_REPLY_TO', 'EMAIL_BACKEND'):
+    try:
+        from . import private_settings
+        vars()[priv_attr].update(getattr(private_settings, priv_attr))
+    except AttributeError:
+        continue
+    except KeyError:
+        vars()[priv_attr] = getattr(private_settings, priv_attr)
+    except ImportError:
+        break
