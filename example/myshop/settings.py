@@ -15,6 +15,7 @@ import os
 from decimal import Decimal
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
+from cmsplugin_cascade.extra_fields.config import PluginExtraFieldsConfig
 
 SHOP_APP_LABEL = 'myshop'
 BASE_DIR = os.path.dirname(__file__)
@@ -23,8 +24,7 @@ SHOP_TUTORIAL = os.environ.get('DJANGO_SHOP_TUTORIAL')
 if SHOP_TUTORIAL is None:
     raise ImproperlyConfigured("Environment variable DJANGO_SHOP_TUTORIAL is not set")
 if SHOP_TUTORIAL not in ('commodity', 'i18n_commodity', 'smartcard', 'i18n_smartcard', 'polymorphic',):
-    msg = "Environment variable DJANGO_SHOP_TUTORIAL has an invalid value `{}`"
-    raise ImproperlyConfigured(msg.format(SHOP_TUTORIAL))
+    raise ImproperlyConfigured("Environment variable DJANGO_SHOP_TUTORIAL has an invalid value `{}`".format(SHOP_TUTORIAL))
 
 # Root directory for this django project
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, os.path.pardir))
@@ -71,7 +71,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'email_auth',
     'polymorphic',
-    # deprecated: 'djangocms_admin_style',
+    #'djangocms_admin_style',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
@@ -123,7 +123,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.gzip.GZipMiddleware',
-    'shop.middleware.MethodOverrideMiddleware',
     'cms.middleware.language.LanguageCookieMiddleware',
     'cms.middleware.user.CurrentUserMiddleware',
     'cms.middleware.page.CurrentPageMiddleware',
@@ -266,7 +265,11 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
-    'filters': {'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'}},
+    'filters': {
+         'require_debug_false': {
+             '()': 'django.utils.log.RequireDebugFalse',
+         }
+    },
     'formatters': {
         'simple': {
             'format': '[%(asctime)s %(module)s] %(levelname)s: %(message)s'
@@ -432,7 +435,7 @@ CMS_PLACEHOLDER_CONF = {
 }
 
 CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.segmentation', 'cmsplugin_cascade.generic',
-                             'cmsplugin_cascade.link', 'shop.cascade', 'cmsplugin_cascade.bootstrap3',)
+    'cmsplugin_cascade.link', 'shop.cascade', 'cmsplugin_cascade.bootstrap3',)
 
 CMSPLUGIN_CASCADE = {
     'fontawesome_css_url': 'node_modules/font-awesome/css/font-awesome.css',
@@ -455,10 +458,8 @@ CMSPLUGIN_CASCADE = {
         ],
     },
     'plugins_with_sharables': {
-        'BootstrapImagePlugin': ('image-shapes', 'image-width-responsive', 'image-width-fixed',
-                                 'image-height', 'resize-options',),
-        'BootstrapPicturePlugin': ('image-shapes', 'responsive-heights', 'image-size',
-                                   'resize-options',),
+        'BootstrapImagePlugin': ('image-shapes', 'image-width-responsive', 'image-width-fixed', 'image-height', 'resize-options',),
+        'BootstrapPicturePlugin': ('image-shapes', 'responsive-heights', 'image-size', 'resize-options',),
     },
     'bookmark_prefix': '/',
     'segmentation_mixins': (
@@ -559,7 +560,6 @@ SHOP_EDITCART_NG_MODEL_OPTIONS = "{updateOn: 'default blur', debounce: {'default
 
 SHOP_ORDER_WORKFLOWS = (
     'shop.payment.defaults.PayInAdvanceWorkflowMixin',
-    'shop.payment.defaults.CancelOrderWorkflowMixin',
     'shop.shipping.delivery.PartialDeliveryWorkflowMixin' if SHOP_TUTORIAL == 'polymorphic'
     else 'shop.shipping.defaults.CommissionGoodsWorkflowMixin',
     'shop_stripe.payment.OrderWorkflowMixin',
@@ -572,6 +572,6 @@ SHOP_STRIPE = {
 }
 
 try:
-    from .private_settings import *  # NOQA
+    from .private_settings import *
 except ImportError:
     pass

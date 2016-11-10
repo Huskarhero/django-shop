@@ -4,19 +4,6 @@
 Changelog for django-SHOP
 =========================
 
-0.9.4
-=====
-* In the backend, OrderAdmin and OrderItemAdmin may render the extra dicts from the model using
-  a special template.
-* Drop support for Django-1.8.
-* If an anonymous customer logs in, his current cart is merged with a cart, which has previously
-  been created. This has been adopted to re-use the method Product.is_in_cart()
-  in and finds it's Merge the contents of the other cart into this one, afterwards delete it.
-* Moved field ``salutation`` from :class:`shop.models.customer.BaseCustomer` into the merchant
-  implementation. Check your projects if you don't use the default customer model:
-  :class:`shop.models.defaults.customer.Customer`.
-
-
 0.9.3
 =====
 * Added template context processor :func:`shop.context_processors.ng_model_options` to add the
