@@ -18,6 +18,7 @@ class ProductsListApp(CMSApp):
     else:
         urls = ['myshop.urls.simple_products']
 
+
 apphook_pool.register(ProductsListApp)
 
 
