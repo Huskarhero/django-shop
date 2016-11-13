@@ -11,10 +11,13 @@ from django.template.loader import select_template
 from django.utils.six import with_metaclass
 from django.utils.html import strip_spaces_between_tags
 from django.utils.formats import localize
+from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.translation import get_language_from_request
+
 from rest_framework import serializers
 from rest_framework.fields import empty
+
 from shop import settings as shop_settings
 from shop.models.cart import CartModel, CartItemModel, BaseCartItem
 from shop.models.product import ProductModel
@@ -297,12 +300,7 @@ class CheckoutSerializer(serializers.Serializer):
         return serializer.data
 
 
-class CustomerSerializer(serializers.ModelSerializer):
-    salutation = serializers.CharField(source='get_salutation_display')
-
-    class Meta:
-        model = CustomerModel
-        fields = ('salutation', 'first_name', 'last_name', 'email', 'extra',)
+CustomerSerializer = import_string(shop_settings.CUSTOMER_SERIALIZER)
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
