@@ -87,7 +87,7 @@ class CheckoutViewSet(BaseViewSet):
         any placeholder field.
         """
         cart = self.get_queryset()
-        if cart.pk is None:
+        if cart is None:
             raise ValidationError("Can not purchase without a cart")
         cart.update(request)
         cart.save()
