@@ -13,7 +13,6 @@ docs/web_build
 dist
 *egg-info*
 htmlcov
-test-reports
 bin/
 include/
 lib/
@@ -29,6 +28,5 @@ database.db
 OLD-out-of-date
 .tox
 workdir/
-django-shop-workdir_*
 node_modules/
 bower_components/

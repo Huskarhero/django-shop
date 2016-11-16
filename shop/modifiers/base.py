@@ -27,7 +27,9 @@ class BaseCartModifier(object):
     change you make here must be consistent!
 
     Each method accepts the HTTP `request` object. It shall be used to let implementations
-    determine their prices according to the session, and other request information.
+    determine their prices according to the session, and other request information. The `request`
+    object also can be used to store arbitrary data to be passed between modifers using the
+    temporary dict `request.cart_modifiers_state`.
     """
 
     def __init__(self, identifier=None):
@@ -81,12 +83,6 @@ class BaseCartModifier(object):
         """
         self.add_extra_cart_item_row(cart_item, request)
 
-    def post_process_cart_item(self, cart, item, request):
-        """
-        This will be called for every line item in the Cart, while finally processing the Cart.
-        It may be used to collect the computed line totals for each modifier.
-        """
-
     def process_cart(self, cart, request):
         """
         This will be called once per Cart, after every line item was treated by method
@@ -113,7 +109,7 @@ class BaseCartModifier(object):
         Optionally add an `ExtraCartRow` object to the current cart item.
 
         This allows to add an additional row description to a cart item line.
-        This method optionally utilizes and/or modifies the amount in `cart_item.line_total`.
+        This method optionally utilizes or modifies the amount in `cart_item.line_total`.
         """
 
     def add_extra_cart_row(self, cart, request):
@@ -121,7 +117,7 @@ class BaseCartModifier(object):
         Optionally add an `ExtraCartRow` object to the current cart.
 
         This allows to add an additional row description to the cart.
-        This method optionally utilizes `cart.subtotal` and/or modifies the amount in `cart.total`.
+        This method optionally utilizes `cart.subtotal` and modifies the amount in `cart.total`.
         """
 
 

@@ -1,5 +1,3 @@
-.. _contributing:
-
 =============
 Contributing
 =============
@@ -7,12 +5,15 @@ Contributing
 Naming conventions
 ==================
 
-The official name of this project is **django-SHOP**. Third party plugins for **django-SHOP** shall
-follow the same naming convention as for plugins of **django-CMS**: Third party package names shall
-start with **djangoshop** followed by a dash; no space or dash shall be added between **django** and
-**shop**, for example: ``djangoshop-stripe``
+The official name of this project is **djangoSHOP**. Third party plugins for **djangoSHOP** shall
+follow the same naming convention as for plugins of **djangoCMS**: Third party package names shall
+start with **djangoshop** followed by a dash; no space shall be added between **django** and
+**shop**.
 
-**Django-SHOP** should be capitalised at the start of sentences and in title-case headings.
+**DjangoSHOP** should be capitalised at the start of sentences and in title-case headings.
+
+When referring to the package, repositories and any other things in which spaces are not permitted,
+use **django-shop**.
 
 
 Running tests
@@ -51,44 +52,27 @@ We highly suggest you run the tests suite in a clean environment, using a tool s
 
 .. code-block:: shell
 
-	pip install -r requirements/test_py3.txt
+	pip install -r requirements/django18/testing.txt
 
 That's it! Now, you should be able to run the tests::
 
-	py.test testshop
+	py.test tests
 
 We use `tox <http://codespeak.net/tox/>`_ as a CI tool. To run the full CI test suite and get a
 coverage report, all you have to do is this:
 
 .. code-block:: shell
 
+
 	pip install tox
 	tox
 
-If you work on a certain part of the code base and you want to run the related tests, you may only
-want to run the tests affecting that part. In such a case use ``py.test`` from your testing
-environment and specify the file to test, or for more granularity the class name or even the method
-name. Here are two examples:
+If you work on a certain part of the code base and you want to run the related tests and get a
+coverage report, you can do something like this:
 
 .. code-block:: shell
 
-	py.test testshop/test_money.py
-	py.test testshop/test_money.py -k test_pickle
-
-Measuring which lines of code have been "seen" be the test runner is an important task while
-testing. Do this by creating a coverage report, for example with:
-
-.. code-block:: shell
-
-	coverage run $(which py.test) testshop
-	coverage report
-
-or if you to test only a specific class
-
-.. code-block:: shell
-
-	coverage run .tox/py27-django19/bin/py.test testshop/test_money.py
-	coverage report -m shop/money/*.py
+	coverage run $(which py.test) tests/test_money.py && coverage report -m shop/money/*.py
 
 .. note::
 
@@ -120,7 +104,7 @@ lines, it is more readable to stay with a long line.
 Use the issue tracker only to report bugs. Send unsolicited pull requests only to fix bug – never
 to add new features.
 
-Use stack-overflow to ask for questions related to **django-SHOP**.
+Use stack-overflow to ask for questions related to **djangoSHOP**.
 
 Most pull requests will be rejected without proper unit testing.
 

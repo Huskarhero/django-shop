@@ -2,21 +2,21 @@
 'use strict';
 
 //module: django.shop, TODO: move this into a summary JS file
-var djangoShopModule = angular.module('django.shop.search', ['django.shop.utils']);
+var djangoShopModule = angular.module('django.shop.search', []);
 
 // Directive <form shop-product-search ...> to be used in the form containing the input field
 // for entering the search query
-djangoShopModule.directive('shopProductSearch', ['$location', '$timeout', 'djangoShop', function($location, $timeout, djangoShop) {
+djangoShopModule.directive('shopProductSearch', ['$window', '$location', function($window, $location) {
 	return {
 		require: 'form',
 		restrict: 'AC',
-		controller: ['$scope', function($scope) {
+		controller: ['$scope', '$timeout', function($scope, $timeout) {
 			var acPromise = null;
 
-			// handle typeahead search using autocomplete
+			// handle autocomplete
 			$scope.autocomplete = function() {
 				var config;
-				if (!angular.isString($scope.searchQuery) || $scope.searchQuery.length < 3) {
+				if ($scope.searchQuery.length < 3) {
 					config = null;
 					$location.search({});
 				} else {
@@ -25,6 +25,7 @@ djangoShopModule.directive('shopProductSearch', ['$location', '$timeout', 'djang
 							q: $scope.searchQuery
 						}
 					};
+					$scope.property_filters = [];
 					$location.search(config.params);
 				}
 				// delay the execution of reloading products
@@ -33,32 +34,36 @@ djangoShopModule.directive('shopProductSearch', ['$location', '$timeout', 'djang
 					acPromise = null;
 				}
 				acPromise = $timeout(function() {
-					$scope.filters = {};  // remove content in filters
 					$scope.$emit('shopCatalogSearch', config);
 				}, 666);
 			};
+
 		}],
 		link: function(scope, element, attrs, formController) {
-			var params = $location.search();
+			var i, splitted, queries = {params: $location.search()};
 
-			if (angular.equals({}, params)) {
-				// convert URL ending in ?q=<query> into string for our search input field
-				scope.searchQuery = djangoShop.paramsFromSearchQuery()['q'];
-			} else if (params.q) {
-				// we are performing an autocomplete search
-				$timeout(function() {
-					// delay until next digest cycle
-					scope.$emit('shopCatalogSearch', {params: params});
-				});
-				scope.searchQuery = params.q;
+			// convert query string from URL to object
+			if (angular.equals({}, queries.params)) {
+				scope.searchQuery = '';
+				queries = $window.location.search.replace(/^\?/, '').split('&');
+				for (i = 0; i < queries.length; i++) {
+					splitted = queries[i].split('=');
+					if (splitted[0] === 'q') {
+						scope.searchQuery = decodeURIComponent(splitted[1].split('+').join('%20'));
+					}
+				}
+			} else {
+				scope.searchQuery = queries.params.q;
+				scope.autocomplete();
 			}
 
-			// handle classic search through submission form
+			// handle classic search submission through form
 			scope.submitSearch = function() {
 				if (scope.searchQuery.length > 1) {
 					element[0].submit();
 				}
 			};
+
 		}
 	};
 }]);

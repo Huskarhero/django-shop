@@ -1,29 +1,47 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
-from django.utils import timezone
+from collections import OrderedDict
 from django.core import exceptions
 from django.core.cache import cache
 from django.db import models
 from django.template import RequestContext
-from django.template import TemplateDoesNotExist
+from django.template.base import TemplateDoesNotExist
 from django.template.loader import select_template
 from django.utils.six import with_metaclass
 from django.utils.html import strip_spaces_between_tags
 from django.utils.formats import localize
-from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.translation import get_language_from_request
-
 from rest_framework import serializers
 from rest_framework.fields import empty
-
 from shop import settings as shop_settings
 from shop.models.cart import CartModel, CartItemModel, BaseCartItem
 from shop.models.product import ProductModel
+from shop.models.customer import CustomerModel
 from shop.models.order import OrderModel, OrderItemModel
 from shop.rest.money import MoneyField
-from .bases import get_product_summary_serializer_class, set_product_summary_serializer_class
+
+
+class OrderedDictField(serializers.Field):
+    """
+    Serializer field which transparently bypasses the internal representation of an OrderedDict.
+    """
+    def to_representation(self, obj):
+        return OrderedDict(obj)
+
+    def to_internal_value(self, data):
+        return OrderedDict(data)
+
+
+class JSONSerializerField(serializers.Field):
+    """
+    Serializer field which transparently bypasses its object instead of serializing/deserializing.
+    """
+    def to_representation(self, obj):
+        return obj
+
+    def to_internal_value(self, data):
+        return data
 
 
 class ProductCommonSerializer(serializers.ModelSerializer):
@@ -50,14 +68,14 @@ class ProductCommonSerializer(serializers.ModelSerializer):
             msg = "The Product Serializer must be configured using a `label` field."
             raise exceptions.ImproperlyConfigured(msg)
         app_label = product._meta.app_label.lower()
+        product_type = product.__class__.__name__.lower()
         request = self.context['request']
-        cache_key = 'product:{0}|{1}-{2}-{3}-{4}-{5}'.format(product.id, app_label, self.label,
-            product.product_model, postfix, get_language_from_request(request))
+        cache_key = 'product:{0}|{1}-{2}-{3}-{4}-{5}'.format(product.id, app_label, self.label, product_type, postfix, get_language_from_request(request))
         content = cache.get(cache_key)
         if content:
             return mark_safe(content)
         params = [
-            (app_label, self.label, product.product_model, postfix),
+            (app_label, self.label, product_type, postfix),
             (app_label, self.label, 'product', postfix),
             ('shop', self.label, 'product', postfix),
         ]
@@ -82,10 +100,16 @@ class SerializerRegistryMetaclass(serializers.SerializerMetaclass):
     different polymorphic product types in the Catalog, Cart and Order list views.
     """
     def __new__(cls, clsname, bases, attrs):
+        global product_summary_serializer_class
+        if product_summary_serializer_class:
+            msg = "Class `{}` inheriting from `ProductSummarySerializerBase` already registred."
+            raise exceptions.ImproperlyConfigured(msg.format(product_summary_serializer_class.__name__))
         new_class = super(cls, SerializerRegistryMetaclass).__new__(cls, clsname, bases, attrs)
         if clsname != 'ProductSummarySerializerBase':
-            set_product_summary_serializer_class(new_class)
+            product_summary_serializer_class = new_class
         return new_class
+
+product_summary_serializer_class = None
 
 
 class ProductSummarySerializerBase(with_metaclass(SerializerRegistryMetaclass, ProductCommonSerializer)):
@@ -221,9 +245,8 @@ class BaseItemSerializer(ItemModelSerializer):
         return product
 
     def get_summary(self, cart_item):
-        serializer_class = get_product_summary_serializer_class()
-        serializer = serializer_class(cart_item.product, context=self.context,
-                                      read_only=True, label=self.root.label)
+        serializer = product_summary_serializer_class(cart_item.product, context=self.context,
+                                                      read_only=True, label=self.root.label)
         return serializer.data
 
 
@@ -255,7 +278,7 @@ class BaseCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartModel
-        fields = ('subtotal', 'total', 'extra_rows')
+        fields = ('subtotal', 'extra_rows', 'total',)
 
     def to_representation(self, cart):
         cart.update(self.context['request'])
@@ -265,19 +288,16 @@ class BaseCartSerializer(serializers.ModelSerializer):
 
 class CartSerializer(BaseCartSerializer):
     items = CartItemSerializer(many=True, read_only=True)
-    total_quantity = serializers.IntegerField()
-    num_items = serializers.IntegerField()
 
     class Meta(BaseCartSerializer.Meta):
-        fields = ('items', 'total_quantity', 'num_items') + BaseCartSerializer.Meta.fields
+        fields = ('items',) + BaseCartSerializer.Meta.fields
 
 
 class WatchSerializer(BaseCartSerializer):
     items = WatchItemSerializer(many=True, read_only=True)
-    num_items = serializers.IntegerField()
 
     class Meta(BaseCartSerializer.Meta):
-        fields = ('items', 'num_items')
+        fields = ('items',)
 
     def to_representation(self, cart):
         # grandparent super
@@ -292,23 +312,33 @@ class CheckoutSerializer(serializers.Serializer):
         return serializer.data
 
 
-CustomerSerializer = import_string(shop_settings.CUSTOMER_SERIALIZER)
+class OrderItemSerializer(serializers.ModelSerializer):
+    line_total = MoneyField()
+    unit_price = MoneyField()
+    summary = serializers.SerializerMethodField(
+        help_text="Sub-serializer for fields to be shown in the product's summary.")
 
-OrderItemSerializer = import_string(shop_settings.ORDER_ITEM_SERIALIZER)
+    class Meta:
+        model = OrderItemModel
+        exclude = ('id',)
+
+    def get_summary(self, order_item):
+        label = self.context.get('render_label', 'order')
+        serializer = product_summary_serializer_class(order_item.product, context=self.context,
+                                                      read_only=True, label=label)
+        return serializer.data
 
 
 class OrderListSerializer(serializers.ModelSerializer):
     number = serializers.CharField(source='get_number', read_only=True)
-    customer = CustomerSerializer(read_only=True)
     url = serializers.URLField(source='get_absolute_url', read_only=True)
     status = serializers.CharField(source='status_name', read_only=True)
     subtotal = MoneyField()
     total = MoneyField()
-    extra = serializers.DictField(read_only=True)
 
     class Meta:
         model = OrderModel
-        exclude = ('id', 'stored_request', '_subtotal', '_total',)
+        exclude = ('id', 'customer', 'stored_request', '_subtotal', '_total',)
 
 
 class OrderDetailSerializer(OrderListSerializer):
@@ -317,22 +347,17 @@ class OrderDetailSerializer(OrderListSerializer):
     outstanding_amount = MoneyField(read_only=True)
     is_partially_paid = serializers.SerializerMethodField(method_name='get_partially_paid',
         help_text="Returns true, if order has been partially paid")
-    annotation = serializers.CharField(write_only=True, required=False)
-    reorder = serializers.BooleanField(write_only=True, default=False)
 
     def get_partially_paid(self, order):
         return order.amount_paid > 0
 
-    def update(self, order, validated_data):
-        order.extra.setdefault('addenum', [])
-        if validated_data.get('annotation'):
-            timestamp = timezone.now().isoformat()
-            order.extra['addenum'].append((timestamp, validated_data['annotation']))
-        if validated_data.get('reorder'):
-            cart = CartModel.objects.get_from_request(self.context['request'])
-            order.readd_to_cart(cart)
-        order.save()
-        return order
+
+class CustomerSerializer(serializers.ModelSerializer):
+    salutation = serializers.CharField(source='get_salutation_display')
+
+    class Meta:
+        model = CustomerModel
+        fields = ('salutation', 'first_name', 'last_name', 'email', 'extra',)
 
 
 class ProductSelectSerializer(serializers.ModelSerializer):

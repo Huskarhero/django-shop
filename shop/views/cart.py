@@ -20,7 +20,7 @@ class BaseViewSet(viewsets.ModelViewSet):
             # otherwise the CartSerializer will show its detail view and list all its cart items
             return cart
         except CartModel.DoesNotExist:
-            return CartModel()
+            return CartModel.objects.none()
 
     def paginate_queryset(self, queryset):
         if isinstance(queryset, QuerySet):
