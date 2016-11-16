@@ -139,9 +139,9 @@ class CustomerManager(models.Manager):
         return qs
 
     def create(self, *args, **kwargs):
-        if 'user' in kwargs and kwargs['user'].is_authenticated():
-            kwargs.setdefault('recognized', CustomerState.REGISTERED)
         customer = super(CustomerManager, self).create(*args, **kwargs)
+        if 'user' in kwargs and kwargs['user'].is_authenticated():
+            customer.recognized = CustomerState.REGISTERED
         return customer
 
     def _get_visiting_user(self, session_key):
@@ -173,7 +173,8 @@ class CustomerManager(models.Manager):
         if request.user.is_authenticated():
             customer, created = self.get_or_create(user=user)
             if created:  # `user` has been created by another app than shop
-                customer.recognize_as_registered()
+                customer.recognized = CustomerState.REGISTERED
+                customer.save()
         else:
             customer = VisitingCustomer()
         return customer
@@ -181,6 +182,7 @@ class CustomerManager(models.Manager):
     def get_or_create_from_request(self, request):
         if request.user.is_authenticated():
             user = request.user
+            recognized = CustomerState.REGISTERED
         else:
             if not request.session.session_key:
                 request.session.cycle_key()
@@ -191,7 +193,9 @@ class CustomerManager(models.Manager):
             user = get_user_model().objects.create_user(username)
             user.is_active = False
             user.save()
-        customer, created = self.get_or_create(user=user)
+            recognized = CustomerState.UNRECOGNIZED
+        customer = self.get_or_create(user=user)[0]
+        customer.recognized = recognized
         return customer
 
 
@@ -204,12 +208,9 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     the django User model if a customer is authenticated. On checkout, a User
     object is created for anonymous customers also (with unusable password).
     """
-    SALUTATION = (('mrs', _("Mrs.")), ('mr', _("Mr.")), ('na', _("(n/a)")))
-
     user = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True)
-    recognized = CustomerStateField(_("Recognized as"),
+    recognized = CustomerStateField(_("Recognized as"), default=CustomerState.UNRECOGNIZED,
                                     help_text=_("Designates the state the customer is recognized as."))
-    salutation = models.CharField(_("Salutation"), max_length=5, choices=SALUTATION)
     last_access = models.DateTimeField(_("Last accessed"), default=timezone.now)
     extra = JSONField(editable=False, verbose_name=_("Extra information about this customer"))
 
@@ -301,7 +302,12 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         Recognize the current customer as registered customer.
         """
         self.recognized = CustomerState.REGISTERED
-        self.save(update_fields=['recognized'])
+
+    def unrecognize(self):
+        """
+        Unrecognize the current customer.
+        """
+        self.recognized = CustomerState.UNRECOGNIZED
 
     def is_visitor(self):
         """
@@ -325,14 +331,15 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         Hook to get or to assign the customers number. It is invoked, every time an Order object
         is created. Using a customer number, which is different from the primary key is useful for
         merchants, wishing to assign sequential numbers only to customers which actually bought
-        something. Otherwise the customer number (primary key) is increased whenever a customer
-        puts something into the cart.
+        something. Otherwise the customer number (primary key) is increased whenever a site visitor
+        puts something into the cart. If he never proceeds to checkout, that entity expires and may
+        be deleted at any time in the future.
         """
         return self.get_number()
 
     def get_number(self):
         """
-        Hook to get the customers number. Customers haven't purchased anything may return None.
+        Hook to get the Customer's number. Customers haven't purchased anything may return None.
         """
         return str(self.user_id)
 
