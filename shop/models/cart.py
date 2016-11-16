@@ -130,13 +130,13 @@ class CartManager(models.Manager):
         """
         if request.customer.is_visitor():
             raise self.model.DoesNotExist("Cart for visiting customer does not exist.")
-        cart, temp = self.get_or_create(customer=request.customer)
+        cart, created = self.get_or_create(customer=request.customer)
         return cart
 
     def get_or_create_from_request(self, request):
         if request.customer.is_visitor():
             request.customer = CustomerModel.objects.get_or_create_from_request(request)
-        cart, temp = self.get_or_create(customer=request.customer)
+        cart, created = self.get_or_create(customer=request.customer)
         return cart
 
 
@@ -206,6 +206,8 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
 
         # Iterate over the registered modifiers, to process the cart's summary
         for modifier in cart_modifiers_pool.get_all_modifiers():
+            for item in items:
+                modifier.post_process_cart_item(self, item, request)
             modifier.process_cart(self, request)
 
         # This calls the post_process_cart method from cart modifiers, if any.

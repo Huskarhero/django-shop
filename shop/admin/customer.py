@@ -6,18 +6,19 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib import admin
+from django.utils.html import format_html_join
 from django.utils.timezone import localtime
 from django.utils.translation import pgettext_lazy, ugettext_lazy as _
-
 from shop.models.customer import CustomerModel, CustomerState
 
 
-class CustomerInlineAdminBase(admin.StackedInline):
+class CustomerInlineAdmin(admin.StackedInline):
     model = CustomerModel
     fieldsets = (
-        (None, {'fields': ('get_number',)}),
+        (None, {'fields': ('salutation', 'get_number')}),
+        (_("Shipping Addresses"), {'fields': ('get_shipping_addresses',)})
     )
-    readonly_fields = ('get_number',)
+    readonly_fields = ('get_number', 'get_shipping_addresses',)
 
     def get_extra(self, request, obj=None, **kwargs):
         return 0 if obj is None else 1
@@ -31,6 +32,11 @@ class CustomerInlineAdminBase(admin.StackedInline):
     def get_number(self, customer):
         return customer.get_number()
     get_number.short_description = pgettext_lazy('customer', "Number")
+
+    def get_shipping_addresses(self, customer):
+        addresses = [(a.as_text(),) for a in customer.shippingaddress_set.all()]
+        return format_html_join('', '<address>{0}</address>', addresses)
+    get_shipping_addresses.short_description = ''
 
 
 class CustomerCreationForm(UserCreationForm):
@@ -77,13 +83,15 @@ class CustomerListFilter(admin.SimpleListFilter):
             return queryset
 
 
-class CustomerAdminBase(UserAdmin):
+class CustomerAdmin(UserAdmin):
     """
     This ModelAdmin class must be registered inside the implementation of this shop.
     """
     form = CustomerChangeForm
     add_form = CustomerCreationForm
-    list_display = ('get_username', 'last_name', 'first_name', 'recognized', 'last_access', 'is_unexpired')
+    inlines = (CustomerInlineAdmin,)
+    list_display = ('get_username', 'salutation', 'last_name', 'first_name', 'recognized',
+        'last_access', 'is_unexpired')
     segmentation_list_display = ('get_username',)
     list_filter = UserAdmin.list_filter + (CustomerListFilter,)
     readonly_fields = ('last_login', 'date_joined', 'last_access', 'recognized')
@@ -93,7 +101,7 @@ class CustomerAdminBase(UserAdmin):
         js = ('shop/js/admin/customer.js',)
 
     def get_fieldsets(self, request, obj=None):
-        fieldsets = super(CustomerAdminBase, self).get_fieldsets(request, obj=obj)
+        fieldsets = super(CustomerAdmin, self).get_fieldsets(request, obj=obj)
         if obj:
             fieldsets[0][1]['fields'] = ('username', 'recognized', 'password',)
             fieldsets[3][1]['fields'] = ('date_joined', 'last_login', 'last_access',)
@@ -105,6 +113,13 @@ class CustomerAdminBase(UserAdmin):
         return user.get_username()
     get_username.short_description = _("Username")
     get_username.admin_order_field = 'email'
+
+    def salutation(self, user):
+        if hasattr(user, 'customer'):
+            return user.customer.get_salutation_display()
+        return ''
+    salutation.short_description = _("Salutation")
+    salutation.admin_order_field = 'customer__salutation'
 
     def recognized(self, user):
         if hasattr(user, 'customer'):
