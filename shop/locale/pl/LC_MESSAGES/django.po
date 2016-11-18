@@ -282,6 +282,34 @@ msgstr "Wygeneruj jako"
 msgid "Render an alternative Breadcrumb"
 msgstr "Generuj alternatywne okruszki"
 
+#: cascade/breadcrumb.py:18
+msgid "Breadcrumb"
+msgstr ""
+
+#: cascade/breadcrumb.py:19
+msgid "Default Breadcrumb"
+msgstr ""
+
+#: cascade/breadcrumb.py:19
+msgid "“Soft-Root” Breadcrumb"
+msgstr ""
+
+#: cascade/breadcrumb.py:20
+msgid "With Catalog Count"
+msgstr ""
+
+#: cascade/breadcrumb.py:20
+msgid "Hidden Breadcrumb"
+msgstr ""
+
+#: cascade/breadcrumb.py:24 cascade/cart.py:25 cascade/plugin_base.py:167
+msgid "Render as"
+msgstr ""
+
+#: cascade/breadcrumb.py:26
+msgid "Render an alternative Breadcrumb"
+msgstr ""
+
 #: cascade/cart.py:16
 msgid "Cart"
 msgstr "Koszyk"
@@ -1708,6 +1736,12 @@ msgstr "Adres linia 1"
 msgid "Address line 2"
 msgstr "Adres linia 2"
 
+#: models/defaults/address.py:12
+#, fuzzy
+#| msgid "Address2"
+msgid "Address line 2"
+msgstr "Adres 2"
+
 #: models/defaults/address.py:13
 msgid "ZIP / Postal code"
 msgstr "Kod pocztowy"
@@ -1796,6 +1830,20 @@ msgid "Order"
 msgstr "Zamówienie"
 
 #: models/defaults/order.py:20
+msgctxt "order_models"
+msgid "Orders"
+msgstr "Zamówienia"
+
+#: models/defaults/order.py:19
+#, fuzzy
+#| msgid "Order"
+msgctxt "order_models"
+msgid "Order"
+msgstr "Zamówienie"
+
+#: models/defaults/order.py:20
+#, fuzzy
+#| msgid "Orders"
 msgctxt "order_models"
 msgid "Orders"
 msgstr "Zamówienia"
@@ -2422,6 +2470,51 @@ msgstr "Twoje dane"
 #: templates/shop/email/order.html:7
 msgid "Summary of Your Order"
 msgstr "Podsumowanie zamówienia"
+
+#: templates/shop/checkout/billing-address-form.html:15
+msgid "Chose a previously used billing address"
+msgstr ""
+
+#: templates/shop/checkout/billing-address-form.html:18
+#, fuzzy
+#| msgid "Billing address"
+msgid "Add another billing address"
+msgstr "Adres do faktury"
+
+#: templates/shop/checkout/billing-address-form.html:22
+#, fuzzy
+#| msgid "Billing address"
+msgid "Add a new billing address"
+msgstr "Adres do faktury"
+
+#: templates/shop/checkout/billing-address-form.html:29
+#: templates/shop/checkout/shipping-address-form.html:24
+#, fuzzy
+msgid "Remove this address"
+msgstr "Adres do rachunku"
+
+#: templates/shop/checkout/required-form-fields.html:1
+msgid "These fields are required"
+msgstr ""
+
+#: templates/shop/checkout/shipping-address-form.html:10
+msgid "Chose a previously used shipping address"
+msgstr ""
+
+#: templates/shop/checkout/shipping-address-form.html:13
+#: templates/shop/checkout/shipping-address-form.html:17
+#, fuzzy
+#| msgid "Shipping address"
+msgid "Add a new shipping address"
+msgstr "Adres dostawy"
+
+#: templates/shop/email/customer-information.html:4
+msgid "Your Details"
+msgstr ""
+
+#: templates/shop/email/order.html:7
+msgid "Summary of Your Order"
+msgstr ""
 
 #: templates/shop/email/register-user-body.txt:2
 #, python-format
