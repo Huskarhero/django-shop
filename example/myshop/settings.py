@@ -455,9 +455,10 @@ CMSPLUGIN_CASCADE = {
         ],
     },
     'plugins_with_sharables': {
-        'BootstrapImagePlugin': ('image_shapes', 'image_width_responsive', 'image_width_fixed',
-                                 'image_height', 'resize_options',),
-        'BootstrapPicturePlugin': ('image_shapes', 'responsive_heights', 'image_size', 'resize_options',),
+        'BootstrapImagePlugin': ('image-shapes', 'image-width-responsive', 'image-width-fixed',
+                                 'image-height', 'resize-options',),
+        'BootstrapPicturePlugin': ('image-shapes', 'responsive-heights', 'image-size',
+                                   'resize-options',),
     },
     'bookmark_prefix': '/',
     'segmentation_mixins': (
