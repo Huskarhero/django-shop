@@ -13,10 +13,9 @@ CONTRIBUTORS
 * Aleš Kocjančič
 * Anders Petersson
 * Andrés Reyes Monge
-* Arturo Fernandez
 * Audrey Roy
-* Benjamin Wohlwend
 * Ben Lopatin
+* Benjamin Wohlwend
 * Bojan Mihelac
 * Chris Morgan
 * Dino Perovic
@@ -30,12 +29,9 @@ CONTRIBUTORS
 * Justin Steward
 * Kristian Øllegaard
 * maltitco
-* Maltsev Artyom
 * Martin Ogden
 * Mike Yumatov
-* Mikhail Kolesnik
 * Pavel Zhukov
-* Pedro Gracia
 * Per Rosengren
 * Raúl Cumplido
 * Roberth Solís
@@ -45,6 +41,14 @@ CONTRIBUTORS
 * Sławomir Ehlert
 * Stephen Muss
 * Thomas Woolford
+
+TRANSLATORS
+===========
+
+* Mikhail Kolesnik (Russian)
+* Pavel Zhukov (Russian)
+* Pedro Gracia (Spanish)
+* Arturo Fernandez (Spanish)
 
 RETIRED CORE DEVELOPERS
 =======================
