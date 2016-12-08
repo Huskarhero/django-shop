@@ -5,9 +5,8 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 from rest_framework import serializers
 from rest_framework.fields import empty
-from shop.rest.serializers import (BaseProductSummarySerializer, ProductDetailSerializerBase,
+from shop.rest.serializers import (ProductSummarySerializerBase, ProductDetailSerializerBase,
                                    AddToCartSerializer)
-from shop.serializers.defaults.customer import CustomerSerializer
 from shop.search.serializers import ProductSearchSerializer as ProductSearchSerializerBase
 from .search_indexes import myshop_search_index_classes
 
@@ -22,12 +21,8 @@ elif settings.SHOP_TUTORIAL == 'polymorphic':
 else:
     raise NotImplementedError("Unknown settings for SHOP_TUTORIAL: {}".format(settings.SHOP_TUTORIAL))
 
-__all__ = ['CustomerSerializer', 'ProductSummarySerializer', 'ProductDetailSerializer',
-           'AddSmartCardToCartSerializer', 'AddSmartPhoneToCartSerializer', 'ProductSearchSerializer',
-           'CatalogSearchSerializer']
 
-
-class ProductSummarySerializer(BaseProductSummarySerializer):
+class ProductSummarySerializer(ProductSummarySerializerBase):
     media = serializers.SerializerMethodField()
 
     class Meta:
