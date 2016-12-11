@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 import string
 from importlib import import_module
+import warnings
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -76,13 +78,13 @@ class CustomerQuerySet(models.QuerySet):
             if field_name == 'pk':
                 field_name = opts.pk.name
             try:
-                opts.get_field(field_name)
+                opts.get_field_by_name(field_name)
                 if isinstance(lookup, get_user_model()):
                     lookup.pk  # force lazy object to resolve
                 lookup_kwargs[key] = lookup
             except FieldDoesNotExist as fdne:
                 try:
-                    get_user_model()._meta.get_field(field_name)
+                    get_user_model()._meta.get_field_by_name(field_name)
                     lookup_kwargs['user__' + key] = lookup
                 except FieldDoesNotExist:
                     raise fdne
@@ -93,11 +95,6 @@ class CustomerQuerySet(models.QuerySet):
 
 
 class CustomerManager(models.Manager):
-    """
-    Manager for the Customer database model. This manager can also cope with customers, which have
-    an entity in the database but otherwise are considered as anonymous. The username of these
-    so called unrecognized customers is a compact version of the session key.
-    """
     BASE64_ALPHABET = string.digits + string.ascii_uppercase + string.ascii_lowercase + '.@'
     REVERSE_ALPHABET = dict((c, i) for i, c in enumerate(BASE64_ALPHABET))
     BASE36_ALPHABET = string.digits + string.ascii_lowercase
@@ -138,7 +135,7 @@ class CustomerManager(models.Manager):
     def get_queryset(self):
         """
         Whenever we fetch from the Customer table, inner join with the User table to reduce the
-        number of presumed future queries to the database.
+        number of queries to the database.
         """
         qs = self._queryset_class(self.model, using=self._db).select_related('user')
         return qs
@@ -151,7 +148,7 @@ class CustomerManager(models.Manager):
 
     def _get_visiting_user(self, session_key):
         """
-        Since the Customer has a 1:1 relation with the User object, look for an entity of a
+        Since the Customer has a 1:1 relation with the User object, look for an entity for a
         User object. As its ``username`` (which must be unique), use the given session key.
         """
         username = self.encode_session_key(session_key)
@@ -194,9 +191,13 @@ class CustomerManager(models.Manager):
             username = self.encode_session_key(request.session.session_key)
             # create an inactive intermediate user, which later can declare himself as
             # guest, or register as a valid Django user
-            user = get_user_model().objects.create_user(username)
-            user.is_active = False
-            user.save()
+            try:
+                user = get_user_model().objects.get(username=username)
+            except get_user_model().DoesNotExist:
+                user = get_user_model().objects.create_user(username)
+                user.is_active = False
+                user.save()
+
             recognized = CustomerState.UNRECOGNIZED
         customer, created = self.get_or_create(user=user, recognized=recognized)
         return customer
@@ -211,9 +212,12 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     the django User model if a customer is authenticated. On checkout, a User
     object is created for anonymous customers also (with unusable password).
     """
+    SALUTATION = (('mrs', _("Mrs.")), ('mr', _("Mr.")), ('na', _("(n/a)")))
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True)
     recognized = CustomerStateField(_("Recognized as"),
                                     help_text=_("Designates the state the customer is recognized as."))
+    salutation = models.CharField(_("Salutation"), max_length=5, choices=SALUTATION)
     last_access = models.DateTimeField(_("Last accessed"), default=timezone.now)
     extra = JSONField(editable=False, verbose_name=_("Extra information about this customer"))
 
@@ -316,13 +320,18 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
 
     def is_expired(self):
         """
-        Return true if the session of an unrecognized customer expired.
+        Return True if the session of an unrecognized customer expired or is not decodable.
         Registered customers never expire.
-        Guest customers only expire, if they failed fulfilling the purchase (currently not implemented).
+        Guest customers only expire, if they failed fulfilling the purchase.
         """
         if self.recognized is CustomerState.UNRECOGNIZED:
-            session_key = CustomerManager.decode_session_key(self.user.username)
-            return not SessionStore.exists(session_key)
+            try:
+                session_key = CustomerManager.decode_session_key(self.user.username)
+                return not SessionStore.exists(session_key)
+            except KeyError:
+                msg = "Unable to decode username '{}' as session key"
+                warnings.warn(msg.format(self.user.username))
+                return True
         return False
 
     def get_or_assign_number(self):
