@@ -15,7 +15,7 @@ from shop.models.customer import CustomerModel, CustomerState
 class CustomerInlineAdminBase(admin.StackedInline):
     model = CustomerModel
     fieldsets = (
-        (None, {'fields': ('get_number')}),
+        (None, {'fields': ('get_number',)}),
     )
     readonly_fields = ('get_number',)
 
@@ -79,13 +79,7 @@ class CustomerListFilter(admin.SimpleListFilter):
 
 class CustomerAdminBase(UserAdmin):
     """
-    This ModelAdmin class must be extended and registered inside the merchant's implementation.
-    Since the customer model can differ, the field `inlines` must be specified, for instance
-    ```
-    @admin.register(CustomerProxy)
-    class CustomerAdmin(CustomerAdminBase):
-        inlines = (CustomerInlineAdminBase,)
-    ```
+    This ModelAdmin class must be registered inside the implementation of this shop.
     """
     form = CustomerChangeForm
     add_form = CustomerCreationForm

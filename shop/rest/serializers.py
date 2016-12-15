@@ -11,6 +11,7 @@ from django.template.loader import select_template
 from django.utils.six import with_metaclass
 from django.utils.html import strip_spaces_between_tags
 from django.utils.formats import localize
+from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.translation import get_language_from_request
 
@@ -20,74 +21,9 @@ from rest_framework.fields import empty
 from shop import settings as shop_settings
 from shop.models.cart import CartModel, CartItemModel, BaseCartItem
 from shop.models.product import ProductModel
-from shop.models.customer import CustomerModel
 from shop.models.order import OrderModel, OrderItemModel
 from shop.rest.money import MoneyField
-
-
-class RegistryMixin(object):
-    """
-    Some of the serializers may be used on their own, or if the merchant wants to inherit from them,
-    then their extended implementation shall be used. Other serializers referencing those
-    alternative implementations, need a way to distinguish which of the classes in the inheritance
-    chain shall be used. This is done through an implicit registry, which knows which of those
-    serializers shall be used.
-    ```
-    class BaseSomeSerializer(six.with_metaclass(RegistryMetaclass, RegistryMixin, ModelSerializer)):
-        ...
-    ```
-    This adds `BaseSomeSerializer` to the serializers registry which later can be retrieved using
-    `RegistryMetaclass.get_serializer_class`.
-    """
-
-
-class RegistryMetaclass(serializers.SerializerMetaclass):
-    """
-    Keep global references onto all serializers inheriting from the base serializers declared
-    by django-SHOP.
-
-    This allows the merchant to override every base serializer with his own implementation,
-    in order to add arbitrary methods and/or fields.
-
-    In such a way, enriched serializer implementations added to the registry can be retrieved
-    by other base serializers using:
-    ```
-    SomeSerializer = RegistryMetaclass.get_serializer('SomeSerializer')
-    ```
-
-    Note that for each of the base serializers declared by django-SHOP, there can be only one
-    enriched serializer instance, otherwise an exception is raised.
-    """
-    _serializer_classes = dict()
-
-    def __new__(cls, clsname, bases, attrs):
-        if not issubclass(bases[-1], serializers.ModelSerializer):
-            msg = "Serializer '{0}' must inherit from {1} or derived from thereof."
-            raise exceptions.ImproperlyConfigured(msg.format(clsname, serializers.ModelSerializer))
-
-        if bases[0] is RegistryMixin:
-            # it's a base serializer declared by the shop framework
-            new_class = super(cls, RegistryMetaclass).__new__(cls, clsname, bases[1:], attrs)
-            cls._serializer_classes[clsname] = new_class
-        else:
-            new_class = super(cls, RegistryMetaclass).__new__(cls, clsname, bases, attrs)
-            for base_name, base_class in cls._serializer_classes.items():
-                if issubclass(new_class, base_class):
-                    # override the assignment of the base serializer from which it inherits
-                    cls._serializer_classes[base_name] = new_class
-                    break
-            else:
-                msg = "Error while instantiating '{0}':\nSerializer {1} already inherits from {2}."
-                msg = msg.format(clsname, cls._serializer_classes[bases[0].__name__], bases[0])
-                raise exceptions.ImproperlyConfigured(msg)
-        return new_class
-
-    @classmethod
-    def get_serializer_class(cls, name):
-        """
-        Returns the concrete serializer class
-        """
-        return cls._serializer_classes['Base' + name]
+from .bases import get_product_summary_serializer_class, set_product_summary_serializer_class
 
 
 class ProductCommonSerializer(serializers.ModelSerializer):
@@ -138,7 +74,21 @@ class ProductCommonSerializer(serializers.ModelSerializer):
         return mark_safe(content)
 
 
-class BaseProductSummarySerializer(with_metaclass(RegistryMetaclass, RegistryMixin, ProductCommonSerializer)):
+class SerializerRegistryMetaclass(serializers.SerializerMetaclass):
+    """
+    Keep a global reference onto the class implementing `ProductSummarySerializerBase`.
+    There can be only one class instance, because the products summary is the lowest common
+    denominator for all products of this shop instance. Otherwise we would be unable to mix
+    different polymorphic product types in the Catalog, Cart and Order list views.
+    """
+    def __new__(cls, clsname, bases, attrs):
+        new_class = super(cls, SerializerRegistryMetaclass).__new__(cls, clsname, bases, attrs)
+        if clsname != 'ProductSummarySerializerBase':
+            set_product_summary_serializer_class(new_class)
+        return new_class
+
+
+class ProductSummarySerializerBase(with_metaclass(SerializerRegistryMetaclass, ProductCommonSerializer)):
     """
     Serialize a summary of the polymorphic Product model, suitable for Catalog List Views,
     Cart List Views and Order List Views.
@@ -149,7 +99,7 @@ class BaseProductSummarySerializer(with_metaclass(RegistryMetaclass, RegistryMix
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('label', 'catalog')
-        super(BaseProductSummarySerializer, self).__init__(*args, **kwargs)
+        super(ProductSummarySerializerBase, self).__init__(*args, **kwargs)
 
 
 class ProductDetailSerializerBase(ProductCommonSerializer):
@@ -271,9 +221,9 @@ class BaseItemSerializer(ItemModelSerializer):
         return product
 
     def get_summary(self, cart_item):
-        ProductSummarySerializer = RegistryMetaclass.get_serializer_class('ProductSummarySerializer')
-        serializer = ProductSummarySerializer(cart_item.product, context=self.context,
-                                              read_only=True, label=self.root.label)
+        serializer_class = get_product_summary_serializer_class()
+        serializer = serializer_class(cart_item.product, context=self.context,
+                                      read_only=True, label=self.root.label)
         return serializer.data
 
 
@@ -342,33 +292,14 @@ class CheckoutSerializer(serializers.Serializer):
         return serializer.data
 
 
-class BaseCustomerSerializer(with_metaclass(RegistryMetaclass, RegistryMixin, serializers.ModelSerializer)):
-    class Meta:
-        model = CustomerModel
-        fields = ('first_name', 'last_name', 'email', 'extra',)
+CustomerSerializer = import_string(shop_settings.CUSTOMER_SERIALIZER)
 
-
-class OrderItemSerializer(serializers.ModelSerializer):
-    line_total = MoneyField()
-    unit_price = MoneyField()
-    summary = serializers.SerializerMethodField(
-        help_text="Sub-serializer for fields to be shown in the product's summary.")
-
-    class Meta:
-        model = OrderItemModel
-        exclude = ('id',)
-
-    def get_summary(self, order_item):
-        ProductSummarySerializer = RegistryMetaclass.get_serializer_class('ProductSummarySerializer')
-        label = self.context.get('render_label', 'order')
-        serializer = ProductSummarySerializer(order_item.product, context=self.context,
-                                              read_only=True, label=label)
-        return serializer.data
+OrderItemSerializer = import_string(shop_settings.ORDER_ITEM_SERIALIZER)
 
 
 class OrderListSerializer(serializers.ModelSerializer):
     number = serializers.CharField(source='get_number', read_only=True)
-    customer = serializers.SerializerMethodField(read_only=True)
+    customer = CustomerSerializer(read_only=True)
     url = serializers.URLField(source='get_absolute_url', read_only=True)
     status = serializers.CharField(source='status_name', read_only=True)
     subtotal = MoneyField()
@@ -378,11 +309,6 @@ class OrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderModel
         exclude = ('id', 'stored_request', '_subtotal', '_total',)
-
-    def get_customer(self, order):
-        CustomerSerializer = RegistryMetaclass.get_serializer_class('CustomerSerializer')
-        customer_serializer = CustomerSerializer(order.customer)
-        return customer_serializer.data
 
 
 class OrderDetailSerializer(OrderListSerializer):
