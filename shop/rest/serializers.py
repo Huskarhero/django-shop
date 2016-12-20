@@ -11,18 +11,87 @@ from django.template.loader import select_template
 from django.utils.six import with_metaclass
 from django.utils.html import strip_spaces_between_tags
 from django.utils.formats import localize
+from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe, SafeText
 from django.utils.translation import get_language_from_request
 
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from shop import app_settings
+from shop import settings as shop_settings
 from shop.models.cart import CartModel, CartItemModel, BaseCartItem
 from shop.models.product import ProductModel
 from shop.models.order import OrderModel, OrderItemModel
 from shop.rest.money import MoneyField
 from .bases import get_product_summary_serializer_class, set_product_summary_serializer_class
+
+
+class RegistryMixin(object):
+    """
+    Some of the serializers may be used on their own, or if the merchant wants to inherit from them,
+    then their extended implementation shall be used. Other serializers referencing those
+    alternative implementations, need a way to distinguish which of the classes in the inheritance
+    chain shall be used. This is done through an implicit registry, which knows which of those
+    serializers shall be used.
+    ```
+    class BaseSomeSerializer(six.with_metaclass(RegistryMetaclass, RegistryMixin, ModelSerializer)):
+        ...
+    ```
+    This adds `BaseSomeSerializer` to the serializers registry which later can be retrieved using
+    `RegistryMetaclass.get_serializer_class`.
+    """
+
+
+class RegistryMetaclass(serializers.SerializerMetaclass):
+    """
+    Keep global references onto all serializers inheriting from the base serializers declared
+    by django-SHOP.
+
+    This allows the merchant to override every base serializer with his own implementation,
+    in order to add arbitrary methods and/or fields.
+
+    In such a way, enriched serializer implementations added to the registry can be retrieved
+    by other base serializers using:
+    ```
+    SomeSerializer = RegistryMetaclass.get_serializer('SomeSerializer')
+    ```
+
+    Note that for each of the base serializers declared by django-SHOP, there can be only one
+    enriched serializer instance, otherwise an exception is raised.
+    """
+    # TODO: Currently this class is not used. It shall be used when we agree weather we want to
+    # have self-registering serializers, or serializers through configuration.
+
+    _serializer_classes = dict()
+
+    def __new__(cls, clsname, bases, attrs):
+        if not issubclass(bases[-1], serializers.ModelSerializer):
+            msg = "Serializer '{0}' must inherit from {1} or derived from thereof."
+            raise exceptions.ImproperlyConfigured(msg.format(clsname, serializers.ModelSerializer))
+
+        if bases[0] is RegistryMixin:
+            # it's a base serializer declared by the shop framework
+            new_class = super(cls, RegistryMetaclass).__new__(cls, clsname, bases[1:], attrs)
+            cls._serializer_classes[clsname] = new_class
+        else:
+            new_class = super(cls, RegistryMetaclass).__new__(cls, clsname, bases, attrs)
+            for base_name, base_class in cls._serializer_classes.items():
+                if issubclass(new_class, base_class):
+                    # override the assignment of the base serializer from which it inherits
+                    cls._serializer_classes[base_name] = new_class
+                    break
+            else:
+                msg = "Error while instantiating '{0}':\nSerializer {1} already inherits from {2}."
+                msg = msg.format(clsname, cls._serializer_classes[bases[0].__name__], bases[0])
+                raise exceptions.ImproperlyConfigured(msg)
+        return new_class
+
+    @classmethod
+    def get_serializer_class(cls, name):
+        """
+        Returns the concrete serializer class
+        """
+        return cls._serializer_classes['Base' + name]
 
 
 class ProductCommonSerializer(serializers.ModelSerializer):
@@ -69,7 +138,7 @@ class ProductCommonSerializer(serializers.ModelSerializer):
         absolute_base_uri = request.build_absolute_uri('/').rstrip('/')
         context = RequestContext(request, {'product': product, 'ABSOLUTE_BASE_URI': absolute_base_uri})
         content = strip_spaces_between_tags(template.render(context).strip())
-        cache.set(cache_key, content, app_settings.CACHE_DURATIONS['product_html_snippet'])
+        cache.set(cache_key, content, shop_settings.CACHE_DURATIONS['product_html_snippet'])
         return mark_safe(content)
 
 
@@ -291,9 +360,9 @@ class CheckoutSerializer(serializers.Serializer):
         return serializer.data
 
 
-CustomerSerializer = app_settings.CUSTOMER_SERIALIZER
+CustomerSerializer = import_string(shop_settings.CUSTOMER_SERIALIZER)
 
-OrderItemSerializer = app_settings.ORDER_ITEM_SERIALIZER
+OrderItemSerializer = import_string(shop_settings.ORDER_ITEM_SERIALIZER)
 
 
 class OrderListSerializer(serializers.ModelSerializer):
