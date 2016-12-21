@@ -9,10 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 from cms.plugin_pool import plugin_pool
 from cms.utils.compat.dj import is_installed
 from cmsplugin_cascade.models import SortableInlineCascadeElement
-
-from shop import settings as shop_settings
+from shop import app_settings
 from shop.models.product import ProductModel
-from shop.rest.bases import get_product_summary_serializer_class
 from .plugin_base import ShopPluginBase, ProductSelectField
 
 if is_installed('adminsortable2'):
@@ -29,7 +27,7 @@ class ShopCatalogPlugin(ShopPluginBase):
 
     def get_render_template(self, context, instance, placeholder):
         return select_template([
-            '{}/catalog/product-list.html'.format(shop_settings.APP_LABEL),
+            '{}/catalog/product-list.html'.format(app_settings.APP_LABEL),
             'shop/catalog/product-list.html',
         ])
 
@@ -44,7 +42,7 @@ class ShopAddToCartPlugin(ShopPluginBase):
 
     def get_render_template(self, context, instance, placeholder):
         return select_template([
-            '{}/catalog/product-add2cart.html'.format(shop_settings.APP_LABEL),
+            '{}/catalog/product-add2cart.html'.format(app_settings.APP_LABEL),
             'shop/catalog/product-add2cart.html',
         ])
 
@@ -108,11 +106,13 @@ class ShopProductGallery(ShopPluginBase):
 
     def get_render_template(self, context, instance, placeholder):
         return select_template([
-            '{}/catalog/product-gallery.html'.format(shop_settings.APP_LABEL),
+            '{}/catalog/product-gallery.html'.format(app_settings.APP_LABEL),
             'shop/catalog/product-gallery.html',
         ])
 
     def render(self, context, instance, placeholder):
+        from shop.rest.bases import get_product_summary_serializer_class
+
         product_ids = []
         for instance in instance.sortinline_elements.all():
             try:
