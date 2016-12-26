@@ -2,25 +2,21 @@
 from __future__ import unicode_literals
 
 import os
-
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.cache import add_never_cache_headers
 from django.utils.translation import get_language_from_request
-
 from rest_framework import generics
 from rest_framework import status
 from rest_framework import views
 from rest_framework.settings import api_settings
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
-
-from shop import app_settings
-from shop.models.product import ProductModel
 from shop.rest.money import JSONRenderer
 from shop.rest.filters import CMSPagesFilterBackend
+from shop.rest.serializers import AddToCartSerializer, ProductSelectSerializer
 from shop.rest.renderers import CMSPageRenderer
-from shop.serializers.defaults import AddToCartSerializer
+from shop.models.product import ProductModel
 
 
 class ProductListView(generics.ListAPIView):
@@ -200,7 +196,7 @@ class ProductSelectView(generics.ListAPIView):
     the data for rendering the select widget when looking up for a product.
     """
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
-    serializer_class = app_settings.PRODUCT_SELECT_SERIALIZER
+    serializer_class = ProductSelectSerializer
 
     def get_queryset(self):
         term = self.request.GET.get('term', '')

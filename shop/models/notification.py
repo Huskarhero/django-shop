@@ -12,13 +12,9 @@ from django.template import Context, engines
 from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _, override as translation_override
 from django.utils.six.moves.urllib.parse import urlparse
-
 from post_office import mail
 from post_office.models import Email as OriginalEmail, EmailTemplate
-
 from filer.fields.file import FilerFileField
-
-from shop import app_settings
 from .customer import CustomerModel
 
 
@@ -130,7 +126,7 @@ class EmulateHttpRequest(HttpRequest):
 
 def order_event_notification(sender, instance=None, target=None, **kwargs):
     from shop.models.order import OrderModel
-    from shop.serializers.order import OrderDetailSerializer
+    from shop.rest import serializers
 
     if not isinstance(instance, OrderModel):
         return
@@ -141,11 +137,10 @@ def order_event_notification(sender, instance=None, target=None, **kwargs):
 
         # emulate a request object which behaves similar to that one, when the customer submitted its order
         emulated_request = EmulateHttpRequest(instance.customer, instance.stored_request)
-        customer_serializer = app_settings.CUSTOMER_SERIALIZER(instance.customer)
-        order_serializer = OrderDetailSerializer(instance, context={'request': emulated_request})
+        order_serializer = serializers.OrderDetailSerializer(instance, context={'request': emulated_request})
         language = instance.stored_request.get('language')
         context = {
-            'customer': customer_serializer.data,
+            'customer': serializers.CustomerSerializer(instance.customer).data,
             'data': order_serializer.data,
             'ABSOLUTE_BASE_URI': emulated_request.build_absolute_uri().rstrip('/'),
             'render_language': language,
