@@ -11,9 +11,8 @@ from cms.utils.compat.dj import is_installed
 from cmsplugin_cascade.mixins import WithSortableInlineElementsMixin
 from cmsplugin_cascade.models import SortableInlineCascadeElement
 
-from shop import settings as shop_settings
+from shop import app_settings
 from shop.models.product import ProductModel
-from shop.rest.bases import get_product_summary_serializer_class
 from .plugin_base import ShopPluginBase, ProductSelectField
 
 if is_installed('adminsortable2'):
@@ -30,7 +29,7 @@ class ShopCatalogPlugin(ShopPluginBase):
 
     def get_render_template(self, context, instance, placeholder):
         return select_template([
-            '{}/catalog/product-list.html'.format(shop_settings.APP_LABEL),
+            '{}/catalog/product-list.html'.format(app_settings.APP_LABEL),
             'shop/catalog/product-list.html',
         ])
 
@@ -45,7 +44,7 @@ class ShopAddToCartPlugin(ShopPluginBase):
 
     def get_render_template(self, context, instance, placeholder):
         return select_template([
-            '{}/catalog/product-add2cart.html'.format(shop_settings.APP_LABEL),
+            '{}/catalog/product-add2cart.html'.format(app_settings.APP_LABEL),
             'shop/catalog/product-add2cart.html',
         ])
 
@@ -109,7 +108,7 @@ class ShopProductGallery(WithSortableInlineElementsMixin, ShopPluginBase):
 
     def get_render_template(self, context, instance, placeholder):
         return select_template([
-            '{}/catalog/product-gallery.html'.format(shop_settings.APP_LABEL),
+            '{}/catalog/product-gallery.html'.format(app_settings.APP_LABEL),
             'shop/catalog/product-gallery.html',
         ])
 
@@ -121,7 +120,7 @@ class ShopProductGallery(WithSortableInlineElementsMixin, ShopPluginBase):
             except KeyError:
                 pass
         queryset = ProductModel.objects.filter(pk__in=product_ids)
-        serializer_class = get_product_summary_serializer_class()
+        serializer_class = app_settings.PRODUCT_SUMMARY_SERIALIZER
         serialized = serializer_class(queryset, many=True, context={'request': context['request']})
         context['products'] = serialized.data
         return context
