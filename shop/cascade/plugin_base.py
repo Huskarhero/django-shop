@@ -18,7 +18,7 @@ from cmsplugin_cascade.link.forms import LinkForm
 from cmsplugin_cascade.link.plugin_base import LinkPluginBase, LinkElementMixin
 from cmsplugin_cascade.utils import resolve_dependencies
 from django_select2.forms import HeavySelect2Widget
-from shop import app_settings
+from shop import settings as shop_settings
 from shop.forms.base import DialogFormMixin
 from shop.models.cart import CartModel
 from shop.models.product import ProductModel
@@ -86,14 +86,14 @@ class ShopButtonPluginBase(ShopLinkPluginBase):
 
 
 class ProductSelect2Widget(HeavySelect2Widget):
-    def render(self, name, value, attrs=None, choices=None):
+    def render(self, name, value, attrs=None):
         try:
             result = ProductSelectSerializer(ProductModel.objects.get(pk=value))
-            choices = ((value, result.data['text']),)
         except (ProductModel.DoesNotExist, ValueError):
-            choices = ()
-        html = super(ProductSelect2Widget, self).render(name, value, attrs=attrs, choices=choices)
-        print(html)
+            pass
+        else:
+            self.choices.append((value, result.data['text']),)
+        html = super(ProductSelect2Widget, self).render(name, value, attrs=attrs)
         return html
 
 
@@ -221,7 +221,7 @@ class DialogFormPluginBase(ShopPluginBase):
             render_type = 'form'
         try:
             template_names = [
-                '{0}/checkout/{1}'.format(app_settings.APP_LABEL, self.template_leaf_name).format(render_type),
+                '{0}/checkout/{1}'.format(shop_settings.APP_LABEL, self.template_leaf_name).format(render_type),
                 'shop/checkout/{}'.format(self.template_leaf_name).format(render_type),
             ]
             return select_template(template_names)
