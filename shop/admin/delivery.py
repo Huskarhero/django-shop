@@ -12,13 +12,12 @@ from django.template.loader import select_template
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
-
 from shop import app_settings
 from shop.admin.order import OrderItemInline
 from shop.models.order import OrderItemModel
 from shop.models.delivery import DeliveryModel, DeliveryItemModel
 from shop.modifiers.pool import cart_modifiers_pool
-from shop.serializers.order import OrderDetailSerializer
+from shop.rest import serializers
 
 
 class OrderItemForm(models.ModelForm):
@@ -172,10 +171,9 @@ class DeliveryOrderAdminMixin(object):
         ])
         delivery = DeliveryModel.objects.get(pk=delivery_pk)
         context = {'request': request, 'render_label': 'print'}
-        customer_serializer = app_settings.CUSTOMER_SERIALIZER(delivery.order.customer)
-        order_serializer = OrderDetailSerializer(delivery.order, context=context)
+        order_serializer = serializers.OrderDetailSerializer(delivery.order, context=context)
         content = template.render(RequestContext(request, {
-            'customer': customer_serializer.data,
+            'customer': serializers.CustomerSerializer(delivery.order.customer).data,
             'data': order_serializer.data,
             'delivery': delivery,
         }))

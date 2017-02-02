@@ -15,9 +15,6 @@ import os
 from decimal import Decimal
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
-from django.core.urlresolvers import reverse_lazy
-
-from cmsplugin_cascade.utils import format_lazy
 
 SHOP_APP_LABEL = 'myshop'
 BASE_DIR = os.path.dirname(__file__)
@@ -70,7 +67,7 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-INSTALLED_APPS = [
+INSTALLED_APPS = (
     'django.contrib.auth',
     'email_auth',
     'polymorphic',
@@ -87,7 +84,6 @@ INSTALLED_APPS = [
     'cmsplugin_cascade.clipboard',
     'cmsplugin_cascade.sharable',
     'cmsplugin_cascade.extra_fields',
-    'cmsplugin_cascade.icon',
     'cmsplugin_cascade.segmentation',
     'cms_bootstrap3',
     'adminsortable2',
@@ -112,9 +108,9 @@ INSTALLED_APPS = [
     'shop',
     'shop_stripe',
     'myshop',
-]
+)
 if SHOP_TUTORIAL in ('i18n_commodity', 'i18n_smartcard', 'polymorphic'):
-    INSTALLED_APPS.append('parler')
+    INSTALLED_APPS += ('parler',)
 
 MIDDLEWARE_CLASSES = (
     'djng.middleware.AngularUrlMiddleware',
@@ -418,11 +414,13 @@ CMS_PLACEHOLDER_CONF = {
     },
     'Commodity Details': {
         'plugins': ['BootstrapContainerPlugin', 'BootstrapJumbotronPlugin'],
+        'text_only_plugins': ['TextLinkPlugin'],
         'parent_classes': {'BootstrapContainerPlugin': None, 'BootstrapJumbotronPlugin': None},
         'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
     'Main Content': {
         'plugins': ['BootstrapContainerPlugin', 'BootstrapJumbotronPlugin'],
+        'text_only_plugins': ['TextLinkPlugin'],
         'parent_classes': {'BootstrapContainerPlugin': None, 'BootstrapJumbotronPlugin': None},
         'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
@@ -433,23 +431,20 @@ CMS_PLACEHOLDER_CONF = {
     },
 }
 
-CMSPLUGIN_CASCADE_PLUGINS = (
-    'cmsplugin_cascade.segmentation',
-    'cmsplugin_cascade.generic',
-    'cmsplugin_cascade.icon',
-    'cmsplugin_cascade.link',
-    'shop.cascade',
-    'cmsplugin_cascade.bootstrap3',
-)
+CMSPLUGIN_CASCADE_PLUGINS = ('cmsplugin_cascade.segmentation', 'cmsplugin_cascade.generic',
+                             'cmsplugin_cascade.link', 'shop.cascade', 'cmsplugin_cascade.bootstrap3',)
 
 CMSPLUGIN_CASCADE = {
     'fontawesome_css_url': 'node_modules/font-awesome/css/font-awesome.css',
+    'dependencies': {
+        'shop/js/admin/shoplinkplugin.js': 'cascade/js/admin/linkpluginbase.js',
+    },
     'link_plugin_classes': (
         'shop.cascade.plugin_base.CatalogLinkPluginBase',
         'cmsplugin_cascade.link.plugin_base.LinkElementMixin',
         'shop.cascade.plugin_base.CatalogLinkForm',
     ),
-    'alien_plugins': ('TextPlugin', 'TextLinkPlugin', 'AcceptConditionPlugin',),
+    'alien_plugins': ('TextPlugin', 'TextLinkPlugin',),
     'bootstrap3': {
         'template_basedir': 'angular-ui',
     },
@@ -460,15 +455,15 @@ CMSPLUGIN_CASCADE = {
         ],
     },
     'plugins_with_sharables': {
-        'BootstrapImagePlugin': ('image_shapes', 'image_width_responsive', 'image_width_fixed',
-                                 'image_height', 'resize_options',),
-        'BootstrapPicturePlugin': ('image_shapes', 'responsive_heights', 'image_size', 'resize_options',),
+        'BootstrapImagePlugin': ('image-shapes', 'image-width-responsive', 'image-width-fixed',
+                                 'image-height', 'resize-options',),
+        'BootstrapPicturePlugin': ('image-shapes', 'responsive-heights', 'image-size',
+                                   'resize-options',),
     },
     'bookmark_prefix': '/',
     'segmentation_mixins': (
         ('shop.cascade.segmentation.EmulateCustomerModelMixin', 'shop.cascade.segmentation.EmulateCustomerAdminMixin'),
     ),
-    'allow_plugin_hiding': True,
 }
 
 CKEDITOR_SETTINGS = {
@@ -488,7 +483,6 @@ CKEDITOR_SETTINGS = {
         ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Table'],
         ['Source']
     ],
-    'stylesSet': format_lazy('default:{}', reverse_lazy('admin:cascade_texticon_wysiwig_config')),
 }
 
 CKEDITOR_SETTINGS_CAPTION = {
@@ -533,14 +527,14 @@ HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
         'URL': 'http://localhost:9200/',
-        'INDEX_NAME': 'myshop-{}-en'.format(SHOP_TUTORIAL),
+        'INDEX_NAME': 'myshop-en',
     },
 }
 if USE_I18N:
     HAYSTACK_CONNECTIONS['de'] = {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
         'URL': 'http://localhost:9200/',
-        'INDEX_NAME': 'myshop-{}-de'.format(SHOP_TUTORIAL),
+        'INDEX_NAME': 'myshop-de',
     }
 
 HAYSTACK_ROUTERS = ('shop.search.routers.LanguageRouter',)
@@ -550,7 +544,6 @@ HAYSTACK_ROUTERS = ('shop.search.routers.LanguageRouter',)
 
 SHOP_VALUE_ADDED_TAX = Decimal(19)
 SHOP_DEFAULT_CURRENCY = 'EUR'
-SHOP_PRODUCT_SUMMARY_SERIALIZER = 'myshop.serializers.ProductSummarySerializer'
 SHOP_CART_MODIFIERS = (
     'myshop.polymorphic_modifiers.MyShopCartModifier' if SHOP_TUTORIAL == 'polymorphic'
     else 'shop.modifiers.defaults.DefaultCartModifier',

@@ -56,19 +56,18 @@ class PolymorphicProductMetaclass(PolymorphicModelBase):
             # refer to it via its materialized Product model.
             if not isinstance(baseclass, cls):
                 continue
+
+            basename = baseclass.__name__
+
             try:
-                if issubclass(baseclass._materialized_model, Model):
-                    # as the materialized model, use the most generic one
-                    baseclass._materialized_model = Model
-                elif not issubclass(Model, baseclass._materialized_model):
+                if not issubclass(Model, baseclass._materialized_model):
                     raise ImproperlyConfigured("Abstract base class {} has already been associated "
                         "with a model {}, which is different or not a submodel of {}."
                         .format(name, Model, baseclass._materialized_model))
             except (AttributeError, TypeError):
                 baseclass._materialized_model = Model
-
-            # check for pending mappings in the ForeignKeyBuilder and in case, process them
-            deferred.ForeignKeyBuilder.process_pending_mappings(Model, baseclass.__name__)
+                deferred.ForeignKeyBuilder._materialized_models[basename] = Model.__name__
+                deferred.ForeignKeyBuilder.process_pending_mappings(Model, basename)
 
         deferred.ForeignKeyBuilder.handle_deferred_foreign_fields(Model)
         cls.perform_model_checks(Model)
@@ -208,8 +207,6 @@ class CMSPageReferenceMixin(object):
     being accessed directly through a canonical URL. Add this mixin class for adding a
     ``get_absolute_url()`` method to any to product model.
     """
-    category_fields = ['cms_pages']  # used by ProductIndex to fill the categories
-
     def get_absolute_url(self):
         """
         Return the absolute URL of a product

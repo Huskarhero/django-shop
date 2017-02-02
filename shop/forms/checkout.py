@@ -2,18 +2,17 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.forms import fields, widgets
 from django.forms.utils import ErrorDict
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-
 from djng.styling.bootstrap3.forms import Bootstrap3ModelForm
 from djng.styling.bootstrap3.widgets import RadioSelect, RadioFieldRenderer, CheckboxInput
-
 from shop.models.address import ShippingAddressModel, BillingAddressModel
 from shop.models.customer import CustomerModel
 from shop.modifiers.pool import cart_modifiers_pool
-from .base import DialogForm, DialogModelForm, UniqueEmailValidationMixin
+from .base import DialogForm, DialogModelForm
 
 
 class CustomerForm(DialogModelForm):
@@ -49,7 +48,7 @@ class CustomerForm(DialogModelForm):
         return customer_form
 
 
-class GuestForm(UniqueEmailValidationMixin, DialogModelForm):
+class GuestForm(DialogModelForm):
     scope_prefix = 'data.guest'
     form_name = 'customer_form'  # Override form name to reuse template `customer-form.html`
     legend = _("Customer's Email")
@@ -71,6 +70,14 @@ class GuestForm(UniqueEmailValidationMixin, DialogModelForm):
         if customer_form.is_valid():
             customer_form.save()
         return customer_form
+
+    def clean_email(self):
+        # check for uniqueness of email address
+        if get_user_model().objects.filter(is_active=True, email=self.cleaned_data['email']).exists():
+            msg = _("A registered customer with the e-mail address '{email}' already exists.\n"
+                    "If you have used this address previously, try to reset the password.")
+            raise ValidationError(msg.format(**self.cleaned_data))
+        return self.cleaned_data['email']
 
 
 class AddressForm(DialogModelForm):
@@ -140,7 +147,7 @@ class AddressForm(DialogModelForm):
             address_form = cls(data=data, cart=cart)
             if address_form.is_valid():
                 # prevent adding the same address twice
-                all_field_names = [f.name for f in cls.get_model()._meta.get_fields()]
+                all_field_names = cls.get_model()._meta.get_all_field_names()
                 filter_args = dict((attr, val) for attr, val in address_form.data.items()
                                    if attr in all_field_names and val)
                 filter_args.update(customer=request.customer)

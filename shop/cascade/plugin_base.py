@@ -10,19 +10,19 @@ from django.utils.html import format_html
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _, pgettext_lazy
 from django.utils.safestring import mark_safe
-from django.utils.encoding import python_2_unicode_compatible
-
 from cms.plugin_pool import plugin_pool
+from django.utils.encoding import python_2_unicode_compatible
 from cmsplugin_cascade.fields import GlossaryField
 from cmsplugin_cascade.plugin_base import CascadePluginBase
 from cmsplugin_cascade.link.forms import LinkForm
 from cmsplugin_cascade.link.plugin_base import LinkPluginBase, LinkElementMixin
+from cmsplugin_cascade.utils import resolve_dependencies
 from django_select2.forms import HeavySelect2Widget
-
 from shop import app_settings
 from shop.forms.base import DialogFormMixin
 from shop.models.cart import CartModel
 from shop.models.product import ProductModel
+from shop.rest.serializers import ProductSelectSerializer
 
 
 class ShopPluginBase(CascadePluginBase):
@@ -44,10 +44,9 @@ class ShopLinkPluginBase(ShopPluginBase):
     allow_children = False
     parent_classes = []
     require_parent = False
-    ring_plugin = 'ShopLinkPlugin'
 
     class Media:
-        js = ['shop/js/admin/shoplinkplugin.js']
+        js = resolve_dependencies('shop/js/admin/shoplinkplugin.js')
 
     @classmethod
     def get_link(cls, obj):
@@ -66,6 +65,11 @@ class ShopLinkPluginBase(ShopPluginBase):
             # use the link type as special action keyword
             return link.get('type')
 
+    def get_ring_bases(self):
+        bases = super(ShopLinkPluginBase, self).get_ring_bases()
+        bases.append('LinkPluginBase')
+        return bases
+
 
 class ShopButtonPluginBase(ShopLinkPluginBase):
     """
@@ -82,14 +86,14 @@ class ShopButtonPluginBase(ShopLinkPluginBase):
 
 
 class ProductSelect2Widget(HeavySelect2Widget):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, choices=None):
         try:
-            result = app_settings.PRODUCT_SELECT_SERIALIZER(ProductModel.objects.get(pk=value))
+            result = ProductSelectSerializer(ProductModel.objects.get(pk=value))
+            choices = ((value, result.data['text']),)
         except (ProductModel.DoesNotExist, ValueError):
-            pass
-        else:
-            self.choices.append((value, result.data['text']),)
-        html = super(ProductSelect2Widget, self).render(name, value, attrs=attrs)
+            choices = ()
+        html = super(ProductSelect2Widget, self).render(name, value, attrs=attrs, choices=choices)
+        print(html)
         return html
 
 
@@ -139,15 +143,14 @@ class CatalogLinkForm(LinkForm):
 
 class CatalogLinkPluginBase(LinkPluginBase):
     """
-    Alternative implementation to ``cmsplugin_cascade.link.DefaultLinkPluginBase`` which adds
-    another link type, namely "Product", to set links onto arbitrary products of this shop.
+    Modified implementation of ``cmsplugin_cascade.link.DefaultLinkPluginBase`` which adds another
+    link type, namely "Product", to set links onto arbitrary products of this shop.
     """
     fields = (('link_type', 'cms_page', 'section', 'product', 'ext_url', 'mail_to',), 'glossary',)
-    ring_plugin = 'ShopLinkPlugin'
 
     class Media:
-        css = {'all': ['shop/css/admin/editplugin.css']}
-        js = ['shop/js/admin/shoplinkplugin.js']
+        css = {'all': ('shop/css/admin/editplugin.css',)}
+        js = resolve_dependencies('shop/js/admin/shoplinkplugin.js')
 
 
 class DialogFormPluginBase(ShopPluginBase):
