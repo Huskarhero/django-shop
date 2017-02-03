@@ -37,10 +37,6 @@ class CustomerCreationForm(UserCreationForm):
     class Meta(UserChangeForm.Meta):
         model = get_user_model()
 
-    def save(self, commit=True):
-        self.instance.is_staff = True
-        return super(CustomerCreationForm, self).save(commit=False)
-
 
 class CustomerChangeForm(UserChangeForm):
     email = forms.EmailField(required=False)
@@ -55,12 +51,7 @@ class CustomerChangeForm(UserChangeForm):
         super(CustomerChangeForm, self).__init__(initial=initial, *args, **kwargs)
 
     def clean_email(self):
-        # nullify empty email field in order to prevent unique index collisions
-        return self.cleaned_data.get('email').strip() or None
-
-    def save(self, commit=False):
-        self.instance.email = self.cleaned_data['email']
-        return super(CustomerChangeForm, self).save(commit)
+        return self.cleaned_data.get('email').strip()
 
 
 class CustomerListFilter(admin.SimpleListFilter):
@@ -79,7 +70,13 @@ class CustomerListFilter(admin.SimpleListFilter):
 
 class CustomerAdminBase(UserAdmin):
     """
-    This ModelAdmin class must be registered inside the implementation of this shop.
+    This ModelAdmin class must be extended and registered inside the merchant's implementation.
+    Since the customer model can differ, the field `inlines` must be specified, for instance
+    ```
+    @admin.register(CustomerProxy)
+    class CustomerAdmin(CustomerAdminBase):
+        inlines = (CustomerInlineAdminBase,)
+    ```
     """
     form = CustomerChangeForm
     add_form = CustomerCreationForm
@@ -87,10 +84,10 @@ class CustomerAdminBase(UserAdmin):
     segmentation_list_display = ('get_username',)
     list_filter = UserAdmin.list_filter + (CustomerListFilter,)
     readonly_fields = ('last_login', 'date_joined', 'last_access', 'recognized')
-    ordering = ('id',)
+    ordering = ['id']
 
     class Media:
-        js = ('shop/js/admin/customer.js',)
+        js = ['shop/js/admin/customer.js']
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super(CustomerAdminBase, self).get_fieldsets(request, obj=obj)
@@ -107,12 +104,18 @@ class CustomerAdminBase(UserAdmin):
     get_username.admin_order_field = 'email'
 
     def recognized(self, user):
+        if user.is_superuser:
+            user_state = _("Administrator")
+        elif user.is_staff:
+            user_state = _("Staff")
+        else:
+            user_state = _("User")
         if hasattr(user, 'customer'):
-            state = user.customer.get_recognized_display()
-            if user.is_staff:
-                state = '{}/{}'.format(state, _("Staff"))
-            return state
-        return _("User")
+            customer_state = user.customer.get_recognized_display()
+            if user.is_staff or user.is_superuser:
+                return '{}/{}'.format(customer_state, user_state)
+            return customer_state
+        return user_state
     recognized.short_description = _("State")
 
     def last_access(self, user):
@@ -128,6 +131,11 @@ class CustomerAdminBase(UserAdmin):
         return True
     is_unexpired.short_description = _("Unexpired")
     is_unexpired.boolean = True
+
+    def save_related(self, request, form, formsets, change):
+        if hasattr(form.instance, 'customer') and (form.instance.is_staff or form.instance.is_superuser):
+            form.instance.customer.recognized = CustomerState.REGISTERED
+        super(CustomerAdminBase, self).save_related(request, form, formsets, change)
 
 
 class CustomerProxy(get_user_model()):

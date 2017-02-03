@@ -15,6 +15,8 @@ class DeferredRelatedField(object):
         except AttributeError:
             assert isinstance(to, six.string_types), "%s(%r) is invalid. First parameter must be either a model or a model name" % (self.__class__.__name__, to)
             self.abstract_model = to
+        else:
+            assert to._meta.abstract, "%s can only define a relation with abstract class %s" % (self.__class__.__name__, to._meta.object_name)
         self.options = kwargs
 
 
@@ -41,22 +43,6 @@ class ManyToManyField(DeferredRelatedField):
     """
     MaterializedField = models.ManyToManyField
 
-    def __init__(self, to, **kwargs):
-        super(ManyToManyField, self).__init__(to, **kwargs)
-
-        through = kwargs.get('through')
-
-        if through is None:
-            self.abstract_through_model = None
-        else:
-            try:
-                self.abstract_through_model = through._meta.object_name
-            except AttributeError:
-                assert isinstance(through, six.string_types), ('%s(%r) is invalid. '
-                    'Through parameter must be either a model or a model name'
-                    % (self.__class__.__name__, through))
-                self.abstract_through_model = through
-
 
 class ForeignKeyBuilder(ModelBase):
     """
@@ -74,47 +60,34 @@ class ForeignKeyBuilder(ModelBase):
             app_label = app_settings.APP_LABEL
 
         attrs.setdefault('Meta', Meta)
-        attrs.setdefault('__module__', getattr(bases[-1], '__module__'))
         if not hasattr(attrs['Meta'], 'app_label') and not getattr(attrs['Meta'], 'abstract', False):
             attrs['Meta'].app_label = Meta.app_label
-
+        attrs.setdefault('__module__', getattr(bases[-1], '__module__'))
         Model = super(ForeignKeyBuilder, cls).__new__(cls, name, bases, attrs)
-
         if Model._meta.abstract:
             return Model
-
-        if any(isinstance(base, cls) for base in bases):
-            for baseclass in bases:
-                if not isinstance(baseclass, cls):
-                    continue
-
-                if not issubclass(baseclass, models.Model):
-                    continue
-
-                basename = baseclass.__name__
-
-                if baseclass._meta.abstract:
-                    if basename in cls._materialized_models:
-                        raise ImproperlyConfigured(
-                            "Both Model classes '%s' and '%s' inherited from abstract "
-                            "base class %s, which is disallowed in this configuration."
-                            % (Model.__name__, cls._materialized_models[basename], basename)
-                        )
-
+        for baseclass in bases:
+            # classes which materialize an abstract model are added to a mapping dictionary
+            basename = baseclass.__name__
+            try:
+                if not issubclass(Model, baseclass) or not baseclass._meta.abstract:
+                    raise ImproperlyConfigured("Base class %s is not abstract." % basename)
+            except (AttributeError, NotImplementedError):
+                pass
+            else:
+                if basename in cls._materialized_models:
+                    if Model.__name__ != cls._materialized_models[basename]:
+                        raise AssertionError("Both Model classes '%s' and '%s' inherited from abstract"
+                            "base class %s, which is disallowed in this configuration." %
+                            (Model.__name__, cls._materialized_models[basename], basename))
+                elif isinstance(baseclass, cls):
                     cls._materialized_models[basename] = Model.__name__
                     # remember the materialized model mapping in the base class for further usage
                     baseclass._materialized_model = Model
-                    cls.process_pending_mappings(Model, basename)
-
-        else:
-            # Non abstract model that uses this Metaclass
-            basename = Model.__name__
-            cls._materialized_models[basename] = basename
-            Model._materialized_model = Model
             cls.process_pending_mappings(Model, basename)
 
         cls.handle_deferred_foreign_fields(Model)
-        cls.perform_model_checks(Model)
+        Model.perform_model_checks()
         return Model
 
     @classmethod
@@ -128,21 +101,10 @@ class ForeignKeyBuilder(ModelBase):
                 member = getattr(Model, attrname)
             except AttributeError:
                 continue
-
             if not isinstance(member, DeferredRelatedField):
                 continue
-
-            if member.abstract_model == 'self':
-                mapmodel = Model
-            else:
-                mapmodel = cls._materialized_models.get(member.abstract_model)
-
-            abstract_through_model = getattr(member, 'abstract_through_model', None)
-            mapmodel_through = cls._materialized_models.get(abstract_through_model)
-
-            if mapmodel and (not abstract_through_model or mapmodel_through):
-                if mapmodel_through:
-                    member.options['through'] = mapmodel_through
+            mapmodel = cls._materialized_models.get(member.abstract_model)
+            if mapmodel:
                 field = member.MaterializedField(mapmodel, **member.options)
                 field.contribute_to_class(Model, attrname)
             else:
@@ -150,28 +112,12 @@ class ForeignKeyBuilder(ModelBase):
 
     @staticmethod
     def process_pending_mappings(Model, basename):
-        assert basename in ForeignKeyBuilder._materialized_models
-        assert Model._materialized_model
-
         """
         Check for pending mappings and in case, process, and remove them from the list
         """
         for mapping in ForeignKeyBuilder._pending_mappings[:]:
-            member = mapping[2]
-            mapmodel = ForeignKeyBuilder._materialized_models.get(member.abstract_model)
-            abstract_through_model = getattr(member, 'abstract_through_model', None)
-            mapmodel_through = ForeignKeyBuilder._materialized_models.get(abstract_through_model)
-
-            if member.abstract_model == basename or abstract_through_model == basename:
-                if member.abstract_model == basename and abstract_through_model and not mapmodel_through:
-                    continue
-                elif abstract_through_model == basename and not mapmodel:
-                    continue
-
-                if mapmodel_through:
-                    member.options['through'] = mapmodel_through
-
-                field = member.MaterializedField(mapmodel, **member.options)
+            if mapping[2].abstract_model == basename:
+                field = mapping[2].MaterializedField(Model, **mapping[2].options)
                 field.contribute_to_class(mapping[0], mapping[1])
                 ForeignKeyBuilder._pending_mappings.remove(mapping)
 
@@ -182,7 +128,7 @@ class ForeignKeyBuilder(ModelBase):
         return object.__getattribute__(self, key)
 
     @classmethod
-    def perform_model_checks(cls, Model):
+    def perform_model_checks(cls):
         """
         Hook for each class inheriting from ForeignKeyBuilder, to perform checks on the
         implementation of the just created class type.
@@ -234,13 +180,3 @@ class MaterializedModel(SimpleLazyObject):
         if self._wrapped is empty:
             self._setup()
         return isinstance(instance, self._materialized_model)
-
-
-try:
-    from polymorphic.models import PolymorphicModelBase
-
-    class PolymorphicForeignKeyBuilder(ForeignKeyBuilder, PolymorphicModelBase):
-        pass
-
-except ImportError:
-    pass
