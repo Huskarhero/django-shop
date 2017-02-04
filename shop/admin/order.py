@@ -12,12 +12,14 @@ from django.template.loader import select_template
 from django.utils.html import format_html
 from django.utils.formats import number_format
 from django.utils.translation import pgettext_lazy
+
 from fsm_admin.mixins import FSMTransitionMixin
+
 from shop import app_settings
 from shop.models.customer import CustomerModel
 from shop.models.order import OrderItemModel, OrderPayment
 from shop.modifiers.pool import cart_modifiers_pool
-from shop.rest import serializers
+from shop.serializers.order import OrderDetailSerializer
 
 
 class OrderPaymentInline(admin.TabularInline):
@@ -46,7 +48,7 @@ class OrderItemInline(admin.StackedInline):
         ('product_code', 'unit_price', 'line_total',), ('quantity',), 'render_as_html_extra',
     )
     readonly_fields = ('product_code', 'quantity', 'unit_price', 'line_total', 'render_as_html_extra',)
-    template = 'shop/admin/edit_inline/stacked.html'
+    template = 'shop/admin/edit_inline/stacked-order.html'
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -178,9 +180,10 @@ class PrintOrderAdminMixin(object):
     def _render_letter(self, request, pk, template):
         order = self.get_object(request, pk)
         context = {'request': request, 'render_label': 'print'}
-        order_serializer = serializers.OrderDetailSerializer(order, context=context)
+        customer_serializer = app_settings.CUSTOMER_SERIALIZER(order.customer)
+        order_serializer = OrderDetailSerializer(order, context=context)
         content = template.render(RequestContext(request, {
-            'customer': serializers.CustomerSerializer(order.customer).data,
+            'customer': customer_serializer.data,
             'data': order_serializer.data,
             'order': order,
         }))

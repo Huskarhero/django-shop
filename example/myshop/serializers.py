@@ -3,10 +3,13 @@ from __future__ import unicode_literals
 
 from django.conf import settings
 from django.utils.module_loading import import_string
+from django.utils.safestring import mark_safe
+
 from rest_framework import serializers
 from rest_framework.fields import empty
-from shop.rest.serializers import (ProductSummarySerializerBase, ProductDetailSerializerBase,
-                                   AddToCartSerializer)
+
+from shop.serializers.defaults import AddToCartSerializer
+from shop.serializers.bases import BaseProductSummarySerializer, BaseProductDetailSerializer
 from shop.search.serializers import ProductSearchSerializer as ProductSearchSerializerBase
 from .search_indexes import myshop_search_index_classes
 
@@ -21,8 +24,11 @@ elif settings.SHOP_TUTORIAL == 'polymorphic':
 else:
     raise NotImplementedError("Unknown settings for SHOP_TUTORIAL: {}".format(settings.SHOP_TUTORIAL))
 
+__all__ = ['ProductSummarySerializer', 'ProductDetailSerializer', 'AddSmartCardToCartSerializer',
+           'AddSmartPhoneToCartSerializer', 'ProductSearchSerializer', 'CatalogSearchSerializer']
 
-class ProductSummarySerializer(ProductSummarySerializerBase):
+
+class ProductSummarySerializer(BaseProductSummarySerializer):
     media = serializers.SerializerMethodField()
 
     class Meta:
@@ -34,7 +40,7 @@ class ProductSummarySerializer(ProductSummarySerializerBase):
         return self.render_html(product, 'media')
 
 
-class ProductDetailSerializer(ProductDetailSerializerBase):
+class ProductDetailSerializer(BaseProductDetailSerializer):
     class Meta:
         model = Product
         exclude = ('active', 'polymorphic_ctype',)
@@ -83,15 +89,25 @@ class ProductSearchSerializer(ProductSearchSerializerBase):
 
     class Meta(ProductSearchSerializerBase.Meta):
         fields = ProductSearchSerializerBase.Meta.fields + ('media', 'caption')
+        field_aliases = {'q': 'text'}
+        search_fields = ['text']
         index_classes = myshop_search_index_classes
 
     def get_media(self, search_result):
-        return search_result.search_media
+        return mark_safe(search_result.search_media)
 
 
-class CatalogSearchSerializer(ProductSearchSerializer):
+class CatalogSearchSerializer(ProductSearchSerializerBase):
     """
     Serializer to restrict products in the catalog
     """
+    media = serializers.SerializerMethodField()
+
+    class Meta(ProductSearchSerializerBase.Meta):
+        fields = ProductSearchSerializerBase.Meta.fields + ('media', 'caption')
+        field_aliases = {'q': 'autocomplete'}
+        search_fields = ['autocomplete']
+        index_classes = myshop_search_index_classes
+
     def get_media(self, search_result):
-        return search_result.catalog_media
+        return mark_safe(search_result.catalog_media)
