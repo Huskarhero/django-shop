@@ -15,15 +15,17 @@ djangoShopModule.directive('shopProductSearch', ['$location', '$timeout', 'djang
 
 			// handle typeahead search using autocomplete
 			$scope.autocomplete = function() {
-				var params;
+				var config;
 				if (!angular.isString($scope.searchQuery) || $scope.searchQuery.length < 3) {
-					params = null;
+					config = null;
 					$location.search({});
 				} else {
-					params = {
-						q: $scope.searchQuery
+					config = {
+						params: {
+							q: $scope.searchQuery
+						}
 					};
-					$location.search(params);
+					$location.search(config.params);
 				}
 				// delay the execution of reloading products
 				if (acPromise) {
@@ -32,7 +34,7 @@ djangoShopModule.directive('shopProductSearch', ['$location', '$timeout', 'djang
 				}
 				acPromise = $timeout(function() {
 					$scope.filters = {};  // remove content in filters
-					$scope.$emit('shopCatalogSearch', params);
+					$scope.$emit('shopCatalogSearch', config);
 				}, 666);
 			};
 		}],
@@ -44,6 +46,10 @@ djangoShopModule.directive('shopProductSearch', ['$location', '$timeout', 'djang
 				scope.searchQuery = djangoShop.paramsFromSearchQuery()['q'];
 			} else if (params.q) {
 				// we are performing an autocomplete search
+				$timeout(function() {
+					// delay until next digest cycle
+					scope.$emit('shopCatalogSearch', {params: params});
+				});
 				scope.searchQuery = params.q;
 			}
 

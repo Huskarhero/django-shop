@@ -11,19 +11,14 @@ from shop.admin.customer import CustomerProxy, CustomerInlineAdminBase, Customer
 class CustomerInlineAdmin(CustomerInlineAdminBase):
     fieldsets = (
         (None, {'fields': ('get_number', 'salutation')}),
-        (_("Addresses"), {'fields': ('get_shipping_addresses', 'get_billing_addresses')})
+        (_("Shipping Addresses"), {'fields': ('get_shipping_addresses',)})
     )
-    readonly_fields = ('get_number', 'get_shipping_addresses', 'get_billing_addresses')
+    readonly_fields = ('get_number', 'get_shipping_addresses',)
 
     def get_shipping_addresses(self, customer):
         addresses = [(a.as_text(),) for a in customer.shippingaddress_set.all()]
         return format_html_join('', '<address>{0}</address>', addresses)
-    get_shipping_addresses.short_description = _("Shipping")
-
-    def get_billing_addresses(self, customer):
-        addresses = [(a.as_text(),) for a in customer.billingaddress_set.all()]
-        return format_html_join('', '<address>{0}</address>', addresses)
-    get_billing_addresses.short_description = _("Billing")
+    get_shipping_addresses.short_description = ''
 
 
 @admin.register(CustomerProxy)

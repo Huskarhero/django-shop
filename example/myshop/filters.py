@@ -14,7 +14,7 @@ class FilterForm(NgModelFormMixin, Bootstrap3Form):
     scope_prefix = 'filters'
 
 
-class ManufacturerFilterSet(django_filters.FilterSet):
+class ManufacturerFilter(django_filters.FilterSet):
     manufacturer = django_filters.ModelChoiceFilter(
         queryset=Manufacturer.objects.all(),
         widget=Select(attrs={'ng-change': 'filterChanged()'}),
@@ -28,9 +28,7 @@ class ManufacturerFilterSet(django_filters.FilterSet):
 
     @classmethod
     def get_render_context(cls, request, queryset):
-        # create filter set with bound form, to enable the selected option
-        filter_set = cls(data=request.GET)
-
+        filter_set = cls()
         # we only want to show manufacturers for products available in the current list view
         filter_field = filter_set.filters['manufacturer'].field
         filter_field.queryset = filter_field.queryset.filter(

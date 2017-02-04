@@ -6,7 +6,7 @@ from django.db.models import Max
 from django.template.context import Context
 from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
-from adminsortable2.admin import SortableAdminMixin, PolymorphicSortableAdminMixin
+from adminsortable2.admin import SortableAdminMixin
 from cms.admin.placeholderadmin import PlaceholderAdminMixin, FrontendEditableAdminMixin
 from parler.admin import TranslatableAdmin
 from polymorphic.admin import (PolymorphicParentModelAdmin, PolymorphicChildModelAdmin,
@@ -59,7 +59,9 @@ class SmartCardAdmin(SortableAdminMixin, TranslatableAdmin, FrontendEditableAdmi
     prepopulated_fields = {'slug': ('product_name',)}
 
 
-admin.site.register(OperatingSystem, admin.ModelAdmin)
+@admin.register(OperatingSystem)
+class OperatingSystemAdmin(admin.ModelAdmin):
+    pass
 
 
 class SmartPhoneInline(admin.TabularInline):
@@ -101,7 +103,7 @@ class SmartPhoneAdmin(SortableAdminMixin, TranslatableAdmin, FrontendEditableAdm
 
 
 @admin.register(Product)
-class ProductAdmin(PolymorphicSortableAdminMixin, PolymorphicParentModelAdmin):
+class ProductAdmin(SortableAdminMixin, PolymorphicParentModelAdmin):
     base_model = Product
     child_models = ((SmartPhoneModel, SmartPhoneAdmin), (SmartCard, SmartCardAdmin), (Commodity, CommodityAdmin),)
     list_display = ('product_name', 'get_price', 'product_type', 'active',)
