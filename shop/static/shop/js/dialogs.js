@@ -154,9 +154,9 @@ djangoShopModule.directive('shopDialogProceed', ['$window', '$http', '$q', 'djan
 			// disables the button and replaces existing Glyphicons against a spinning wheel.
 			function disableButton() {
 				element.attr('disabled', 'disabled');
-				angular.forEach(element.find('i'), function(span) {
+				angular.forEach(element.find('span'), function(span) {
 					span = angular.element(span);
-					if (span.hasClass('cascade-icon-left') || span.hasClass('cascade-icon-right')) {
+					if (span.hasClass('glyphicon')) {
 						span.attr('deactivated-class', span.attr('class'));
 						span.attr('class', 'glyphicon glyphicon-refresh glyphicon-refresh-animate');
 					}

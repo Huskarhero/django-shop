@@ -2,7 +2,9 @@
 django.jQuery(function($) {
 	'use strict';
 
-	django.cascade.ShopLinkPlugin = ring.create(eval(django.cascade.ring_plugin_bases.ShopLinkPlugin), {
+	var ShopLinkPlugin, base_plugins = eval(django.cascade.base_plugins);
+
+	ShopLinkPlugin = ring.create(base_plugins, {
 		constructor: function() {
 			this.$super();
 
@@ -55,4 +57,5 @@ django.jQuery(function($) {
 			}
 		}
 	});
+	new ShopLinkPlugin();
 });
