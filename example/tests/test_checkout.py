@@ -10,7 +10,7 @@ from django.http import QueryDict
 from cms.api import add_plugin, create_page
 from bs4 import BeautifulSoup
 from shop.cascade.checkout import (
-    GuestFormPlugin, CustomerFormPlugin, CheckoutAddressPlugin,
+    GuestFormPlugin, CustomerFormPlugin, ShippingAddressFormPlugin, BillingAddressFormPlugin,
     PaymentMethodFormPlugin, ShippingMethodFormPlugin, RequiredFormFieldsPlugin,
     ExtraAnnotationFormPlugin, AcceptConditionPlugin)
 from shop.models.cart import CartModel
@@ -83,16 +83,15 @@ class CheckoutTest(ShopTestCase):
         placeholder = self.checkout_page.placeholders.get(slot='Main Content')
 
         # add shipping address to checkout page
-        address_form_element = add_plugin(placeholder, CheckoutAddressPlugin, 'en',
+        address_form_element = add_plugin(placeholder, ShippingAddressFormPlugin, 'en',
                                           target=self.column_element)
-        address_form_element.glossary = {'address_form': 'shipping', 'render_type': 'form'}
+        address_form_element.glossary = {'render_type': 'form'}
         address_form_element.save()
 
         # add billing address to checkout page
-        address_form_element = add_plugin(placeholder, CheckoutAddressPlugin, 'en',
+        address_form_element = add_plugin(placeholder, BillingAddressFormPlugin, 'en',
                                           target=self.column_element)
-        address_form_element.glossary = {'address_form': 'billing', 'render_type': 'form',
-                                         'multi_addr': 'on', 'allow_use_primary': 'on'}
+        address_form_element.glossary = {'render_type': 'form', 'multi_addr': True}
         address_form_element.save()
 
         self.checkout_page.publish('en')
