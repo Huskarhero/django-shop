@@ -10,7 +10,7 @@ from django.http import QueryDict
 from cms.api import add_plugin, create_page
 from bs4 import BeautifulSoup
 from shop.cascade.checkout import (
-    GuestFormPlugin, CustomerFormPlugin, CheckoutAddressPlugin,
+    GuestFormPlugin, CustomerFormPlugin, ShippingAddressFormPlugin, BillingAddressFormPlugin,
     PaymentMethodFormPlugin, ShippingMethodFormPlugin, RequiredFormFieldsPlugin,
     ExtraAnnotationFormPlugin, AcceptConditionPlugin)
 from shop.models.cart import CartModel
@@ -83,16 +83,15 @@ class CheckoutTest(ShopTestCase):
         placeholder = self.checkout_page.placeholders.get(slot='Main Content')
 
         # add shipping address to checkout page
-        address_form_element = add_plugin(placeholder, CheckoutAddressPlugin, 'en',
+        address_form_element = add_plugin(placeholder, ShippingAddressFormPlugin, 'en',
                                           target=self.column_element)
-        address_form_element.glossary = {'address_form': 'shipping', 'render_type': 'form'}
+        address_form_element.glossary = {'render_type': 'form'}
         address_form_element.save()
 
         # add billing address to checkout page
-        address_form_element = add_plugin(placeholder, CheckoutAddressPlugin, 'en',
+        address_form_element = add_plugin(placeholder, BillingAddressFormPlugin, 'en',
                                           target=self.column_element)
-        address_form_element.glossary = {'address_form': 'billing', 'render_type': 'form',
-                                         'multi_addr': 'on', 'allow_use_primary': 'on'}
+        address_form_element.glossary = {'render_type': 'form', 'multi_addr': True}
         address_form_element.save()
 
         self.checkout_page.publish('en')
@@ -117,13 +116,12 @@ class CheckoutTest(ShopTestCase):
 
         data = {
             'shipping_address': {
-                'active_priority': 'add',
-                'name': "Bart Simpson", 'address1': "Park Ave.", 'address2': "",
-                'zip_code': "SF123", 'city': "Springfield", 'country': "US",
+                'name': "Bart Simpson", 'address1': "Park Ave.", 'address2': "", 'zip_code': "SF123",
+                'city': "Springfield", 'country': "US",
                 'plugin_id': shipping_plugin_id_input['value'],
                 'plugin_order': shipping_plugin_order_input['value']},
             'billing_address': {
-                'use_primary_address': True,
+                'use_shipping_address': True,
                 'plugin_id': billing_plugin_id_input['value'],
                 'plugin_order': billing_plugin_order_input['value']}
         }
@@ -131,7 +129,7 @@ class CheckoutTest(ShopTestCase):
         response = self.client.post(url, data=json.dumps(data), content_type='application/json')
         payload = json.loads(response.content.decode('utf-8'))
         self.assertIn('shipping_address_form', payload['errors'])
-        self.assertDictEqual(payload['errors']['shipping_address_form'], {})
+        self.assertDictEqual({}, payload['errors']['shipping_address_form'])
 
         # check if Bart changed his address and zip code
         bart = get_user_model().objects.get(username='bart')

@@ -66,14 +66,13 @@ djangoShopModule.directive('shopDialogForm', ['$q', '$timeout', function($q, $ti
 		restrict: 'A',
 		controller: 'DialogController',
 		link: function(scope, element, attrs, DialogController) {
-			var ready = false;  // until form has been filled to prevent triggering a change event
-
+			var ready = false;
 			if (attrs.shopDialogForm) {
 				// initialize with form data
 				scope.$eval(attrs.shopDialogForm);
 			}
 			$timeout(function() {
-				// form ran its first scope.$digest() cycle and can now accept change events
+				// form ran its first scope.$digest() cycle
 				ready = true;
 			});
 
@@ -93,7 +92,7 @@ djangoShopModule.directive('shopDialogForm', ['$q', '$timeout', function($q, $ti
 
 				function pristineEntity(response) {
 					angular.extend(scope.data, response.data);
-					form_controller.$valid = scope.stepIsValid = response.data.$valid;
+					scope.stepIsValid = response.data.$valid;
 					form_controller.$setPristine();
 				}
 			};
@@ -211,8 +210,8 @@ djangoShopModule.directive('shopDialogProceed', ['$window', '$http', '$q', 'djan
 
 
 // Directive <TAG shop-form-validate="model-to-watch">
-// It is used to override the validation of form fragments, which can be hidden.
-// If `model-to-watch` is false, then input elements inside this DOM tree are not validated.
+// It is used to override the validation of hidden form fragments.
+// If model-to-watch is false, then input elements inside this DOM tree are not validated.
 // This is useful, if a form fragment shall be validated only under certain conditions.
 djangoShopModule.directive('shopFormValidate', function() {
 	return {
