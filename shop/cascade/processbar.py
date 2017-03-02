@@ -107,8 +107,9 @@ class ProcessNextStepPlugin(BootstrapButtonMixin, ShopPluginBase):
     name = _("Next Step Button")
     parent_classes = ('ProcessStepPlugin',)
     form = ProcessNextStepForm
+    model_mixins = (LinkElementMixin,)
     fields = ('link_content', 'glossary')
-    ring_plugin = 'ProcessNextStepPlugin'
+    ring_plugin = 'ProceedButtonPlugin'
     glossary_field_order = ('button_type', 'button_size', 'button_options', 'quick_float',
                             'icon_align', 'icon_font', 'symbol')
 
@@ -116,7 +117,6 @@ class ProcessNextStepPlugin(BootstrapButtonMixin, ShopPluginBase):
         css = {'all': ('cascade/css/admin/bootstrap.min.css',
                        'cascade/css/admin/bootstrap-theme.min.css',
                        'cascade/css/admin/iconplugin.css',)}
-        js = ['shop/js/admin/nextstepplugin.js']
 
     @classmethod
     def get_identifier(cls, obj):
