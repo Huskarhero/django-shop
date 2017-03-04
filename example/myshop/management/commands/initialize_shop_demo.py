@@ -55,4 +55,3 @@ class Command(BaseCommand):
         fixture = '{workdir}/{tutorial}/fixtures/myshop.json'
         call_command('loaddata', fixture.format(workdir=settings.WORK_DIR,
                                                 tutorial=settings.SHOP_TUTORIAL))
-        call_command('fix_filer_bug_965')

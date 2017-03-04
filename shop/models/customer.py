@@ -182,7 +182,7 @@ class CustomerManager(models.Manager):
         if request.user.is_authenticated():
             customer, created = self.get_or_create(user=user)
             if created:  # `user` has been created by another app than shop
-                customer.recognize_as_registered(request)
+                customer.recognize_as_registered()
         else:
             customer = VisitingCustomer()
         return customer
@@ -296,15 +296,14 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         return self.recognized is CustomerState.GUEST
 
-    def recognize_as_guest(self, request=None, commit=True):
+    def recognize_as_guest(self):
         """
         Recognize the current customer as guest customer.
         """
         if self.recognized != CustomerState.GUEST:
             self.recognized = CustomerState.GUEST
-            if commit:
-                self.save(update_fields=['recognized'])
-            customer_recognized.send(sender=self.__class__, customer=self, request=request)
+            self.save(update_fields=['recognized'])
+            customer_recognized.send(sender=self.__class__, customer=self)
 
     def is_registered(self):
         """
@@ -312,15 +311,14 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         return self.recognized is CustomerState.REGISTERED
 
-    def recognize_as_registered(self, request=None, commit=True):
+    def recognize_as_registered(self):
         """
         Recognize the current customer as registered customer.
         """
         if self.recognized != CustomerState.REGISTERED:
             self.recognized = CustomerState.REGISTERED
-            if commit:
-                self.save(update_fields=['recognized'])
-            customer_recognized.send(sender=self.__class__, customer=self, request=request)
+            self.save(update_fields=['recognized'])
+            customer_recognized.send(sender=self.__class__, customer=self)
 
     def is_visitor(self):
         """
