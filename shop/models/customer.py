@@ -18,10 +18,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import ugettext_lazy as _, ugettext_noop
 from django.utils.six import with_metaclass
-
-from shop import deferred
 from shop.models.fields import JSONField
-from shop.signals import customer_recognized
+from shop import deferred
 from .related import ChoiceEnum
 
 SessionStore = import_module(settings.SESSION_ENGINE).SessionStore()
@@ -182,7 +180,7 @@ class CustomerManager(models.Manager):
         if request.user.is_authenticated():
             customer, created = self.get_or_create(user=user)
             if created:  # `user` has been created by another app than shop
-                customer.recognize_as_registered(request)
+                customer.recognize_as_registered()
         else:
             customer = VisitingCustomer()
         return customer
@@ -296,15 +294,12 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         return self.recognized is CustomerState.GUEST
 
-    def recognize_as_guest(self, request=None, commit=True):
+    def recognize_as_guest(self):
         """
         Recognize the current customer as guest customer.
         """
-        if self.recognized != CustomerState.GUEST:
-            self.recognized = CustomerState.GUEST
-            if commit:
-                self.save(update_fields=['recognized'])
-            customer_recognized.send(sender=self.__class__, customer=self, request=request)
+        self.recognized = CustomerState.GUEST
+        self.save(update_fields=['recognized'])
 
     def is_registered(self):
         """
@@ -312,15 +307,12 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         return self.recognized is CustomerState.REGISTERED
 
-    def recognize_as_registered(self, request=None, commit=True):
+    def recognize_as_registered(self):
         """
         Recognize the current customer as registered customer.
         """
-        if self.recognized != CustomerState.REGISTERED:
-            self.recognized = CustomerState.REGISTERED
-            if commit:
-                self.save(update_fields=['recognized'])
-            customer_recognized.send(sender=self.__class__, customer=self, request=request)
+        self.recognized = CustomerState.REGISTERED
+        self.save(update_fields=['recognized'])
 
     def is_visitor(self):
         """

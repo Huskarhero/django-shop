@@ -48,8 +48,6 @@ class Product(CMSPageReferenceMixin, TranslatableModelMixin, BaseProduct):
 
     class Meta:
         ordering = ('order',)
-        verbose_name = _("Product")
-        verbose_name_plural = _("Products")
 
     objects = ProductManager()
 

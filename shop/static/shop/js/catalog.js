@@ -3,8 +3,8 @@
 
 var djangoShopModule = angular.module('django.shop.catalog', ['ui.bootstrap', 'django.shop.utils']);
 
-djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$uibModal',
-                                      function($scope, $http, $window, $uibModal) {
+djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$modal',
+                                      function($scope, $http, $window, $modal) {
 	var prevContext = null, updateUrl;
 
 	this.setUpdateUrl = function(update_url) {
@@ -32,7 +32,7 @@ djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$ui
 	};
 
 	$scope.addToCart = function(cart_url, extra_context) {
-		$uibModal.open({
+		$modal.open({
 			templateUrl: 'AddToCartModalDialog.html',
 			controller: 'ModalInstanceCtrl',
 			resolve: {
@@ -51,25 +51,25 @@ djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$ui
 }]);
 
 djangoShopModule.controller('ModalInstanceCtrl',
-    ['$scope', '$http', '$uibModalInstance', 'modal_context',
-    function($scope, $http, $uibModalInstance, modal_context) {
+    ['$scope', '$http', '$modalInstance', 'modal_context',
+    function($scope, $http, $modalInstance, modal_context) {
 	var isLoading = false;
 	$scope.proceed = function(next_url) {
 		if (isLoading)
 			return;
 		isLoading = true;
 		$http.post(modal_context.cart_url, $scope.context).success(function() {
-			$uibModalInstance.close(next_url);
+			$modalInstance.close(next_url);
 		}).error(function() {
 			// TODO: tell us something went wrong
-			$uibModalInstance.dismiss('cancel');
+			$modalInstance.dismiss('cancel');
 		}).finally(function() {
 			isLoading = false;
 		});
 	};
 
 	$scope.cancel = function () {
-		$uibModalInstance.dismiss('cancel');
+		$modalInstance.dismiss('cancel');
 	};
 
 	$scope.context = angular.copy(modal_context.context);

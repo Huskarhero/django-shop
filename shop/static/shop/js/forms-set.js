@@ -2,7 +2,7 @@
 'use strict';
 
 // module: django.shop, TODO: move this into a summary JS file
-var djangoShopModule = angular.module('django.shop.forms-set', ['djng.urls', 'djng.forms']);
+var djangoShopModule = angular.module('django.shop.forms-set', ['djng.urls', 'djng.forms', 'django.shop.utils']);
 
 
 // Directive <ANY shop-forms-set ...>

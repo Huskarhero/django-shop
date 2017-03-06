@@ -19,44 +19,22 @@ from shop.models.product import ProductModel
 from shop.rest.filters import CMSPagesFilterBackend
 from shop.rest.money import JSONRenderer
 from shop.rest.renderers import CMSPageRenderer
-from shop.serializers.bases import ProductSerializer
 from shop.serializers.defaults import AddToCartSerializer
 
 
 class ProductListView(generics.ListAPIView):
     """
     This view is used to list all products which shall be visible below a certain URL.
-
-    Usage: Add it to the urlpatterns responsible for rendering the catalog's views. The
-    file containing this patterns can be referenced by the CMS apphook ``ProductsListApp``
-    and used by the CMS pages responsible for rendering the catalog's list.
-    ```
-    urlpatterns = [
-        url(r'^$', ProductListView.as_view()),
-        url(r'^(?P<slug>[\w-]+)/?$', ProductRetrieveView.as_view()),  # see below
-        ...
-    ]
-    ```
-
-    You may add these attributes to the ``as_view()`` method:
-
-    :param renderer_classes: A list or tuple of REST renderer classes.
-
-    :param product_model: The product model onto which the filter set is applied.
-
-    :param serializer_class: The serializer class used to process the queryset returned
-        by the catalog's product list view.
-
-    :param limit_choices_to: Limit the queryset of product models to these choices.
-
-    :param filter_class: A filter set which must be inherit from :class:`django_filters.FilterSet`.
+    It normally is added to the urlpatterns as:
+    ``url(r'^$', ProductListView.as_view(serializer_class=ProductSummarySerializer))``
+    where the ``ProductSummarySerializer`` is a customized REST serializer that that specific
+    product model.
     """
-
     renderer_classes = (CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer)
     product_model = ProductModel
-    serializer_class = app_settings.PRODUCT_SUMMARY_SERIALIZER
+    serializer_class = app_settings.PRODUCT_SUMMARY_SERIALIZER  # may be overridden by ProductListView.as_view
+    filter_class = None  # may be overridden by ProductListView.as_view
     limit_choices_to = models.Q()
-    filter_class = None
 
     def get(self, request, *args, **kwargs):
         # TODO: we must find a better way to invalidate the cache.
@@ -81,13 +59,11 @@ class ProductListView(generics.ListAPIView):
 
 class SyncCatalogView(views.APIView):
     """
-    This view is used to synchronize the number items in the cart from using the catalog's list
-    view. It is intended for sites, where we don't want having to access the product's detail
-    view for adding it to the cart.
-
+    View to be attached to an endpoint for synchronizing the catalog list view with the cart.
+    To be used for adding items to the cart from within the list view, rather than the product's
+    detail views.
     Use Angular directive <ANY shop-sync-catalog-item="..."> on each catalog item to set up
     the communication with this view.
-
     To the ``urlpatterns`` responsible for the list view, add
     ```
     urlpatterns = [
@@ -98,15 +74,15 @@ class SyncCatalogView(views.APIView):
         ...
     ]
     ```
-    to the URLs as specified by the merchant's implementation of its ``ProductsListApp``.
+    to the URLs as specified by the merchant's implementation of it's ``ProductsListApp``.
 
     The class ``SyncCatalogSerializer`` must be provided by the merchant implementation.
     """
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     product_model = ProductModel
     product_field = 'product'
-    serializer_class = None  # must be overridden by SyncCatalogView.as_view()
-    filter_class = None  # may be overridden by SyncCatalogView.as_view()
+    serializer_class = None  # must be overridden by SyncCatalogView.as_view
+    filter_class = None  # may be overridden by SyncCatalogView.as_view
     limit_choices_to = models.Q()
 
     def get_context(self, request, **kwargs):
@@ -164,36 +140,12 @@ class AddToCartView(views.APIView):
 
 class ProductRetrieveView(generics.RetrieveAPIView):
     """
-    This view is used to retrieve and render a certain product.
-
-    Usage: Add it to the urlpatterns responsible for rendering the catalog's views. The
-    file containing this patterns can be referenced by the CMS apphook ``ProductsListApp``
-    and used by the CMS pages responsible for rendering the catalog's list.
-    ```
-    urlpatterns = [
-        url(r'^$', ProductListView.as_view()),  # see above
-        url(r'^(?P<slug>[\w-]+)/?$', ProductRetrieveView.as_view()),
-        ...
-    ]
-    ```
-    You may add these attributes to the ``as_view()`` method:
-
-    :param renderer_classes: A list or tuple of REST renderer classes.
-
-    :param lookup_field: The model field used to retrieve the product instance.
-
-    :param lookup_url_kwarg: The name of the parsed URL fragment.
-
-    :param serializer_class: The serializer class used to process the queryset returned
-        by the catalog's product detail view.
-
-    :param limit_choices_to: Limit the queryset of product models to these choices.
+    View responsible for rendering the products details.
     """
-
     renderer_classes = (CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer)
     lookup_field = lookup_url_kwarg = 'slug'
     product_model = ProductModel
-    serializer_class = ProductSerializer
+    serializer_class = None  # must be overridden by ProductListView.as_view
     limit_choices_to = models.Q()
 
     def get_template_names(self):
