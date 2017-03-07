@@ -71,20 +71,26 @@ class AppSettings(object):
         This serialized data then is used for Catalog List Views, Cart List Views and Order List
         Views.
 
-        There is no default value.
+        Defaults to a minimalistic Product serializer.
         """
 
         from django.core.exceptions import ImproperlyConfigured
         from django.utils.module_loading import import_string
-        from shop.serializers.bases import BaseProductSummarySerializer
+        from shop.serializers.bases import ProductSerializer
 
-        s = self._setting('SHOP_PRODUCT_SUMMARY_SERIALIZER')
-        if not s:
-            raise ImproperlyConfigured("SHOP_PRODUCT_SUMMARY_SERIALIZER setting must be set")
-        ProductSummarySerializer = import_string(s)
-        if not issubclass(ProductSummarySerializer, BaseProductSummarySerializer):
-            raise ImproperlyConfigured(
-                "Serializer class must inherit from 'BaseProductSummarySerializer'.")
+        pss = self._setting('SHOP_PRODUCT_SUMMARY_SERIALIZER')
+        if pss:
+            ProductSummarySerializer = import_string(pss)
+            if not issubclass(ProductSummarySerializer, ProductSerializer):
+                raise ImproperlyConfigured(
+                    "Serializer class must inherit from 'ProductSerializer'.")
+        else:
+            class ProductSummarySerializer(ProductSerializer):
+                """
+                Fallback serializer for the summary of our Product model.
+                """
+                class Meta(ProductSerializer.Meta):
+                    fields = ['id', 'product_name', 'product_url', 'product_model', 'price']
         return ProductSummarySerializer
 
     @property
@@ -132,6 +138,11 @@ class AppSettings(object):
 
     @property
     def VALUE_ADDED_TAX(self):
+        """
+        Use this convenience settings if you can apply the same tax rate for all products
+        and you use one of the default tax modifiers ``CartIncludeTaxModifier`` or
+        ``CartExcludedTaxModifier``. Don't use this, if your products require individual tax rates.
+        """
         from decimal import Decimal
         return self._setting('SHOP_VALUE_ADDED_TAX', Decimal('20'))
 
@@ -177,6 +188,16 @@ class AppSettings(object):
         result = self._setting('SHOP_CACHE_DURATIONS') or {}
         result.setdefault('product_html_snippet', 86400)
         return result
+
+    @property
+    def SHOP_DIALOG_FORMS(self):
+        """
+        Specify a list of dialog forms available in our ``shop.views.checkout.CheckoutViewSet``.
+        This allows us to use its endpoint ``resolve('shop:checkout-upload')`` in a generic way.
+
+        If Cascade plugins are used for the forms in the checkout view, this list can be empty.
+        """
+        return self._setting('SHOP_DIALOG_FORMS', [])
 
 
 # Change the export value of the module, to allow importing with `from shop import app_settings`
