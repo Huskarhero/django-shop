@@ -57,6 +57,14 @@ Can Organisations be Customers?
 Should Customers be Contacts with a special role?
 
 
+Cart
+----
+
+Should be rather simple: A list of products.
+
+See also `cart`
+
+
 Orders
 ------
 
@@ -78,8 +86,44 @@ An Order also contains prices. The Cart itself does not need to
 contain price information. (?)
 
 
+Prices
+------
+
+Prices may get rather complicated.
+
+See also `prices` for some generic notes.
+
+
+
+
+
+
 Should have no impact to core
 =============================
+
+
+
+CMS-Integration
+---------------
+
+Every shop also contains some sort of pages which should be managed by
+a CMS.
+
+Important: Integration of navigation.
+
+This should be implemented in its own app.
+
+
+Image handling
+--------------
+
+Some models (e.g. Product, Category) may will have images attached to
+them.
+
+The handling of images (most often scaling) can be done by template
+tags like sorl does. This should have no impact on core models and
+left to the shop implementor.
+
 
 Connectors to other systems
 ---------------------------
@@ -129,3 +173,5 @@ Comments
 --------
 
 They are just available as a very generic app, nothing to be done here. (?)
+
+

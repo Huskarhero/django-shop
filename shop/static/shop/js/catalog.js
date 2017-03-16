@@ -3,8 +3,8 @@
 
 var djangoShopModule = angular.module('django.shop.catalog', ['ui.bootstrap', 'django.shop.utils']);
 
-djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$uibModal',
-                                      function($scope, $http, $window, $uibModal) {
+djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$modal',
+                                      function($scope, $http, $window, $modal) {
 	var prevContext = null, updateUrl;
 
 	this.setUpdateUrl = function(update_url) {
@@ -32,7 +32,7 @@ djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$ui
 	};
 
 	$scope.addToCart = function(cart_url, extra_context) {
-		$uibModal.open({
+		$modal.open({
 			templateUrl: 'AddToCartModalDialog.html',
 			controller: 'ModalInstanceCtrl',
 			resolve: {
@@ -51,25 +51,25 @@ djangoShopModule.controller('AddToCartCtrl', ['$scope', '$http', '$window', '$ui
 }]);
 
 djangoShopModule.controller('ModalInstanceCtrl',
-    ['$scope', '$http', '$uibModalInstance', 'modal_context',
-    function($scope, $http, $uibModalInstance, modal_context) {
+    ['$scope', '$http', '$modalInstance', 'modal_context',
+    function($scope, $http, $modalInstance, modal_context) {
 	var isLoading = false;
 	$scope.proceed = function(next_url) {
 		if (isLoading)
 			return;
 		isLoading = true;
 		$http.post(modal_context.cart_url, $scope.context).success(function() {
-			$uibModalInstance.close(next_url);
+			$modalInstance.close(next_url);
 		}).error(function() {
 			// TODO: tell us something went wrong
-			$uibModalInstance.dismiss('cancel');
+			$modalInstance.dismiss('cancel');
 		}).finally(function() {
 			isLoading = false;
 		});
 	};
 
 	$scope.cancel = function () {
-		$uibModalInstance.dismiss('cancel');
+		$modalInstance.dismiss('cancel');
 	};
 
 	$scope.context = angular.copy(modal_context.context);
@@ -94,27 +94,22 @@ djangoShopModule.directive('shopAddToCart', function() {
 
 djangoShopModule.controller('CatalogListController', [
     '$scope', '$http', 'djangoShop', function($scope, $http, djangoShop) {
-	var self = this;
+	var self = this, fetchURL = djangoShop.getLocationPath();
 
 	this.loadProducts = function(config) {
-		if ($scope.isLoading || $scope.fetchURL === null)
+		if ($scope.isLoading || fetchURL === null)
 			return;
 		$scope.isLoading = true;
-		$http.get($scope.fetchURL, config).success(function(response) {
-			$scope.fetchURL = response.next;
+		$http.get(fetchURL, config).success(function(response) {
+			fetchURL = response.next;
 			$scope.catalog.count = response.count;
 			$scope.catalog.products = $scope.catalog.products.concat(response.results);
 			$scope.isLoading = false;
 		}).error(function() {
-			$scope.fetchURL = null;
+			fetchURL = null;
 			$scope.isLoading = false;
 		});
-	};
-
-	this.resetProductsList = function() {
-		$scope.fetchURL = djangoShop.getLocationPath();
-		$scope.catalog.products = [];
-	};
+	}
 
 	$scope.loadMore = function() {
 		var config = {params: djangoShop.paramsFromSearchQuery.apply(this, arguments)};
@@ -122,47 +117,43 @@ djangoShopModule.controller('CatalogListController', [
 		self.loadProducts(config);
 	};
 
-	$scope.catalog = {};
+	// listen on events of type `shopCatalogSearch`
+	$scope.$root.$on('shopCatalogSearch', function(event, config) {
+		try {
+			config = {params: {autocomplete: config.params.q}};
+		} catch (err) {
+			config = null;
+		}
+		fetchURL = djangoShop.getLocationPath() + 'search-catalog';
+		$scope.catalog.products = [];  // reset list of products
+		self.loadProducts(config);
+	});
+
+	// listen on events of type `shopCatalogFilter`
+	$scope.$root.$on('shopCatalogFilter', function(event, params) {
+		var config;
+		try {
+			config = {params: params};
+		} catch (err) {
+			config = null;
+		}
+		fetchURL = djangoShop.getLocationPath();
+		$scope.catalog.products = [];  // reset list of products
+		self.loadProducts(config);
+	});
+
+	$scope.catalog = {products: []};
 	$scope.isLoading = false;
 }]);
 
 
-// Use directive <ANY shop-catalog-list infinite-scroll="true|false"> to wrap the content
-// of the catalog's list views. If infinite scroll is true, use the scope function ``loadMore()``
-// which shall be invoked by another directive, for instance <ANY in-view> when reaching the
-// end of the listed items.
-djangoShopModule.directive('shopCatalogList', ['$window', '$timeout', function($window, $timeout) {
+// Directive <ANY shop-catalog-list>
+djangoShopModule.directive('shopCatalogList', function() {
 	return {
 		restrict: 'EAC',
-		controller: 'CatalogListController',
-		link: function(scope, element, attrs, controller) {
-			var infiniteScroll = scope.$eval(attrs.infiniteScroll);
-
-			scope.$root.$on('shopCatalogSearch', function(event, params) {
-				if (infiniteScroll) {
-					controller.resetProductsList();
-					controller.loadProducts({params: params});
-				} else {
-					$window.location.reload();
-				}
-			});
-
-			scope.$root.$on('shopCatalogFilter', function(event, params) {
-				if (infiniteScroll) {
-					controller.resetProductsList();
-					controller.loadProducts({params: params});
-				} else {
-					// delay until next digest cycle
-					$timeout(function() {
-						$window.location.reload();
-					});
-				}
-			});
-
-			controller.resetProductsList();
-		}
+		controller: 'CatalogListController'
 	};
-}]);
+});
 
 // Directive <ANY shop-sync-catalog="REST-API-endpoint">
 // handle catalog list view combined with adding products to cart
@@ -172,7 +163,7 @@ djangoShopModule.directive('shopSyncCatalog', function() {
 		controller: function() {},
 		require: 'shopSyncCatalog',
 		link: function(scope, element, attrs, controller) {
-			if (angular.isUndefined(attrs['shopSyncCatalog']))
+			if (!attrs.shopSyncCatalog)
 				throw new Error("Directive shop-sync-catalog must point onto an URL");
 			controller.syncCatalogUrl = attrs.shopSyncCatalog;
 		}
@@ -180,11 +171,9 @@ djangoShopModule.directive('shopSyncCatalog', function() {
 });
 
 
-// Directive <ANY shop-sync-catalog-item="member-of-current-$scope">
-// This directive must be a child of <ANY shop-sync-catalog ...>.
-// It can be used to synchronize the local scope of a catalog item, for instance to set the
-// quantity of an item in the cart. This directive normally is used to sync cart items from the
-// catalog list view.
+// Directive <ANY shop-sync-catalog="{id: {{ product.id }}, quantity: {{ product.quantity }} }">
+// This directive must be a child of <ANY shop-sync-catalog...>. It synchronizes the local scope
+// of a catalog item.
 djangoShopModule.directive('shopSyncCatalogItem', function() {
 	return {
 		restrict: 'A',
@@ -198,21 +187,19 @@ djangoShopModule.directive('shopSyncCatalogItem', function() {
 					return;
 				isLoading = true;
 				$http.post(self.parent.syncCatalogUrl, $scope.catalog_item).success(function(response) {
-					var cart = response.cart;
-					delete response.cart;
 					prev_item = response;
 					angular.extend($scope.catalog_item, response);
-					$scope.$emit('shopUpdateCarticonCaption', cart);
+					$scope.$emit('shopUpdateCarticonCaption');
 					isLoading = false;
 				}).error(function(msg) {
 					console.error('Unable to sync quantity: ' + msg);
 					isLoading = false;
 				});
-			};
+			}
 
 		}],
 		link: function(scope, element, attrs, controllers) {
-			if (angular.isUndefined(attrs['shopSyncCatalogItem']))
+			if (!attrs.shopSyncCatalogItem)
 				throw new Error("Directive shop-sync-catalog-item must provide an initialization object");
 			controllers[1].parent = controllers[0];
 			scope.catalog_item = scope.$eval(attrs.shopSyncCatalogItem);

@@ -6,14 +6,17 @@ The difference here is that we modified the lookup_field for slug, since it is t
 from __future__ import unicode_literals
 
 from django.conf.urls import url
-
-from shop.views.catalog import ProductListView, ProductRetrieveView, AddToCartView
-
-from myshop.serializers import ProductSummarySerializer, ProductDetailSerializer
+from shop.views.catalog import AddToCartView, CMSPageProductListView, ProductRetrieveView
+from shop.search.views import SearchView
+from myshop.serializers import (ProductSummarySerializer, ProductDetailSerializer,
+                                CatalogSearchSerializer)
 
 urlpatterns = [
-    url(r'^$', ProductListView.as_view(
+    url(r'^$', CMSPageProductListView.as_view(
         serializer_class=ProductSummarySerializer,
+    )),
+    url(r'^search-catalog$', SearchView.as_view(
+        serializer_class=CatalogSearchSerializer,
     )),
     url(r'^(?P<slug>[\w-]+)/?$', ProductRetrieveView.as_view(
         serializer_class=ProductDetailSerializer,

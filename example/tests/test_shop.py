@@ -19,9 +19,9 @@ from shop.models.defaults.mapping import ProductPage
 from shop.models.customer import CustomerState
 from shop.models.defaults.customer import Customer
 
-from myshop.models import SmartCard
+from myshop.models.polymorphic.smartcard import SmartCard
 from myshop.models.manufacturer import Manufacturer
-from myshop.cms_apps import CatalogListApp
+from myshop.cms_apps import ProductsListApp
 
 
 class ShopTestCase(TestCase):
@@ -38,18 +38,10 @@ class ShopTestCase(TestCase):
     def create_pages(self):
         self.home_page = create_page("HOME", 'myshop/pages/default.html', 'en', published=True,
                                      in_navigation=True)
-        response = self.client.get(self.home_page.get_absolute_url())
-        self.assertEqual(response.status_code, 200)
-
         self.shop_page = create_page("Shop", 'INHERIT', 'en', parent=self.home_page, published=True,
-                                     in_navigation=True, apphook=CatalogListApp)
-        response = self.client.get(self.shop_page.get_absolute_url())
-        self.assertEqual(response.status_code, 200)
-
+                                     in_navigation=True, apphook=ProductsListApp)
         self.smartcards_page = create_page("Smart Cards", 'INHERIT', 'en', parent=self.shop_page,
-                                           published=True, in_navigation=True, apphook=CatalogListApp)
-        response = self.client.get(self.smartcards_page.get_absolute_url())
-        self.assertEqual(response.status_code, 200)
+                                           published=True, in_navigation=True, apphook=ProductsListApp)
 
     def create_products(self):
         manufacturer = Manufacturer.objects.create(name="SanDisk")

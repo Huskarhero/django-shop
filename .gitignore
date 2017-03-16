@@ -28,6 +28,7 @@ database.db
 .ropeproject
 OLD-out-of-date
 .tox
-node_modules/
 workdir/
 django-shop-workdir_*
+node_modules/
+bower_components/

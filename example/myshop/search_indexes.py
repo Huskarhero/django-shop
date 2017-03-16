@@ -6,14 +6,15 @@ from haystack import indexes
 from shop.search.indexes import ProductIndex as ProductIndexBase
 
 
-if settings.SHOP_TUTORIAL in ['i18n_commodity', 'commodity']:
+if settings.SHOP_TUTORIAL == 'commodity' or settings.SHOP_TUTORIAL == 'i18n_commodity':
     from shop.models.defaults.commodity import Commodity
-
-elif settings.SHOP_TUTORIAL in ['i18n_smartcard', 'smartcard']:
-    from myshop.models import SmartCard
-
-elif settings.SHOP_TUTORIAL in ['i18n_polymorphic', 'polymorphic']:
-    from myshop.models import SmartCard, SmartPhoneModel, Commodity
+elif settings.SHOP_TUTORIAL == 'smartcard':
+    from myshop.models.smartcard import SmartCard
+elif settings.SHOP_TUTORIAL == 'i18n_smartcard':
+    from myshop.models.i18n_smartcard import SmartCard
+elif settings.SHOP_TUTORIAL == 'polymorphic':
+    from myshop.models.polymorphic.smartcard import SmartCard
+    from myshop.models.polymorphic.smartphone import SmartPhoneModel
 
 
 class ProductIndex(ProductIndexBase):
@@ -30,19 +31,25 @@ class ProductIndex(ProductIndexBase):
 
 myshop_search_index_classes = []
 
-if settings.SHOP_TUTORIAL in ['i18n_commodity', 'commodity', 'i18n_polymorphic', 'polymorphic']:
+if settings.SHOP_TUTORIAL in ('commodity', 'i18n_commodity'):
     class CommodityIndex(ProductIndex, indexes.Indexable):
         def get_model(self):
             return Commodity
+
+        def Xprepare_text(self, product):
+            output = super(CommodityIndex, self).prepare_text(product)
+            return output
     myshop_search_index_classes.append(CommodityIndex)
 
-if settings.SHOP_TUTORIAL in ['i18n_smartcard', 'smartcard', 'i18n_polymorphic', 'polymorphic']:
+
+if settings.SHOP_TUTORIAL in ('smartcard', 'i18n_smartcard', 'polymorphic',):
     class SmartCardIndex(ProductIndex, indexes.Indexable):
         def get_model(self):
             return SmartCard
     myshop_search_index_classes.append(SmartCardIndex)
 
-if settings.SHOP_TUTORIAL in ['i18n_polymorphic', 'polymorphic']:
+
+if settings.SHOP_TUTORIAL in ('polymorphic',):
     class SmartPhoneIndex(ProductIndex, indexes.Indexable):
         def get_model(self):
             return SmartPhoneModel

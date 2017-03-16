@@ -18,10 +18,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import ugettext_lazy as _, ugettext_noop
 from django.utils.six import with_metaclass
-
-from shop import deferred
 from shop.models.fields import JSONField
-from shop.signals import customer_recognized
+from shop import deferred
 from .related import ChoiceEnum
 
 SessionStore = import_module(settings.SESSION_ENGINE).SessionStore()
@@ -80,13 +78,13 @@ class CustomerQuerySet(models.QuerySet):
             if field_name == 'pk':
                 field_name = opts.pk.name
             try:
-                opts.get_field(field_name)
+                opts.get_field_by_name(field_name)
                 if isinstance(lookup, get_user_model()):
                     lookup.pk  # force lazy object to resolve
                 lookup_kwargs[key] = lookup
             except FieldDoesNotExist as fdne:
                 try:
-                    get_user_model()._meta.get_field(field_name)
+                    get_user_model()._meta.get_field_by_name(field_name)
                     lookup_kwargs['user__' + key] = lookup
                 except FieldDoesNotExist:
                     raise fdne
@@ -97,11 +95,6 @@ class CustomerQuerySet(models.QuerySet):
 
 
 class CustomerManager(models.Manager):
-    """
-    Manager for the Customer database model. This manager can also cope with customers, which have
-    an entity in the database but otherwise are considered as anonymous. The username of these
-    so called unrecognized customers is a compact version of the session key.
-    """
     BASE64_ALPHABET = string.digits + string.ascii_uppercase + string.ascii_lowercase + '.@'
     REVERSE_ALPHABET = dict((c, i) for i, c in enumerate(BASE64_ALPHABET))
     BASE36_ALPHABET = string.digits + string.ascii_lowercase
@@ -142,7 +135,7 @@ class CustomerManager(models.Manager):
     def get_queryset(self):
         """
         Whenever we fetch from the Customer table, inner join with the User table to reduce the
-        number of presumed future queries to the database.
+        number of queries to the database.
         """
         qs = self._queryset_class(self.model, using=self._db).select_related('user')
         return qs
@@ -155,7 +148,7 @@ class CustomerManager(models.Manager):
 
     def _get_visiting_user(self, session_key):
         """
-        Since the Customer has a 1:1 relation with the User object, look for an entity of a
+        Since the Customer has a 1:1 relation with the User object, look for an entity for a
         User object. As its ``username`` (which must be unique), use the given session key.
         """
         username = self.encode_session_key(session_key)
@@ -182,7 +175,7 @@ class CustomerManager(models.Manager):
         if request.user.is_authenticated():
             customer, created = self.get_or_create(user=user)
             if created:  # `user` has been created by another app than shop
-                customer.recognize_as_registered(request)
+                customer.recognize_as_registered()
         else:
             customer = VisitingCustomer()
         return customer
@@ -296,15 +289,12 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         return self.recognized is CustomerState.GUEST
 
-    def recognize_as_guest(self, request=None, commit=True):
+    def recognize_as_guest(self):
         """
         Recognize the current customer as guest customer.
         """
-        if self.recognized != CustomerState.GUEST:
-            self.recognized = CustomerState.GUEST
-            if commit:
-                self.save(update_fields=['recognized'])
-            customer_recognized.send(sender=self.__class__, customer=self, request=request)
+        self.recognized = CustomerState.GUEST
+        self.save(update_fields=['recognized'])
 
     def is_registered(self):
         """
@@ -312,15 +302,12 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         return self.recognized is CustomerState.REGISTERED
 
-    def recognize_as_registered(self, request=None, commit=True):
+    def recognize_as_registered(self):
         """
         Recognize the current customer as registered customer.
         """
-        if self.recognized != CustomerState.REGISTERED:
-            self.recognized = CustomerState.REGISTERED
-            if commit:
-                self.save(update_fields=['recognized'])
-            customer_recognized.send(sender=self.__class__, customer=self, request=request)
+        self.recognized = CustomerState.REGISTERED
+        self.save(update_fields=['recognized'])
 
     def is_visitor(self):
         """
