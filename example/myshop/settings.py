@@ -66,10 +66,10 @@ TIME_ZONE = 'Europe/Vienna'
 # allowing to login via email address
 AUTH_USER_MODEL = 'email_auth.User'
 
-AUTHENTICATION_BACKENDS = [
+AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
-]
+)
 
 INSTALLED_APPS = [
     'django.contrib.auth',
@@ -224,16 +224,17 @@ STATIC_ROOT = os.path.join(WORK_DIR, 'static')
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
-STATICFILES_FINDERS = [
+STATICFILES_FINDERS = (
     'myshop.finders.FileSystemFinder',  # or 'django.contrib.staticfiles.finders.FileSystemFinder',
     'myshop.finders.AppDirectoriesFinder',  # or 'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'sass_processor.finders.CssFinder',
     'compressor.finders.CompressorFinder',
-]
+)
 
-STATICFILES_DIRS = [
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
     ('node_modules', os.path.join(PROJECT_ROOT, 'node_modules')),
-]
+)
 
 
 TEMPLATES = [{
@@ -254,6 +255,7 @@ TEMPLATES = [{
             'sekizai.context_processors.sekizai',
             'cms.context_processors.cms_settings',
             'shop.context_processors.customer',
+            'shop.context_processors.version',
             'shop.context_processors.ng_model_options',
             'shop_stripe.context_processors.public_keys',
         )
@@ -314,9 +316,9 @@ EMAIL_BACKEND = 'post_office.EmailBackend'
 
 NODE_MODULES_URL = STATIC_URL + 'node_modules/'
 
-SASS_PROCESSOR_INCLUDE_DIRS = [
+SASS_PROCESSOR_INCLUDE_DIRS = (
     os.path.join(PROJECT_ROOT, 'node_modules'),
-]
+)
 
 COERCE_DECIMAL_TO_STRING = True
 
@@ -370,20 +372,20 @@ THUMBNAIL_OPTIMIZE_COMMAND = {
 
 THUMBNAIL_PRESERVE_EXTENSIONS = True
 
-THUMBNAIL_PROCESSORS = [
+THUMBNAIL_PROCESSORS = (
     'easy_thumbnails.processors.colorspace',
     'easy_thumbnails.processors.autocrop',
     'filer.thumbnail_processors.scale_and_crop_with_subject_location',
     'easy_thumbnails.processors.filters',
-]
+)
 
 
 ############################################
 # settings for django-cms and its plugins
 
-CMS_TEMPLATES = [
+CMS_TEMPLATES = (
     ('myshop/pages/default.html', _("Default Page")),
-]
+)
 
 CMS_CACHE_DURATIONS = {
     'content': 600,
@@ -393,7 +395,7 @@ CMS_CACHE_DURATIONS = {
 
 CMS_PERMISSION = False
 
-cascade_workarea_glossary = {
+CACSCADE_WORKAREA_GLOSSARY = {
     'breakpoints': ['xs', 'sm', 'md', 'lg'],
     'container_max_widths': {'xs': 750, 'sm': 750, 'md': 970, 'lg': 1170},
     'fluid': False,
@@ -409,15 +411,12 @@ CMS_PLACEHOLDER_CONF = {
     'Breadcrumb': {
         'plugins': ['BreadcrumbPlugin'],
         'parent_classes': {'BreadcrumbPlugin': None},
-        'glossary': cascade_workarea_glossary,
+        'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
     'Commodity Details': {
         'plugins': ['BootstrapContainerPlugin', 'BootstrapJumbotronPlugin'],
-        'parent_classes': {
-            'BootstrapContainerPlugin': None,
-            'BootstrapJumbotronPlugin': None,
-        },
-        'glossary': cascade_workarea_glossary,
+        'parent_classes': {'BootstrapContainerPlugin': None, 'BootstrapJumbotronPlugin': None},
+        'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
     'Main Content': {
         'plugins': ['BootstrapContainerPlugin', 'BootstrapJumbotronPlugin'],
@@ -426,33 +425,31 @@ CMS_PLACEHOLDER_CONF = {
             'BootstrapJumbotronPlugin': None,
             'TextLinkPlugin': ['TextPlugin', 'AcceptConditionPlugin'],
         },
-        'glossary': cascade_workarea_glossary,
+        'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
     'Static Footer': {
         'plugins': ['BootstrapContainerPlugin', ],
-        'parent_classes': {
-            'BootstrapContainerPlugin': None,
-        },
-        'glossary': cascade_workarea_glossary,
+        'parent_classes': {'BootstrapContainerPlugin': None},
+        'glossary': CACSCADE_WORKAREA_GLOSSARY,
     },
 }
 
-CMSPLUGIN_CASCADE_PLUGINS = [
+CMSPLUGIN_CASCADE_PLUGINS = (
     'cmsplugin_cascade.segmentation',
     'cmsplugin_cascade.generic',
     'cmsplugin_cascade.icon',
     'cmsplugin_cascade.link',
     'shop.cascade',
     'cmsplugin_cascade.bootstrap3',
-]
+)
 
 CMSPLUGIN_CASCADE = {
-    'link_plugin_classes': [
+    'link_plugin_classes': (
         'shop.cascade.plugin_base.CatalogLinkPluginBase',
         'cmsplugin_cascade.link.plugin_base.LinkElementMixin',
         'shop.cascade.plugin_base.CatalogLinkForm',
-    ],
-    'alien_plugins': ['TextPlugin', 'TextLinkPlugin', 'AcceptConditionPlugin'],
+    ),
+    'alien_plugins': ('TextPlugin', 'TextLinkPlugin', 'AcceptConditionPlugin',),
     'bootstrap3': {
         'template_basedir': 'angular-ui',
     },
@@ -463,14 +460,14 @@ CMSPLUGIN_CASCADE = {
         ],
     },
     'plugins_with_sharables': {
-        'BootstrapImagePlugin': ['image_shapes', 'image_width_responsive', 'image_width_fixed',
-                                 'image_height', 'resize_options'],
-        'BootstrapPicturePlugin': ['image_shapes', 'responsive_heights', 'image_size', 'resize_options'],
+        'BootstrapImagePlugin': ('image_shapes', 'image_width_responsive', 'image_width_fixed',
+                                 'image_height', 'resize_options',),
+        'BootstrapPicturePlugin': ('image_shapes', 'responsive_heights', 'image_size', 'resize_options',),
     },
     'bookmark_prefix': '/',
-    'segmentation_mixins': [
+    'segmentation_mixins': (
         ('shop.cascade.segmentation.EmulateCustomerModelMixin', 'shop.cascade.segmentation.EmulateCustomerAdminMixin'),
-    ],
+    ),
     'allow_plugin_hiding': True,
 }
 
@@ -546,9 +543,7 @@ if USE_I18N:
         'INDEX_NAME': 'myshop-{}-de'.format(SHOP_TUTORIAL),
     }
 
-HAYSTACK_ROUTERS = [
-    'shop.search.routers.LanguageRouter',
-]
+HAYSTACK_ROUTERS = ('shop.search.routers.LanguageRouter',)
 
 ############################################
 # settings for django-shop and its plugins
