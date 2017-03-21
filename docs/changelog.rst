@@ -23,6 +23,9 @@ Changelog for django-SHOP
   ``bases.py``, ``cart.py``, ``order.py`` and ``defaults.py``. The serializers
   ``CustomerSerializer``, ``ProductSummarySerializer`` and ``OrderItemSerializer`` now are
   configurable through the application settings.
+* Renamed ``ProductDetailSerializerBase`` -> ``BaseProductDetailSerializer`` and
+  ``ProductSummarySerializerBase`` -> ``BaseProductSummarySerializer`` to be consistent with the
+  naming conventions used by the Django REST Framework.
 * AngularJS directive ``<shop-auth-form ...>`` now listens of the event "pressed ENTER key"
   and submits the form data accordingly.
 * Upgraded to AngularJS version 1.5.9.
@@ -55,6 +58,9 @@ Changelog for django-SHOP
   into a single ``ProductSerializer``, which acts as default for the ``ProductListView`` and
   ``ProductRetrieveView``.
 * Dependency to **djangocms-cascade** is optional now.
+* Added alternative compressor for ``{% render_block "js/css" "shop.sekizai_processors.compress" %}``
+  which can handle JS/CSS files provided using ``{% addtoblock "js/css" ... %}`` even if located
+  outside the ``/static/`` folders.
 
 
 0.9.3
