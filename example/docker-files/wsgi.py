@@ -2,7 +2,6 @@ from django.core.management import call_command
 from django.core.wsgi import get_wsgi_application
 
 try:
-    from datetime import datetime, timedelta
     import uwsgidecorators
 
     @uwsgidecorators.timer(15)
@@ -12,11 +11,10 @@ try:
         """
         call_command('send_queued_mail')
 
-    trigger_at = datetime.now() + timedelta(minutes=10)
-    @uwsgidecorators.cron(trigger_at.minute, -1, -1, -1, -1)
+    @uwsgidecorators.cron(0, 6, -1, -1, -1)
     def rebuild_index(num):
         """
-        Rebuild search index
+        Rebuild search index in the morning
         """
         call_command('rebuild_index', interactive=False)
 
