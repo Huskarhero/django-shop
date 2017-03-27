@@ -89,7 +89,6 @@ class ProductSerializer(serializers.ModelSerializer):
 class BaseOrderItemSerializer(serializers.ModelSerializer):
     line_total = MoneyField()
     unit_price = MoneyField()
-    product_code = serializers.CharField()
 
     class Meta:
         model = OrderItemModel
