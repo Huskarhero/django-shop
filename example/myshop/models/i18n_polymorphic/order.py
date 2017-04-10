@@ -14,10 +14,15 @@ class OrderItem(order.BaseOrderItem):
     canceled = models.BooleanField(_("Item canceled "), default=False)
 
     def populate_from_cart_item(self, cart_item, request):
+        from .smartphone import SmartPhoneModel
         super(OrderItem, self).populate_from_cart_item(cart_item, request)
-        # the product's unit_price must be fetched from the product's variant
+        # the product code and price must be fetched from the product's variant
         try:
-            variant = cart_item.product.get_product_variant(product_code=cart_item.product_code)
-            self._unit_price = Decimal(variant.unit_price)
+            if isinstance(cart_item.product, SmartPhoneModel):
+                product = cart_item.product.get_product_variant(cart_item.extra['product_code'])
+            else:
+                product = cart_item.product
+            self.product_code = product.product_code
+            self._unit_price = Decimal(product.unit_price)
         except (KeyError, ObjectDoesNotExist) as e:
             raise CartItemModel.DoesNotExist(e)

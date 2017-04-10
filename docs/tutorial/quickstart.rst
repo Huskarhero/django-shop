@@ -23,11 +23,12 @@ To run a fully configured **django-SHOP** container on your local machine:
 This image is rather large (~2 GB), therefore it may take some time to download.
 
 Locate the IP address of the running container using ``docker-machine ip default``. Then point
-a browser onto this address using port 9001, for instance http://192.168.99.100:9001/
+a browser onto this address using port 9001, for instance http://192.168.99.100:9001/ (the IP
+address may vary depending on your Docker machine settings).
 
 After the container started, it may take a few minutes until the database is ready. The first time
-a page is loaded, also takes additional time because all images must be thumbnailed. Therefore, if
-you stop the running container with
+a page is loaded, this also takes additional time because all images must be thumbnailed. Therefore,
+if you stop the running container with
 
 .. code-block:: bash
 
@@ -50,8 +51,8 @@ Try out the other examples
 --------------------------
 
 By changing the environment variable ``DJANGO_SHOP_TUTORIAL`` to ``commodity``, ``i18n_commodity``,
-``smartcard``, ``i18n_smartcard``, ``polymorphic`` or ``i18n_polymorphic``, you can examine one of
-the other prepared examples. Afterwards re-create the container using the same Docker image:
+``smartcard``, ``i18n_smartcard`` or ``polymorphic``, you can examine one of the other prepared
+examples. Afterwards re-create the container using the same Docker image:
 
 .. code-block:: bash
 
@@ -61,22 +62,15 @@ the other prepared examples. Afterwards re-create the container using the same D
 Troubleshooting
 ---------------
 
-To access a running Docker container from outside, attach to it using:
+Running Docker containers can not be accessed from outside, therefore it is very difficult to look
+at their internals. To allow customers to read the logs and change some basic settings, this
+container keeps all non-reproducible data in a separate volume named ``/web``, which can be
+mounted externally. To access this volume, start a throw away container with:
 
-.. code-block:: bash
-
-	docker exec -ti demo-shop-i18n_polymorphic /bin/bash
-	[root@example]# ps fax
-
-If you don't want to interfere with the running container, you may create a "throw-away" container
-and access files through the shared volume named ``/web``. Here you can read the logs and change
-some basic settings. If you modify the timestamp of ``/web/workdir/myshop.ini`` **uWSGI** restarts
-the Django server. To access this shared volume, start a throw away container with:
-
-.. code-block:: bash
-
-	docker run --rm -ti --volumes-from demo-shop-commodity demo-shop /bin/bash
-	[root@example]# cd /web/logs
-	[root@example]# less shop.log
+```
+docker run --rm -ti --volumes-from demo-shop-commodity demo-shop /bin/bash
+[root@example]# ll /web/logs
+[root@example]# less shop.log
+```
 
 .. _Docker runtime environment: https://docs.docker.com/windows/

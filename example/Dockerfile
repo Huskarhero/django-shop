@@ -1,6 +1,6 @@
 FROM awesto/uwsgi-django-shop:latest
 
-LABEL Description="Run one of 6 django-SHOP demos" Maintainer="Jacob Rief <jacob.rief@gmail.com>"
+MAINTAINER Jacob Rief <jacob.rief@gmail.com>
 
 # copy the example project
 RUN mkdir -p /web/demo-shop
