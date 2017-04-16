@@ -146,9 +146,8 @@ class AddressForm(DialogModelForm):
             old_address = cls.get_model().objects.get_fallback(customer=request.customer)
             if old_address:
                 faked_data = dict(data)
-                faked_data.update(
-                    dict((field.name, old_address.serializable_value(field.name))
-                         for field in old_address._meta.fields))
+                faked_data.update(dict((field.name, old_address.serializable_value(field.name))
+                                       for field in old_address._meta.fields))
                 address_form = cls(data=faked_data)
                 remove_entity_filter = cls.js_filter.format(active_priority)
                 address_form.data.update(
@@ -157,10 +156,9 @@ class AddressForm(DialogModelForm):
                 )
             else:
                 address_form = cls()
-                address_form.data.update(
-                    active_priority='add',
-                    plugin_id=data.get('plugin_id'),
-                    plugin_order=data.get('plugin_order'),
+                address_form.data.update(active_priority='add',
+                                         plugin_id=data.get('plugin_id'),
+                                         plugin_order=data.get('plugin_order'),
                 )
             address_form.set_address(cart, old_address)
         elif active_priority == 'add':
@@ -170,7 +168,7 @@ class AddressForm(DialogModelForm):
                 # prevent adding the same address twice
                 all_field_names = [f.name for f in cls.get_model()._meta.get_fields()]
                 filter_args = dict((attr, val) for attr, val in address_form.data.items()
-                                   if attr in all_field_names)
+                                   if attr in all_field_names and val)
                 filter_args.update(customer=request.customer)
                 try:
                     existing_address = cls.get_model().objects.get(**filter_args)
