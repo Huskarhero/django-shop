@@ -249,7 +249,7 @@ class MoneyDbFieldTests(TestCase):
         self.assertEqual(list(Commodity.objects.filter(unit_price__lte='12.34')), [bag])
 
 
-class MoneyTestSerializer(serializers.Serializer):
+class TestMoneySerializer(serializers.Serializer):
     amount = MoneyField(read_only=True)
 
 
@@ -257,7 +257,7 @@ class MoneySerializerTests(TestCase):
     def test_rest(self):
         EUR = MoneyMaker('EUR')
         instance = type(str('TestMoney'), (object,), {'amount': EUR('1.23')})
-        serializer = MoneyTestSerializer(instance)
+        serializer = TestMoneySerializer(instance)
         self.assertDictEqual({'amount': '€ 1.23'}, serializer.data)
 
     def test_json(self):
