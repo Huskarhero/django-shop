@@ -37,7 +37,7 @@ class AddSmartPhoneToCartSerializer(AddToCartSerializer):
         try:
             variant = product.get_product_variant(product_code=product_code)
         except product.DoesNotExist:
-            variant = product.variants.first()
+            variant = product.smartphone_set.first()
         extra.update(storage=variant.storage)
         instance = {
             'product': product.id,

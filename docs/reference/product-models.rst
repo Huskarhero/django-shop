@@ -123,15 +123,11 @@ Therefore we would model our smart-phones using a database model similar to the 
 	    lookup_fields = ('product_name__icontains',)
 
 	    def get_price(request):
-	        aggregate = self.variants.aggregate(models.Min('unit_price'))
+	        aggregate = self.smartphone_set.aggregate(models.Min('unit_price'))
 	        return Money(aggregate['unit_price__min'])
 
-	class SmartPhoneVariant(models.Model):
-	    product_model = models.ForeignKey(
-	        SmartPhoneModel,
-	        related_name='variants',
-	    )
-
+	class SmartPhone(models.Model):
+	    product_model = models.ForeignKey(SmartPhoneModel)
 	    product_code = models.CharField(
 	        _("Product code"),
 	        max_length=255,
