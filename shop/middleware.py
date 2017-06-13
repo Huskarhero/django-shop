@@ -33,7 +33,7 @@ class CustomerMiddleware(object):
                 # only update last_access when rendering the main page
                 request.customer.last_access = timezone.now()
                 request.customer.save(update_fields=['last_access'])
-        except (AttributeError, ValueError):
+        except AttributeError:
             pass
         return response
 
