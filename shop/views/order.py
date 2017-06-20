@@ -46,6 +46,9 @@ class OrderView(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateM
                     pass
         return renderer_context
 
+    def get_template_names(self):
+        return [self.request.current_page.get_template()]
+
     def get_object(self):
         if self.lookup_url_kwarg not in self.kwargs:
             return self.get_queryset().first()

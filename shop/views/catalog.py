@@ -18,7 +18,7 @@ from shop import app_settings
 from shop.models.product import ProductModel
 from shop.rest.filters import CMSPagesFilterBackend
 from shop.rest.money import JSONRenderer
-from shop.rest.renderers import ShopTemplateHTMLRenderer, CMSPageRenderer
+from shop.rest.renderers import CMSPageRenderer
 from shop.serializers.bases import ProductSerializer
 from shop.serializers.defaults import AddToCartSerializer
 
@@ -73,6 +73,10 @@ class ProductListView(generics.ListAPIView):
             qs = qs.prefetch_related('translations').filter(translations__language_code=language)
         qs = qs.select_related('polymorphic_ctype')
         return qs
+
+    def get_template_names(self):
+        # TODO: let this be configurable through a View member variable
+        return [self.request.current_page.get_template()]
 
 
 class SyncCatalogView(views.APIView):
@@ -186,7 +190,7 @@ class ProductRetrieveView(generics.RetrieveAPIView):
     :param limit_choices_to: Limit the queryset of product models to these choices.
     """
 
-    renderer_classes = (ShopTemplateHTMLRenderer, JSONRenderer, BrowsableAPIRenderer)
+    renderer_classes = (CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer)
     lookup_field = lookup_url_kwarg = 'slug'
     product_model = ProductModel
     serializer_class = ProductSerializer
