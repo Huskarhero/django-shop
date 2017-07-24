@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from six import with_metaclass
 from decimal import Decimal
+
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
@@ -177,6 +178,7 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         'new': _("New order without content"),
         'created': _("Order freshly created"),
         'payment_confirmed': _("Payment confirmed"),
+        'payment_declined': _("Payment declined"),
     }
     decimalfield_kwargs = {
         'max_digits': 30,
@@ -230,14 +232,14 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         """
         return dict(pk=number)
 
-    @cached_property
+    @property
     def subtotal(self):
         """
         The summed up amount for all ordered items excluding extra order lines.
         """
         return MoneyMaker(self.currency)(self._subtotal)
 
-    @cached_property
+    @property
     def total(self):
         """
         The final total to charge for this order.
@@ -323,6 +325,13 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         """
 
     @classmethod
+    def get_all_transitions(cls):
+        """
+        Returns a generator over all transition objects for this Order model.
+        """
+        return cls.status.field.get_all_transitions(OrderModel)
+
+    @classmethod
     def get_transition_name(cls, target):
         """Return the human readable name for a given transition target"""
         return cls._transition_targets.get(target, target)
@@ -332,7 +341,6 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         return self._transition_targets.get(self.status, self.status)
 
     status_name.short_description = pgettext_lazy('order_models', "State")
-
 
 OrderModel = deferred.MaterializedModel(BaseOrder)
 
@@ -396,11 +404,11 @@ class BaseOrderItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
             msg = "Class `{}` must implement a field named `quantity`."
             raise ImproperlyConfigured(msg.format(cls.__name__))
 
-    @cached_property
+    @property
     def unit_price(self):
         return MoneyMaker(self.order.currency)(self._unit_price)
 
-    @cached_property
+    @property
     def line_total(self):
         return MoneyMaker(self.order.currency)(self._line_total)
 
