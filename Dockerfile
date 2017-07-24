@@ -2,13 +2,9 @@
 # This Dockerfile builds the base image for all merchant implementations using **django-SHOP**:
 # docker build -t awesto/uwsgi-django-shop .
 
-FROM awesto/fedora-uwsgi-python:5
+FROM awesto/fedora-uwsgi-python:latest
 
 LABEL Description="Official django-SHOP image" Maintainer="Jacob Rief <jacob.rief@gmail.com>"
-
-RUN dnf upgrade -y
-RUN dnf install -y redis java
-RUN rpm -i https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.7.5.noarch.rpm
 
 RUN alternatives --install /usr/bin/python python /usr/bin/python3.5 2
 RUN alternatives --install /usr/bin/python python /usr/bin/python2.7 1
@@ -27,7 +23,7 @@ RUN chown redis.redis /etc/uwsgi.d/redis.ini
 RUN cat /etc/resolv.conf
 RUN pip install uwsgi
 ADD requirements /tmp/requirements
-RUN pip install Django==1.10.7
+RUN pip install Django==1.10.5
 RUN pip install -r /tmp/requirements/common.txt
 
 # copy the local django-shop file into a temporary folder
