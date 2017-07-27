@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import cached_property
 
 from djng.styling.bootstrap3.forms import Bootstrap3ModelForm
+from djng.styling.bootstrap3.widgets import RadioSelect, RadioFieldRenderer, CheckboxInput
 
 from shop.models.address import ShippingAddressModel, BillingAddressModel
 from shop.models.customer import CustomerModel
@@ -82,10 +83,9 @@ class AddressForm(DialogModelForm):
     )
 
     use_primary_address = fields.BooleanField(
-        label=_("Use primary address"),  # label will be overridden by Shipping/Billing/AddressForm
         required=False,
         initial=True,
-        widget=widgets.CheckboxInput(),
+        widget=CheckboxInput("use primary address"),
     )
 
     # JS function to filter form_entities after removing an entity
@@ -281,9 +281,8 @@ class BillingAddressForm(AddressForm):
 class PaymentMethodForm(DialogForm):
     scope_prefix = 'data.payment_method'
 
-    payment_modifier = fields.ChoiceField(
-        label=_("Payment Method"),
-        widget=widgets.RadioSelect(attrs={'ng-change': 'upload()'}),
+    payment_modifier = fields.ChoiceField(label=_("Payment Method"),
+        widget=RadioSelect(renderer=RadioFieldRenderer, attrs={'ng-change': 'upload()'})
     )
 
     def __init__(self, *args, **kwargs):
@@ -314,9 +313,8 @@ class PaymentMethodForm(DialogForm):
 class ShippingMethodForm(DialogForm):
     scope_prefix = 'data.shipping_method'
 
-    shipping_modifier = fields.ChoiceField(
-        label=_("Shipping Method"),
-        widget=widgets.RadioSelect(attrs={'ng-change': 'upload()'}),
+    shipping_modifier = fields.ChoiceField(label=_("Shipping Method"),
+        widget=RadioSelect(renderer=RadioFieldRenderer, attrs={'ng-change': 'upload()'})
     )
 
     def __init__(self, *args, **kwargs):
@@ -346,11 +344,8 @@ class ShippingMethodForm(DialogForm):
 class ExtraAnnotationForm(DialogForm):
     scope_prefix = 'data.extra_annotation'
 
-    annotation = fields.CharField(
-        label=_("Extra annotation for this order"),
-        required=False,
-        widget=widgets.Textarea,
-    )
+    annotation = fields.CharField(label=_("Extra annotation for this order"), required=False,
+                                  widget=widgets.Textarea)
 
     @classmethod
     def form_factory(cls, request, data, cart):
@@ -363,10 +358,7 @@ class ExtraAnnotationForm(DialogForm):
 class AcceptConditionForm(DialogForm):
     scope_prefix = 'data.accept_condition'
 
-    accept = fields.BooleanField(
-        required=True,
-        widget=widgets.CheckboxInput(),
-    )
+    accept = fields.BooleanField(required=True, widget=CheckboxInput(None))
 
     def __init__(self, data=None, initial=None, *args, **kwargs):
         plugin_id = data and data.get('plugin_id') or initial and initial.get('plugin_id') or 'none'
