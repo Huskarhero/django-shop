@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from shop.conf import app_settings
+from shop import app_settings
 from shop.models.product import ProductModel
 from shop.rest.money import MoneyField
 from shop.serializers.bases import BaseCustomerSerializer
@@ -70,7 +70,7 @@ class AddToCartSerializer(serializers.Serializer):
         variation rather than being part of the product itself.
         """
         product = context['product']
-        extra = data['extra'] if data is not empty else {}
+        extra = data.get('extra', {})
         return {
             'product': product.id,
             'product_code': product.product_code,

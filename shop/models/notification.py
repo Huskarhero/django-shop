@@ -18,7 +18,7 @@ from post_office.models import Email as OriginalEmail, EmailTemplate
 
 from filer.fields.file import FilerFileField
 
-from shop.conf import app_settings
+from shop import app_settings
 from .customer import CustomerModel
 
 
@@ -154,5 +154,5 @@ def order_event_notification(sender, instance=None, target=None, **kwargs):
         attachments = {}
         for notiatt in notification.notificationattachment_set.all():
             attachments[notiatt.attachment.original_filename] = notiatt.attachment.file.file
-        mail.send(recipient, template=template, context=context,
+        mail.send(recipient, template=notification.mail_template, context=context,
                   attachments=attachments, render_on_delivery=True)

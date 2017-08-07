@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from shop.conf import app_settings
+from django import __version__
+from shop import app_settings
 from shop.models.customer import CustomerModel
 
 
