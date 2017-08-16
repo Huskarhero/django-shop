@@ -1,6 +1,7 @@
+beautifulsoup4==4.5.1
 django-admin-sortable2==0.6.14
 django-allauth==0.23.0
-django-angular==1.1
+git+https://github.com/jrief/django-angular.git@releases/1.1.x#egg=django-angular
 django-appconf==1.0.1
 django-classy-tags==0.8.0
 django-cms==3.4.4
@@ -23,7 +24,7 @@ django-sekizai==0.10.0
 Django-Select2==5.8.10
 django-treebeard==4.1.1
 djangocms-bootstrap3==0.2.0
-djangocms-cascade==0.13.1
+git+https://github.com/jrief/djangocms-cascade.git@drafts/static-json-rendering#egg=djangocms-cascade
 djangocms-text-ckeditor==3.4.0
 djangorestframework==3.6.3
 django-formtools==2.0
