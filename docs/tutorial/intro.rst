@@ -57,6 +57,7 @@ system:
 	(shoptutorial)$ cd django-shop
 	(shoptutorial)$ pip install -r requirements/common.txt
 	(shoptutorial)$ pip install --no-deps -e .
+	(shoptutorial)$ pip install 'Django<1.11'
 	(shoptutorial)$ cd example
 	(shoptutorial)$ npm install
 

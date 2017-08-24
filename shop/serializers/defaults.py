@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from shop.conf import app_settings
+from shop import app_settings
 from shop.models.product import ProductModel
 from shop.rest.money import MoneyField
 from shop.serializers.bases import BaseCustomerSerializer
@@ -13,11 +13,9 @@ from .bases import BaseOrderItemSerializer
 
 class CustomerSerializer(BaseCustomerSerializer):
     """
-    If the chosen customer model is the default :class:`shop.models.defaults.Customer`, then this
-    serializer shall be used.
-
-    If another customer model is used, then add a customized ``CustomerSerializer`` to your project
-    and point your configuration settings ``SHOP_CUSTOMER_SERIALIZER`` onto it.
+    This CustomerSerializer shall be used as a default, if used in combination with
+    :class:`shop.models.defaults.customer.CustomerSerializer`.
+    Replace it by another serializer, for alternative Customer Models.
     """
     salutation = serializers.CharField(source='get_salutation_display', read_only=True)
 
@@ -27,11 +25,8 @@ class CustomerSerializer(BaseCustomerSerializer):
 
 class ProductSelectSerializer(serializers.ModelSerializer):
     """
-    A simple serializer to convert the product's name and code for while rendering the `Select2 Widget`_
-    when looking up for a product. This serializer shall return a list of 2-tuples, whose 1st entry is the
-    primary key of the product and the second entry is the rendered name.
-
-    .. _Select2 Widget: https://github.com/applegrew/django-select2
+    A simple serializer to convert the product's name and code for rendering the select widget
+    when looking up for a product.
     """
     text = serializers.SerializerMethodField()
 
@@ -45,11 +40,7 @@ class ProductSelectSerializer(serializers.ModelSerializer):
 
 class AddToCartSerializer(serializers.Serializer):
     """
-    By default, this serializer is used by the view class :class:`shop.views.catalog.AddToCartView`,
-    which handles the communication from the "Add to Cart" dialog box.
-
-    This serializer shall be replaced by an alternative implementation, if product variations are used
-    on the same catalog's detail view.
+    Serialize fields used in the "Add to Cart" dialog box.
     """
     quantity = serializers.IntegerField(default=1, min_value=1)
     unit_price = MoneyField(read_only=True)
