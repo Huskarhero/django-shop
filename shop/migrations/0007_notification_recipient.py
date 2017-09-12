@@ -19,7 +19,7 @@ def forwards(apps, schema_editor):
         if row.mail_to == 0:
             row.mail_to = None
             row.notify = Notify.CUSTOMER
-        row.save(update_fields=['notify'])
+        row.save(update_fields=['mail_to', 'notify'])
 
 
 def backwards(apps, schema_editor):
