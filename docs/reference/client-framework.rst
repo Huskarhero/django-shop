@@ -57,21 +57,19 @@ application. Say, we declare a base template for our project:
 .. code-block:: django
 	:caption: myshop/pages/base.html
 
-	{% load djng_tags sekizai_tags %}
+	{% load djng_tags %}
 	<body>
 	...
 	{% render_block "js" postprocessor "compressor.contrib.sekizai.compress" %}
 	<script type="text/javascript">
-	angular.module('myShop', ['ngAnimate', 'ngMessages', 'ngSanitize', {% with_data "ng-requires" as ng_requires %}
-	    {% for module in ng_requires %}'{{ module }}'{% if not forloop.last %}, {% endif %}{% endfor %}{% end_with_data %}
+	angular.module('myShop', ['ngAnimate', 'ngMessages', 'ngSanitize',
+		{% render_block "ng-requires" postprocessor "djng.sekizai_processors.module_list" %}
 	]).config(['$httpProvider', function($httpProvider) {
-	    $httpProvider.defaults.headers.common['X-CSRFToken'] = '{{ csrf_token }}';
-	    $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+		$httpProvider.defaults.headers.common['X-CSRFToken'] = '{{ csrf_token }}';
+		$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 	}]).config(['$locationProvider', function($locationProvider) {
-	    $locationProvider.html5Mode(false);
-	}]){% with_data "ng-config" as configs %}
-	    {% for config in configs %}.config({{ config }}){% endfor %};
-	{% end_with_data %}
+		$locationProvider.html5Mode(false);
+	}]){% render_block "ng-config" postprocessor "djng.sekizai_processors.module_config" %};
 	</script>
 
 	</body>
@@ -80,10 +78,10 @@ By using Sekizai's templatetag ``render_block`` inside the initialization and co
 of our Angular application, we can delegate the dependency resolution to template expansion and
 inclusion.
 
-For example, the editable cart requires its own AngularJS module, found in a separate JavaScript
-file. Since we honor the principle of encapsulation, we only want to include and initialize that
-module if the customer loads the view to alter the cart. Here the template for our editable cart
-starts with:
+For example, the editable cart requires its own Angular module, found in a separate Javascript file.
+Since we honor the principle of encapsulation, we only want to include and initialize that module
+if the customer loads the view to alter the cart. Here the template for our editable cart starts
+with:
 
 .. code-block:: django
 	:caption: shop/cart/editable.html
@@ -91,10 +89,10 @@ starts with:
 	{% load static sekizai_tags %}
 
 	{% addtoblock "js" %}<script src="{% static 'shop/js/cart.js' %}" type="text/javascript"></script>{% endaddtoblock %}
-	{% add_data "ng-requires" "django.shop.cart" %}
+	{% addtoblock "ng-requires" %}django.shop.cart{% endaddtoblock %}
 
-Sekizai then collects the content added to these ``add_data`` templatetags, and renders them using
-the ``with_data`` statements shown above. This concept allows us to delegate dependency resolution
+Sekizai then collects the content between these ``addtoblock`` s, and renders them using the
+``render_block`` statements shown above. This concept allows us to delegate dependency resolution
 and module initialization to whom it concerns.
 
 
@@ -108,30 +106,27 @@ a corresponding but unique naming scheme, to avoid conflicts with other third pa
 modules. The naming scheme for these three modules is unsurprisingly: ``django.shop.auth``,
 ``django.shop.cart``, ``django.shop.catalog``, etc.
 
-This is where Sekizai's ``{% with_data "ng-requires" as ng_requires %}`` becomes useful. We now
-can manage our AngularJS dependencies as:
+This is where Sekizai's ``render_block`` templatetag, together with the postprocessor
+``module_list`` becomes useful. We now can manage our AngularJS dependencies:
 
 .. code-block:: Django
 
 	angular.module('myShop', [/* other dependencies */
-	{% with_data "ng-requires" as ng_requires %}
-	    {% for module in ng_requires %}'{{ module }}'{% if not forloop.last %}, {% endif %}{% endfor %}
-	{% end_with_data %}])
+	    {% render_block "ng-requires" postprocessor "djng.sekizai_processors.module_list" %}
+	])
 
-By adding Sekizai's ``{% with_data "ng-config" as configs %}`` templatetag, we can add arbitrary
-configuration code:
+By adding Sekizai's ``render_block`` templatetag, together with the postprocessor ``module_config``,
+at the end of our initialization statement, we can add arbitrary configuration code.
 
 .. code-block:: Django
 
 	angular.module('myShop', [/* module dependencies */]
-	){% with_data "ng-config" as configs %}
-	    {% for config in configs %}.config({{ config }}){% endfor %};
-	{% end_with_data %}
+	).{% render_block "ng-config" postprocessor "djng.sekizai_processors.module_config" %};
 
-The templatetags ``{% with_data "ng-requires" ... %}`` and ``{% with_data "ng-config" ... %}``
-work, because some other template snippets declare ``{% add_data "ng-requires" ... %}`` and/or
-``{% add_data "ng-config" ... %}``. Sekizai then collects these declarations and combines them
-in ``with_data``.
+The templatetags ``{% render_block "ng-requires" ... %}`` and ``{% render_block "ng-config" ... %}``
+work, because some other template snippets declare ``{% addtoblock "ng-requires" ... %}`` and/or
+``{% addtoblock "ng-config" ... %}``. Sekizai then collects these declarations and combines them
+in ``render_block``.
 
 Unless additional client functionality is required, these are the only parts where our project
 requires us to write JavaScript.
