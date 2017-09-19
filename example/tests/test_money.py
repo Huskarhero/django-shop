@@ -30,8 +30,8 @@ class MoneyMakerTest(TestCase):
 
     def test_create_money_type_without_arguments(self):
         Money = MoneyMaker()
-        amount = Money()
-        self.assertTrue(amount.is_nan())
+        money = Money()
+        self.assertTrue(money.is_nan())
 
     def test_create_money_type_with_unknown_currency(self):
         self.assertRaises(ValueError, lambda: MoneyMaker(currency_code="ABC"))
@@ -200,15 +200,6 @@ class MoneyMakerTest(TestCase):
         Money = MoneyMaker()
         money = Money('1.23')
         self.assertEqual(money.as_integer(), 123)
-
-    def test_as_bool(self):
-        Money = MoneyMaker()
-        amount = Money('1.23')
-        self.assertTrue(bool(amount))
-        amount = Money(0)
-        self.assertFalse(bool(amount))
-        amount = Money()
-        self.assertFalse(bool(amount))
 
     def test_pickle(self):
         Money = MoneyMaker()
