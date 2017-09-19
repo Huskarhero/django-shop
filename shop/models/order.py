@@ -363,6 +363,11 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         by all external plugins to check, if an Order object has been fully paid.
         """
 
+    def refund_payment(self):
+        """
+        Hook to handle payment refunds.
+        """
+
     @classmethod
     def get_all_transitions(cls):
         """
@@ -384,6 +389,7 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
 OrderModel = deferred.MaterializedModel(BaseOrder)
 
 
+@python_2_unicode_compatible
 class OrderPayment(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     """
     A model to hold received payments for a given order.
@@ -418,6 +424,9 @@ class OrderPayment(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     class Meta:
         verbose_name = pgettext_lazy('order_models', "Order payment")
         verbose_name_plural = pgettext_lazy('order_models', "Order payments")
+
+    def __str__(self):
+        return _("Payment ID: {}").format(self.id)
 
 
 @python_2_unicode_compatible
