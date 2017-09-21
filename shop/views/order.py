@@ -4,8 +4,9 @@ from __future__ import unicode_literals
 from django.views.decorators.cache import never_cache
 
 from rest_framework import generics, mixins
-from rest_framework.exceptions import NotFound, PermissionDenied, MethodNotAllowed
+from rest_framework.exceptions import NotFound
 from rest_framework.renderers import BrowsableAPIRenderer
+from rest_framework.exceptions import PermissionDenied
 
 from shop.rest.money import JSONRenderer
 from shop.rest.renderers import CMSPageRenderer
@@ -66,7 +67,7 @@ class OrderView(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.UpdateM
 
     def post(self, request, *args, **kwargs):
         if self.many:
-            raise MethodNotAllowed("Method POST is not allowed on Order List View")
+            return self.list(request, *args, **kwargs)
         self.update(request, *args, **kwargs)
         return self.retrieve(request, *args, **kwargs)
 
