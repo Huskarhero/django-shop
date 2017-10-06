@@ -7,7 +7,6 @@ from django.utils.module_loading import import_string
 
 from rest_framework.decorators import list_route
 from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
 
 from cms.plugin_pool import plugin_pool
 
@@ -42,7 +41,7 @@ class CheckoutViewSet(BaseViewSet):
                     if hasattr(p, 'form_class'):
                         self.dialog_forms.add(import_string(p.form_class))
 
-    @list_route(methods=['post', 'put'], url_path='upload')
+    @list_route(methods=['post'], url_path='upload')
     def upload(self, request):
         """
         All forms using the AngularJS directive `shop-dialog-form` have an implicit scope containing
@@ -59,16 +58,17 @@ class CheckoutViewSet(BaseViewSet):
         # sort posted form data by plugin order
         dialog_data = []
         for form_class in self.dialog_forms:
-            if form_class.scope_prefix in request.data:
-                if 'plugin_order' in request.data[form_class.scope_prefix]:
-                    dialog_data.append((form_class, request.data[form_class.scope_prefix]))
+            key = form_class.scope_prefix.split('.', 1)[1]
+            if key in request.data:
+                if 'plugin_order' in request.data[key]:
+                    dialog_data.append((form_class, request.data[key]))
                 else:
-                    for data in request.data[form_class.scope_prefix].values():
+                    for data in request.data[key].values():
                         dialog_data.append((form_class, data))
         dialog_data = sorted(dialog_data, key=lambda tpl: int(tpl[1]['plugin_order']))
 
         # save data, get text representation and collect potential errors
-        errors, checkout_summary, response_data, set_is_valid = {}, {}, {}, True  # TODO:
+        errors, checkout_summary, response_data = {}, {}, {'$valid': True}
         with transaction.atomic():
             for form_class, data in dialog_data:
                 form = form_class.form_factory(request, data, cart)
@@ -78,23 +78,20 @@ class CheckoutViewSet(BaseViewSet):
                     # keep a summary of of validated form content inside the client's $rootScope
                     checkout_summary[form_class.form_name] = form.as_text()
                 else:
-                    errors[form_class.form_name] = dict(errors=form.errors)
-                    set_is_valid = False
+                    errors[form_class.form_name] = dict(form.errors)
+                response_data['$valid'] = response_data['$valid'] and form.is_valid()
 
-                # by updating the response data, we can override the form's content
+                # by updating the response data, we can override the form's model $scope
                 update_data = form.get_response_data()
                 if isinstance(update_data, dict):
-                    response_data[form_class.form_name] = update_data
-            if set_is_valid:
-                cart.save()
+                    key = form_class.scope_prefix.split('.', 1)[1]
+                    response_data[key] = update_data
+            cart.save()
 
         # add possible form errors for giving feedback to the customer
-        if set_is_valid:
-            response = self.list(request)
-            response.data.update(response_data)
-            return response
-        else:
-            return Response(errors, status=422)
+        response = self.list(request)
+        response.data.update(errors=errors, checkout_summary=checkout_summary, data=response_data)
+        return response
 
     @list_route(methods=['post'], url_path='purchase')
     def purchase(self, request):

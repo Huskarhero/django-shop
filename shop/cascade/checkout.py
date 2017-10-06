@@ -38,11 +38,8 @@ from .plugin_base import ShopPluginBase, ShopButtonPluginBase, DialogFormPluginB
 
 class ProceedButtonForm(TextLinkFormMixin, LinkForm):
     link_content = CharField(label=_("Button Content"))
-    LINK_TYPE_CHOICES = [
-        ('cmspage', _("CMS Page")),
-        ('RELOAD_PAGE', _("Reload Page")),
-        ('PURCHASE_NOW', _("Purchase Now")),
-    ]
+    LINK_TYPE_CHOICES = (('cmspage', _("CMS Page")), ('RELOAD_PAGE', _("Reload Page")),
+        ('PURCHASE_NOW', _("Purchase Now")),)
 
 
 class ShopProceedButton(BootstrapButtonMixin, ShopButtonPluginBase):
@@ -52,23 +49,19 @@ class ShopProceedButton(BootstrapButtonMixin, ShopButtonPluginBase):
     name = _("Proceed Button")
     parent_classes = ('BootstrapColumnPlugin', 'ProcessStepPlugin', 'ValidateSetOfFormsPlugin')
     model_mixins = (LinkElementMixin,)
-    glossary_field_order = ('disable_invalid', 'button_type', 'button_size', 'button_options',
-                            'quick_float', 'icon_align', 'icon_font', 'symbol')
-    form = ProceedButtonForm
+    glossary_field_order = ('button_type', 'button_size', 'button_options', 'quick_float',
+                            'icon_align', 'icon_font', 'symbol')
     ring_plugin = 'ProceedButtonPlugin'
-
-    disable_invalid = GlossaryField(
-        widgets.CheckboxInput(),
-        label=_("Disable if invalid"),
-        initial=True,
-        help_text=_("Disable button if any form in this set is invalid")
-    )
 
     class Media:
         css = {'all': ('cascade/css/admin/bootstrap.min.css',
                        'cascade/css/admin/bootstrap-theme.min.css',
                        'cascade/css/admin/iconplugin.css',)}
         js = ['shop/js/admin/proceedbuttonplugin.js']
+
+    def get_form(self, request, obj=None, **kwargs):
+        kwargs.update(form=ProceedButtonForm)
+        return super(ShopProceedButton, self).get_form(request, obj, **kwargs)
 
     def get_render_template(self, context, instance, placeholder):
         template_names = [
@@ -78,24 +71,13 @@ class ShopProceedButton(BootstrapButtonMixin, ShopButtonPluginBase):
         return select_template(template_names)
 
     def render(self, context, instance, placeholder):
-        context = self.super(ShopProceedButton, self).render(context, instance, placeholder)
-        context['disable_invalid'] = instance.glossary.get('disable_invalid', True)
-        try:  # TODO: consider to handle this in a different way
+        self.super(ShopProceedButton, self).render(context, instance, placeholder)
+        try:
             cart = CartModel.objects.get_from_request(context['request'])
             cart.update(context['request'])
             context['cart'] = cart
         except CartModel.DoesNotExist:
             pass
-
-        # handle further actions
-        if instance.link == 'RELOAD_PAGE':
-            context['proceed_with'] = ".then(reloadPage())"
-        elif instance.link == 'PURCHASE_NOW':
-            context['proceed_with'] = ".then(alert('Purchase'))"
-        elif instance.link == 'DO_NOTHING':
-            context['proceed_with'] = ''
-        else:
-            context['proceed_with'] = ".then(redirectTo('{}'))".format(instance.link)
         return context
 
 plugin_pool.register_plugin(ShopProceedButton)
@@ -419,7 +401,7 @@ class ValidateSetOfFormsPlugin(TransparentContainer, ShopPluginBase):
     This plugin wraps arbitrary forms into the Angular directive shopFormsSet.
     This is required to validate all forms, so that a proceed button is disabled otherwise.
     """
-    name = _("Manage Set of Forms")
+    name = _("Validate Set of Forms")
     allow_children = True
     alien_child_classes = True
 

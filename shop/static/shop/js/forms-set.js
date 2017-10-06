@@ -4,7 +4,6 @@
 // module: django.shop, TODO: move this into a summary JS file
 var djangoShopModule = angular.module('django.shop.forms-set', ['djng.urls', 'djng.forms']);
 
-throw new Error("The module 'django.shop.forms-set' is deprecated");
 
 // Directive <ANY shop-forms-set ...>
 // Use this as a wrapper around self validating <form ...> elements (see directive below), so that
