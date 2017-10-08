@@ -8,19 +8,22 @@ djangoShopModule.controller('CartController', ['$scope', '$http', function($scop
 	var isLoading = false;
 
 	this.loadCart = function() {
-		$http.get($scope.cartListURL).success(function(cart) {
-			$scope.cart = cart;
-		}).error(function(msg) {
+		$http.get($scope.cartListURL).then(function(response) {
+			$scope.cart = response.data;
+		}).catch(function(msg) {
 			console.error('Unable to fetch shopping cart: ' + msg);
 		});
 	}
 
 	function postCartItem(cart_item, method) {
-		var config = {headers: {'X-HTTP-Method-Override': method}};
 		if (isLoading)
 			return;
 		isLoading = true;
-		$http.post(cart_item.url, cart_item, config).then(function(response) {
+		$http({
+			url: cart_item.url,
+			method: method,
+			data: cart_item
+		}).then(function(response) {
 			return $http.get($scope.$parent.cartListURL);
 		}).then(function(response) {
 			isLoading = false;
