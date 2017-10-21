@@ -228,7 +228,7 @@ Changelog for django-SHOP
 * Minimum required version of djangocms-cascade is now 0.10.2.
 * Minimum required version of djangoshop-stripe is now 0.2.0.
 * Changed the default address models to be more generic. Please read the
-  :doc:`upgrade instructions <upgrading>` if you are upgrading from 0.9.0 or 0.9.1.
+  :ref:`release-notes/0.9` if you are upgrading from 0.9.0 or 0.9.1.
 * Fixed :py:meth:`shop.money.fields.decontruct` to avoid repetitive useless generation of migration
   files.
 * Using cached_property decoration for methods ``unit_price`` and ``line_total`` in
