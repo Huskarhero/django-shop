@@ -38,11 +38,8 @@ from .plugin_base import ShopPluginBase, ShopButtonPluginBase, DialogFormPluginB
 
 class ProceedButtonForm(TextLinkFormMixin, LinkForm):
     link_content = CharField(label=_("Button Content"))
-    LINK_TYPE_CHOICES = [
-        ('cmspage', _("CMS Page")),
-        ('RELOAD_PAGE', _("Reload Page")),
-        ('PURCHASE_NOW', _("Purchase Now")),
-    ]
+    LINK_TYPE_CHOICES = (('cmspage', _("CMS Page")), ('RELOAD_PAGE', _("Reload Page")),
+        ('PURCHASE_NOW', _("Purchase Now")),)
 
 
 class ShopProceedButton(BootstrapButtonMixin, ShopButtonPluginBase):
@@ -52,17 +49,9 @@ class ShopProceedButton(BootstrapButtonMixin, ShopButtonPluginBase):
     name = _("Proceed Button")
     parent_classes = ('BootstrapColumnPlugin', 'ProcessStepPlugin', 'ValidateSetOfFormsPlugin')
     model_mixins = (LinkElementMixin,)
-    glossary_field_order = ['disable_invalid', 'button_type', 'button_size', 'button_options',
-                            'quick_float', 'icon_align', 'icon_font', 'symbol']
-    form = ProceedButtonForm
+    glossary_field_order = ('button_type', 'button_size', 'button_options', 'quick_float',
+                            'icon_align', 'icon_font', 'symbol')
     ring_plugin = 'ProceedButtonPlugin'
-
-    disable_invalid = GlossaryField(
-        widgets.CheckboxInput(),
-        label=_("Disable if invalid"),
-        initial=True,
-        help_text=_("Disable button if any form in this set is invalid")
-    )
 
     class Media:
         css = {'all': ('cascade/css/admin/bootstrap.min.css',
@@ -70,20 +59,26 @@ class ShopProceedButton(BootstrapButtonMixin, ShopButtonPluginBase):
                        'cascade/css/admin/iconplugin.css',)}
         js = ['shop/js/admin/proceedbuttonplugin.js']
 
+    def get_form(self, request, obj=None, **kwargs):
+        kwargs.update(form=ProceedButtonForm)
+        return super(ShopProceedButton, self).get_form(request, obj, **kwargs)
+
     def get_render_template(self, context, instance, placeholder):
-        if instance.link == 'RELOAD_PAGE':
-            button_template = 'reload-button'
-        elif instance.link == 'PURCHASE_NOW':
-            button_template = 'purchase-button'
-        elif instance.link == 'DO_NOTHING':
-            button_template = 'noop-button'
-        else:
-            button_template = 'proceed-button'
         template_names = [
-            '{}/checkout/{}.html'.format(app_settings.APP_LABEL, button_template),
-            'shop/checkout/{}.html'.format(button_template),
+            '{}/checkout/proceed-button.html'.format(app_settings.APP_LABEL),
+            'shop/checkout/proceed-button.html',
         ]
         return select_template(template_names)
+
+    def render(self, context, instance, placeholder):
+        self.super(ShopProceedButton, self).render(context, instance, placeholder)
+        try:
+            cart = CartModel.objects.get_from_request(context['request'])
+            cart.update(context['request'])
+            context['cart'] = cart
+        except CartModel.DoesNotExist:
+            pass
+        return context
 
 plugin_pool.register_plugin(ShopProceedButton)
 
@@ -196,7 +191,15 @@ class CheckoutAddressPlugin(DialogFormPluginBase):
 
         address = self.get_address(form_data['cart'], instance)
         if instance.glossary.get('allow_multiple'):
-            form_data.update(multi_addr=True)
+            AddressModel = self.get_form_class(instance).get_model()
+            addresses = AddressModel.objects.filter(customer=context['request'].customer).order_by('priority')
+            form_entities = []
+            for number, addr in enumerate(addresses, 1):
+                form_entities.append({
+                    'value': str(addr.priority),
+                    'label': "{}. {}".format(number, addr.as_text().strip().replace('\n', ' – '))
+                })
+            form_data.update(multi_addr=True, form_entities=form_entities)
         else:
             form_data.update(multi_addr=False)
 
@@ -398,7 +401,7 @@ class ValidateSetOfFormsPlugin(TransparentContainer, ShopPluginBase):
     This plugin wraps arbitrary forms into the Angular directive shopFormsSet.
     This is required to validate all forms, so that a proceed button is disabled otherwise.
     """
-    name = _("Manage Set of Forms")
+    name = _("Validate Set of Forms")
     allow_children = True
     alien_child_classes = True
 
