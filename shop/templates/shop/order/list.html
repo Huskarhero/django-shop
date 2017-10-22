@@ -1,6 +1,5 @@
 {% extends "shop/order/base.html" %}
 {% load i18n cms_tags %}
-{% load render_plugin from cascade_tags %}
 
 {% block shop-order-table %}
 
@@ -41,8 +40,4 @@
 	</tfoot>
 		{% endif %}
 	{% endblock shop-order-tfoot %}
-
-	<!-- {# DON'T DELETE THIS LINE #}{% render_plugin instance.left_extension %} -->
-	<!-- {# DON'T DELETE THIS LINE #}{% render_plugin instance.right_extension %} -->
-
 {% endblock shop-order-table %}

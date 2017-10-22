@@ -30,7 +30,7 @@ Module.directive('shopProductFilter', ['$location', function($location) {
 					}
 				});
 				scope.searchQuery = '';  // remove content in search field
-				scope.$emit('shop.catalog.filter', params);
+				scope.$emit('shopCatalogFilter', params);
 			};
 		}
 	};

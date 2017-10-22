@@ -315,13 +315,11 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         for order_item in self.items.all():
             extra = dict(order_item.extra)
             extra.pop('rows', None)
-            extra.update(product_code=order_item.product_code)
             cart_item = order_item.product.is_in_cart(cart, **extra)
             if cart_item:
                 cart_item.quantity = max(cart_item.quantity, order_item.quantity)
             else:
                 cart_item = CartItemModel(cart=cart, product=order_item.product,
-                                          product_code=order_item.product_code,
                                           quantity=order_item.quantity, extra=extra)
             cart_item.save()
 
@@ -365,20 +363,6 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         by all external plugins to check, if an Order object has been fully paid.
         """
 
-    def cancelable(self):
-        """
-        Returns True if the current Order is cancelable.
-
-        This method is just a hook and must be overridden by a mixin class
-        managing Order cancellations.
-        """
-        return False
-
-    def refund_payment(self):
-        """
-        Hook to handle payment refunds.
-        """
-
     @classmethod
     def get_all_transitions(cls):
         """
@@ -400,7 +384,6 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
 OrderModel = deferred.MaterializedModel(BaseOrder)
 
 
-@python_2_unicode_compatible
 class OrderPayment(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     """
     A model to hold received payments for a given order.
@@ -435,9 +418,6 @@ class OrderPayment(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     class Meta:
         verbose_name = pgettext_lazy('order_models', "Order payment")
         verbose_name_plural = pgettext_lazy('order_models', "Order payments")
-
-    def __str__(self):
-        return _("Payment ID: {}").format(self.id)
 
 
 @python_2_unicode_compatible
