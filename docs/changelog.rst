@@ -7,7 +7,6 @@ Changelog for django-SHOP
 0.11.2
 ======
 * Do not render buttons and links related to the watch-list, when it is not available.
-* Fix: Adopt polymorphic ModelAdmin-s to django-polymorphic>=1.0.
 
 
 0.11.1
@@ -15,6 +14,7 @@ Changelog for django-SHOP
 
 * Fix migration ``0007_notification`` to handle field ``mail_to`` correctly.
 * Allow transition to cancel order only for special targets.
+* Add operator to test Money type against booleans.
 
 
 0.11
