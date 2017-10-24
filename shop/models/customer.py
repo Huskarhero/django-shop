@@ -229,22 +229,22 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
 
     @property
     def first_name(self):
-        # pending deprecation: warnings.warn("Property first_name is deprecated and will be removed")
+        warnings.warn("Property first_name is deprecated and will be removed")
         return self.user.first_name
 
     @first_name.setter
     def first_name(self, value):
-        # pending deprecation: warnings.warn("Property first_name is deprecated and will be removed")
+        warnings.warn("Property first_name is deprecated and will be removed")
         self.user.first_name = value
 
     @property
     def last_name(self):
-        # pending deprecation: warnings.warn("Property last_name is deprecated and will be removed")
+        warnings.warn("Property last_name is deprecated and will be removed")
         return self.user.last_name
 
     @last_name.setter
     def last_name(self, value):
-        # pending deprecation: warnings.warn("Property last_name is deprecated and will be removed")
+        warnings.warn("Property last_name is deprecated and will be removed")
         self.user.last_name = value
 
     @property
