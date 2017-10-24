@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.conf.urls import url
+from rest_auth.views import PasswordChangeView
 from shop.forms.auth import RegisterUserForm, ContinueAsGuestForm
-from shop.views.auth import AuthFormsView, LoginView, LogoutView, PasswordChangeView, PasswordResetView
+from shop.views.auth import AuthFormsView, LoginView, LogoutView, PasswordResetView
 
 urlpatterns = [
     url(r'^password/reset/?$', PasswordResetView.as_view(),
