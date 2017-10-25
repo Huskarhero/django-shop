@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from enum import Enum, EnumMeta
+import enum
 
 from django.conf import settings
 from django.db import models
-from django.utils.six import python_2_unicode_compatible, with_metaclass, string_types, PY2
+from django.utils.six import python_2_unicode_compatible, with_metaclass, string_types
 from django.utils.translation import ugettext_lazy as _, ugettext
 
 
@@ -31,15 +31,7 @@ class JSONField(_JSONField):
         return name, path, args, kwargs
 
 
-class ChoiceEnumMeta(EnumMeta):
-    def __new__(cls, name, bases, attrs):
-        new_class = super(ChoiceEnumMeta, cls).__new__(cls, name, bases, attrs)
-        values = [p.value for p in new_class.__members__.values()]
-        if len(values) > len(set(values)):
-            msg = "Duplicate values found in class '{}'".format(name)
-            raise ValueError(msg)
-        return new_class
-
+class ChoiceEnumMeta(enum.EnumMeta):
     def __call__(cls, value, *args, **kwargs):
         if isinstance(value, string_types):
             try:
@@ -48,13 +40,9 @@ class ChoiceEnumMeta(EnumMeta):
                 pass  # let the super method complain
         return super(ChoiceEnumMeta, cls).__call__(value, *args, **kwargs)
 
-if PY2:
-    ENUM=with_metaclass(ChoiceEnumMeta, Enum)
-else:
-    ENUM=Enum
 
 @python_2_unicode_compatible
-class ChoiceEnum(ENUM):
+class ChoiceEnum(with_metaclass(ChoiceEnumMeta, enum.Enum)):
     """
     Utility class to handle choices in Django model fields
     """
@@ -78,7 +66,7 @@ class ChoiceEnumField(models.PositiveSmallIntegerField):
     description = _("Customer recognition state")
 
     def __init__(self, *args, **kwargs):
-        self.enum_type = kwargs.pop('enum_type', ChoiceEnum)
+        self.enum_type = kwargs.pop('enum_type', ChoiceEnum)  # fallback is required form migrations
         if not issubclass(self.enum_type, ChoiceEnum):
             raise ValueError("enum_type must be a subclass of `ChoiceEnum`.")
         kwargs.update(choices=self.enum_type.choices())
@@ -104,11 +92,14 @@ class ChoiceEnumField(models.PositiveSmallIntegerField):
     def get_prep_value(self, state):
         if isinstance(state, self.enum_type):
             return state.value
-        return state
+        if isinstance(state, int):
+            return state
+        raise ValueError("Value must be of type {}".format(self.enum_type))
 
     def to_python(self, state):
         return self.enum_type(state)
 
     def value_to_string(self, obj):
-        value = self.value_from_object(obj)
-        return value.name
+        if not isinstance(obj, self.enum_type):
+            raise ValueError("Value must be of type {}".format(self.enum_type))
+        return obj.name
