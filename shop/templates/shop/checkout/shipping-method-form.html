@@ -17,14 +17,14 @@
 {% if shipping_method_form.has_choices %}
 	{{ shipping_method_form.as_div }}
 	{% if show_additional_charge %}
-	<ul class="additional-charge">
+	<div class="additional-charge">
 		{% for choice, label in shipping_method_form.shipping_modifier.field.choices %}
-		<li ng-repeat="extra_row in cart.extra_rows|filter:{modifier:'{{ choice }}'}">{% trans "Additional charge" %}: {% verbatim %}{{ extra_row.amount }}{% endverbatim %}</li>
+		<p ng-repeat="extra_row in cart.extra_rows|filter:{modifier:'{{ choice }}'}">{% trans "Additional charge" %}: {% verbatim %}{{ extra_row.amount }}{% endverbatim %}</p>
 		{% endfor %}
 		{% if shipping_modifiers.initial_row %}
-		<li ng-if="!cart.extra_rows">{% trans "Additional charge" %}: {{ shipping_modifiers.initial_row.amount }}</li>
+		<p ng-if="!cart.extra_rows">{% trans "Additional charge" %}: {{ shipping_modifiers.initial_row.amount }}</p>
 		{% endif %}
-	</ul>
+	</div>
 	{% endif %}
 {% else %}
 	<input name="__force_invalidation__" style="display: none;" required />
