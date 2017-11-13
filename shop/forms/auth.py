@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model, authenticate, login
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ValidationError
 from django.forms import widgets, ModelForm
+from django.template import Context
 from django.template.loader import select_template
 from django.utils.translation import ugettext_lazy as _
 
@@ -78,13 +79,13 @@ class RegisterUserForm(NgModelFormMixin, NgFormValidationMixin, UniqueEmailValid
 
     def _send_password(self, request, user, password):
         current_site = get_current_site(request)
-        context = {
+        context = Context({
             'site_name': current_site.name,
             'absolute_base_uri': request.build_absolute_uri('/'),
             'email': user.email,
             'password': password,
             'user': user,
-        }
+        })
         subject = select_template([
             '{}/email/register-user-subject.txt'.format(app_settings.APP_LABEL),
             'shop/email/register-user-subject.txt',

@@ -36,6 +36,5 @@ class Serializer(DjangoSerializer):
                 self.stream.write(" ")
         if indent:
             self.stream.write("\n")
-        kwargs = dict(self.json_kwargs, cls=JSONEncoder)
-        json.dump(self.get_dump_object(obj), self.stream, **kwargs)
+        json.dump(self.get_dump_object(obj), self.stream, cls=JSONEncoder, **self.json_kwargs)
         self._current = None

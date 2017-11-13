@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from django.conf import settings
 from django.template import Context
 from django.template.loader import select_template
@@ -52,7 +51,7 @@ class ProductIndex(indexes.SearchIndex):
             ('shop', prefix, 'product', postfix),
         ]
         template = select_template(['{0}/products/{1}-{2}-{3}.html'.format(*p) for p in params])
-        context = {'product': product}
+        context = Context({'product': product})
         content = strip_spaces_between_tags(template.render(context).strip())
         return mark_safe(content)
 

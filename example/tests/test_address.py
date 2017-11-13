@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import json
 
-from django import VERSION as DJANGO_VERSION
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 
@@ -99,7 +98,7 @@ class AddressFormTest(APITestCase):
             'city': "Baltimore",
             'zip_code': "MD 21201",
             'country': "US",
-        }
+         }
         url = reverse('shop:checkout-upload')
 
         # Charles adds the first address
@@ -157,6 +156,7 @@ class AddressFormTest(APITestCase):
         response = json.loads(response.content.decode('utf-8'))
         self.assertTrue(response['data']['$valid'])
         self.cart.refresh_from_db()
+        print(self.cart.shipping_address_id)
         self.assertEqual(self.cart.shipping_address.as_text(),
                          "Charles Smith\n507, Dudley St.\nPA 19148 Philadelphia\nUnited States\n")
 
