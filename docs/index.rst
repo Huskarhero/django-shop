@@ -14,7 +14,7 @@ Django-SHOP documentation
 Upgrading
 =========
 If you are upgrading from an earlier version, please be sure to read the
-:ref:`release-notes`.
+:doc:`upgrade instructions <upgrading>`.
 
 
 Tutorial
@@ -90,8 +90,8 @@ Development and Community
     :maxdepth: 1
 
     changelog
-    release-notes/index
-    faq
+    releases/0.11
+    upgrading
     contributing
     authors
 

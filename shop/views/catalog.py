@@ -9,7 +9,6 @@ from django.utils.cache import add_never_cache_headers
 from django.utils.translation import get_language_from_request
 
 from rest_framework import generics
-from rest_framework import pagination
 from rest_framework import status
 from rest_framework import views
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -67,7 +66,7 @@ class ProductListView(generics.ListAPIView):
         return response
 
     def get_queryset(self):
-        qs = self.product_model.objects.filter(self.limit_choices_to, active=True)
+        qs = self.product_model.objects.filter(self.limit_choices_to)
         # restrict queryset by language
         if hasattr(self.product_model, 'translations'):
             language = get_language_from_request(self.request)
@@ -214,17 +213,11 @@ class ProductRetrieveView(generics.RetrieveAPIView):
         if not hasattr(self, '_product'):
             assert self.lookup_url_kwarg in self.kwargs
             filter_kwargs = {self.lookup_field: self.kwargs[self.lookup_url_kwarg]}
-            filter_kwargs.update(active=True)
             if hasattr(self.product_model, 'translations'):
                 filter_kwargs.update(translations__language_code=get_language_from_request(self.request))
             queryset = self.product_model.objects.filter(self.limit_choices_to, **filter_kwargs)
             self._product = get_object_or_404(queryset)
         return self._product
-
-
-class OnePageResultsSetPagination(pagination.PageNumberPagination):
-    def __init__(self):
-        self.page_size= ProductModel.objects.count()
 
 
 class ProductSelectView(generics.ListAPIView):
@@ -234,13 +227,12 @@ class ProductSelectView(generics.ListAPIView):
     """
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     serializer_class = app_settings.PRODUCT_SELECT_SERIALIZER
-    pagination_class = OnePageResultsSetPagination
 
     def get_queryset(self):
         term = self.request.GET.get('term', '')
         if len(term) >= 2:
-            return ProductModel.objects.select_lookup(term)
-        return ProductModel.objects.all()
+            return ProductModel.objects.select_lookup(term)[:10]
+        return ProductModel.objects.all()[:10]
 
 
 class AddFilterContextMixin(object):
