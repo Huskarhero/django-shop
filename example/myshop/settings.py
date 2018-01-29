@@ -66,6 +66,13 @@ TIME_ZONE = 'Europe/Vienna'
 # allowing to login via email address
 AUTH_USER_MODEL = 'email_auth.User'
 
+AUTH_PASSWORD_VALIDATORS = [{
+    'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    'OPTIONS': {
+        'min_length': 6,
+    }
+}]
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
@@ -118,7 +125,6 @@ if SHOP_TUTORIAL in ['i18n_commodity', 'i18n_smartcard', 'i18n_polymorphic']:
     INSTALLED_APPS.append('parler')
 
 MIDDLEWARE_CLASSES = [
-    'djng.middleware.AngularUrlMiddleware',
     # 'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -128,7 +134,6 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.gzip.GZipMiddleware',
-    'shop.middleware.MethodOverrideMiddleware',
     'cms.middleware.language.LanguageCookieMiddleware',
     'cms.middleware.user.CurrentUserMiddleware',
     'cms.middleware.page.CurrentPageMiddleware',
@@ -574,16 +579,21 @@ SHOP_CART_MODIFIERS.extend([
     'shop.modifiers.defaults.PayInAdvanceModifier',
 ])
 
-if 'shop_stripe' in INSTALLED_APPS:
-    SHOP_CART_MODIFIERS.append('myshop.modifiers.StripePaymentModifier')
-
 SHOP_EDITCART_NG_MODEL_OPTIONS = "{updateOn: 'default blur', debounce: {'default': 2500, 'blur': 0}}"
 
 SHOP_ORDER_WORKFLOWS = [
     'shop.payment.defaults.ManualPaymentWorkflowMixin',
     'shop.payment.defaults.CancelOrderWorkflowMixin',
-    'shop_stripe.payment.OrderWorkflowMixin',
 ]
+
+if 'shop_stripe' in INSTALLED_APPS:
+    SHOP_CART_MODIFIERS.append('myshop.modifiers.StripePaymentModifier')
+    SHOP_ORDER_WORKFLOWS.append('shop_stripe.payment.OrderWorkflowMixin')
+
+if 'shop_sendcloud' in INSTALLED_APPS:
+    SHOP_CART_MODIFIERS.append('shop_sendcloud.modifiers.SendcloudShippingModifier')
+    SHOP_ORDER_WORKFLOWS.append('shop_sendcloud.shipping.OrderWorkflowMixin')
+
 if SHOP_TUTORIAL in ['i18n_polymorphic', 'polymorphic']:
     SHOP_ORDER_WORKFLOWS.append('shop.shipping.delivery.PartialDeliveryWorkflowMixin')
 else:

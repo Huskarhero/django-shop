@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from six import with_metaclass
 from decimal import Decimal
 
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db import models, transaction
 from django.db.models.aggregates import Sum
@@ -16,7 +16,6 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _, pgettext_lazy, get_language_from_request
 from django.utils.six.moves.urllib.parse import urljoin
-from rest_framework.exceptions import PermissionDenied
 
 from django_fsm import FSMField, transition
 from ipware.ip import get_ip
@@ -87,8 +86,8 @@ class OrderManager(models.Manager):
         request object.
         """
         if request.customer.is_visitor():
-            detail = _("Only signed in customers can view their orders")
-            raise PermissionDenied(detail=detail)
+            msg = _("Only signed in customers can view their orders")
+            raise PermissionDenied(msg)
         return self.get_queryset().filter(customer=request.customer).order_by('-updated_at', )
 
     def get_summary_url(self):
@@ -316,6 +315,7 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         for order_item in self.items.all():
             extra = dict(order_item.extra)
             extra.pop('rows', None)
+            extra.update(product_code=order_item.product_code)
             cart_item = order_item.product.is_in_cart(cart, **extra)
             if cart_item:
                 cart_item.quantity = max(cart_item.quantity, order_item.quantity)
