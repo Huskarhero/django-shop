@@ -54,9 +54,9 @@ class DefaultSettings(object):
         * ``{currency}``: This is replaced by Euro, US Dollar, Pound Sterling, etc.
         * ``{code}``: This is replaced by EUR, USD, GBP, etc.
         * ``{amount}``: The localized amount.
-        * ``{minus}``: Only for negative amounts, where to put the ``-`` (minus) sign.
+        * ``{minus}``: Only for negative amounts, where to put the ``-`` sign.
 
-        For further information about formatting currency amounts, please read
+        For further information about formatting currency amounts, please refer to
         https://docs.microsoft.com/en-us/globalization/locale/currency-formatting
         """
         return self._setting('SHOP_MONEY_FORMAT', '{minus}{symbol} {amount}')
