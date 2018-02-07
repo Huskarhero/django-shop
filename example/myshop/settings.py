@@ -285,7 +285,6 @@ if REDIS_HOST:
         'host': REDIS_HOST,
         'port': 6379,
         'db': 0,
-        'prefix': 'session-{}'.format(SHOP_TUTORIAL),
         'socket_timeout': 1
     }
 
