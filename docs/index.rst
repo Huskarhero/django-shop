@@ -14,7 +14,7 @@ Django-SHOP documentation
 Upgrading
 =========
 If you are upgrading from an earlier version, please be sure to read the
-:doc:`upgrade instructions <upgrading>`.
+:ref:`release-notes`.
 
 
 Tutorial
@@ -83,22 +83,6 @@ Some recipes on how to perform certain tasks in **django-SHOP**.
     howto/handling-discounts
     howto/handling-taxes
 
-
-Django/Python compatibility table
-=================================
-
-===========  ===  ===  ====  ====  ===  ===  ===  ===  ===
-django-SHOP  Django                     Python
------------  -------------------------  ------------------
-\            1.8  1.9  1.10  1.11  2.0  2.7  3.4  3.5  3.6
-===========  ===  ===  ====  ====  ===  ===  ===  ===  ===
-0.10.x        ✓    ✓    ⨯     ⨯     ⨯    ✓    ✓   ✓    ⨯
-0.11.x        ⨯    ✓    ✓     ⨯     ⨯    ✓    ✓   ✓    ✓
-0.12.x        ⨯    ⨯    ⨯     ✓     ⨯    ✓    ✓   ✓    ✓
-0.13.x        ⨯    ⨯    ⨯     ✓     ⨯    ✓    ✓   ✓    ✓
-===========  ===  ===  ====  ====  ===  ===  ===  ===  ===
-
-
 Development and Community
 =========================
 
@@ -106,8 +90,8 @@ Development and Community
     :maxdepth: 1
 
     changelog
-    releases/0.11
-    upgrading
+    release-notes/index
+    faq
     contributing
     authors
 
