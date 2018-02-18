@@ -2,19 +2,16 @@
 from __future__ import unicode_literals
 
 from six import with_metaclass
-import warnings
 from collections import OrderedDict
-
 from django.db import models
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
-
-from shop import deferred
 from shop.models.fields import JSONField
-from shop.models.customer import CustomerModel
-from shop.models.product import BaseProduct
 from shop.modifiers.pool import cart_modifiers_pool
 from shop.money import Money
+from .product import BaseProduct
+from shop import deferred
+from shop.models.customer import CustomerModel
 
 
 class CartItemManager(models.Manager):
@@ -146,18 +143,14 @@ class CartManager(models.Manager):
         """
         if request.customer.is_visitor():
             raise self.model.DoesNotExist("Cart for visiting customer does not exist.")
-        if not hasattr(request, '_cached_cart') or request._cached_cart.customer.user_id != request.customer.user_id:
-            request._cached_cart, created = self.get_or_create(customer=request.customer)
-        return request._cached_cart
+        cart, created = self.get_or_create(customer=request.customer)
+        return cart
 
     def get_or_create_from_request(self, request):
-        has_cached_cart = hasattr(request, '_cached_cart')
         if request.customer.is_visitor():
             request.customer = CustomerModel.objects.get_or_create_from_request(request)
-            has_cached_cart = False
-        if not has_cached_cart or request._cached_cart.customer.user_id != request.customer.user_id:
-            request._cached_cart, created = self.get_or_create(customer=request.customer)
-        return request._cached_cart
+        cart, created = self.get_or_create(customer=request.customer)
+        return cart
 
 
 class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
@@ -267,8 +260,6 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         This is done item by item, so that duplicate items increase the quantity.
         """
         # iterate over the cart and add quantities for items from other cart considered as equal
-        if self.id == other_cart.id:
-            raise RuntimeError("Can not merge cart with itself")
         for item in self.items.all():
             other_item = item.product.is_in_cart(other_cart, extra=item.extra)
             if other_item:
@@ -305,13 +296,11 @@ class BaseCart(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         return self.total_quantity == 0
 
     def get_caption_data(self):
-        warnings.warn("This method is deprecated")
         return {'num_items': self.num_items, 'total_quantity': self.total_quantity,
                 'subtotal': self.subtotal, 'total': self.total}
 
     @classmethod
     def get_default_caption_data(cls):
-        warnings.warn("This method is deprecated")
         return {'num_items': 0, 'total_quantity': 0, 'subtotal': Money(), 'total': Money()}
 
 CartModel = deferred.MaterializedModel(BaseCart)
