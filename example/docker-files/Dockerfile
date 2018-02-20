@@ -5,7 +5,7 @@ LABEL Description="Run django-SHOP demo" Maintainer="Jacob Rief <jacob.rief@gmai
 RUN mkdir /web
 WORKDIR /web
 ARG DJANGO_WORKDIR=/web/workdir
-ARG DJANGO_STATIC_ROOT=$DJANGO_WORKDIR/static
+ARG DJANGO_STATIC_ROOT=/web/staticfiles
 
 # install packages outside of PyPI
 RUN apt-get upgrade -y
@@ -25,7 +25,7 @@ COPY example/docker-files/uwsgi.ini /web/uwsgi.ini
 COPY example/requirements.txt /web/requirements/myshop.txt
 
 # install project specific requirements
-RUN pip install psycopg2 uWSGI 'Django<1.11' 'django-select2<6'
+RUN pip install psycopg2-binary uWSGI 'Django<2.0' 'django-select2<6.1' 'django-angular<2.1'
 RUN pip install -r /web/requirements/myshop.txt
 RUN npm install
 RUN useradd -M -d /web -s /bin/bash django
