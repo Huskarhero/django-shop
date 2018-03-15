@@ -5,7 +5,7 @@ services:
     restart: always
     image: postgres
     env_file:
-      - example/docker-files/databases.environ
+      - example/docker-files/environ
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -45,8 +45,15 @@ services:
     environment:
       - DJANGO_SHOP_TUTORIAL
       - POSTGRES_DB=myshop_$DJANGO_SHOP_TUTORIAL
+      - DJANGO_EMAIL_HOST
+      - DJANGO_EMAIL_PORT
+      - DJANGO_EMAIL_USER
+      - DJANGO_EMAIL_PASSWORD
+      - DJANGO_EMAIL_USE_TLS
+      - DJANGO_EMAIL_FROM
+      - DJANGO_EMAIL_REPLY_TO
     env_file:
-      - example/docker-files/databases.environ
+      - example/docker-files/environ
     volumes:
       - shopmedia:/web/workdir
     depends_on:
@@ -58,25 +65,6 @@ services:
     command: uwsgi --ini uwsgi.ini
     ports:
       - 9009:9009
-
-  worker:
-    restart: always
-    image: demoshop
-    environment:
-      - DJANGO_SHOP_TUTORIAL
-      - POSTGRES_DB=myshop_$DJANGO_SHOP_TUTORIAL
-      - DJANGO_SETTINGS_MODULE=myshop.settings
-    env_file:
-      - example/docker-files/databases.environ
-      - example/docker-files/email.environ
-    command: su django -c /web/worker.py
-    volumes:
-      - shopmedia:/web/workdir
-    depends_on:
-      - postgresdb
-      - redishost
-    networks:
-      - shopnet
 
 networks:
   shopnet:
