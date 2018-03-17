@@ -10,6 +10,7 @@ from django.utils.cache import add_never_cache_headers
 from django.utils.translation import get_language_from_request
 
 from rest_framework import generics
+from rest_framework import pagination
 from rest_framework import status
 from rest_framework import views
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -54,8 +55,8 @@ class ProductListView(generics.ListAPIView):
 
     :param filter_class: A filter set which must be inherit from :class:`django_filters.FilterSet`.
 
-    :param redirect_to_lonely_product: If ``True``, redirect onto a lonely product.
-        Defaults to ``False``.
+    :param redirect_to_lonely_product: If ``True``, redirect onto a lonely product in the
+        catalog. Defaults to ``False``.
     """
 
     renderer_classes = (CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer)
@@ -69,9 +70,10 @@ class ProductListView(generics.ListAPIView):
         if self.redirect_to_lonely_product and self.get_queryset().count() == 1:
             redirect_to = self.get_queryset().first().get_absolute_url()
             return HttpResponseRedirect(redirect_to)
+
+        response = self.list(request, *args, **kwargs)
         # TODO: we must find a better way to invalidate the cache.
         # Simply adding a no-cache header eventually decreases the performance dramatically.
-        response = self.list(request, *args, **kwargs)
         add_never_cache_headers(response)
         return response
 
@@ -87,9 +89,9 @@ class ProductListView(generics.ListAPIView):
 
 class SyncCatalogView(views.APIView):
     """
-    This view is used to synchronize the number items in the cart from using the catalog's list
+    This view is used to synchronize the number of items in the cart from using the catalog's list
     view. It is intended for sites, where we don't want having to access the product's detail
-    view for adding it to the cart.
+    view for adding each product individually to the cart.
 
     Use Angular directive <ANY shop-sync-catalog-item="..."> on each catalog item to set up
     the communication with this view.
@@ -253,6 +255,11 @@ class ProductRetrieveView(generics.RetrieveAPIView):
         return self._product
 
 
+class OnePageResultsSetPagination(pagination.PageNumberPagination):
+    def __init__(self):
+        self.page_size= ProductModel.objects.count()
+
+
 class ProductSelectView(generics.ListAPIView):
     """
     A simple list view, which is used only by the admin backend. It is required to fetch
@@ -260,12 +267,13 @@ class ProductSelectView(generics.ListAPIView):
     """
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     serializer_class = app_settings.PRODUCT_SELECT_SERIALIZER
+    pagination_class = OnePageResultsSetPagination
 
     def get_queryset(self):
         term = self.request.GET.get('term', '')
         if len(term) >= 2:
-            return ProductModel.objects.select_lookup(term)[:10]
-        return ProductModel.objects.all()[:10]
+            return ProductModel.objects.select_lookup(term)
+        return ProductModel.objects.all()
 
 
 class AddFilterContextMixin(object):
