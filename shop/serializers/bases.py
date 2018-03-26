@@ -47,7 +47,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_price(self, product):
         price = product.get_price(self.context['request'])
-        # TODO: check if this can be simplified using str(product.get_price(...))
         if six.PY2:
             return u'{:f}'.format(price)
         return '{:f}'.format(price)
