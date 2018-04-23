@@ -7,7 +7,6 @@ from django import forms
 from django.core.cache import cache
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib import admin
-from django.contrib.sites.models import Site
 from django.utils.translation import ugettext_lazy as _
 
 from adminsortable2.admin import SortableInlineAdminMixin
@@ -33,13 +32,6 @@ def _find_catalog_list_apphook():
     else:
         raise ImproperlyConfigured("You must register a CMS apphook of type `CatalogListCMSApp`.")
 
-class CategoryModelMultipleChoiceField(forms.ModelMultipleChoiceField):
-    def label_from_instance(self, obj):
-        if Site.objects.count() >=2 :
-            page_sitename=str(Site.objects.filter(djangocms_nodes=obj.node_id).first().name)
-            return '{} | {}'.format(str(obj), page_sitename)
-        else:
-            return str(obj)
 
 class CMSPageAsCategoryMixin(object):
     """
@@ -76,7 +68,7 @@ class CMSPageAsCategoryMixin(object):
             queryset = Page.objects.filter(**limit_choices_to)
             widget = admin.widgets.FilteredSelectMultiple(_("CMS Pages"), False)
             required = not db_field.blank
-            field = CategoryModelMultipleChoiceField(queryset=queryset, widget=widget, required=required)
+            field = forms.ModelMultipleChoiceField(queryset=queryset, widget=widget, required=required)
             return field
         return super(CMSPageAsCategoryMixin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
