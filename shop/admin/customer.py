@@ -18,7 +18,7 @@ class CustomerInlineAdminBase(admin.StackedInline):
     fieldsets = [
         (None, {'fields': ['get_number']}),
     ]
-    readonly_fields = ('get_number',)
+    readonly_fields = ['get_number']
 
     def get_extra(self, request, obj=None, **kwargs):
         return 0 if obj is None else 1
@@ -76,7 +76,7 @@ class CustomerAdminBase(UserAdmin):
     ```
     @admin.register(CustomerProxy)
     class CustomerAdmin(CustomerAdminBase):
-        inlines = (CustomerInlineAdminBase,)
+        inlines = [CustomerInlineAdminBase]
     ```
     """
     form = CustomerChangeForm
