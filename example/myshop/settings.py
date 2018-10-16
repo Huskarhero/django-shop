@@ -19,8 +19,6 @@ from django.core.urlresolvers import reverse_lazy
 
 from cmsplugin_cascade.utils import format_lazy
 
-import six
-
 SHOP_APP_LABEL = 'myshop'
 BASE_DIR = os.path.dirname(__file__)
 
@@ -300,9 +298,6 @@ if REDIS_HOST:
         'default': {
             'BACKEND': 'redis_cache.RedisCache',
             'LOCATION': 'redis://{}:6379/1'.format(REDIS_HOST),
-             'OPTIONS': {
-                 'PICKLE_VERSION': 2 if six.PY2 else -1,
-             }
         },
         'compressor': {
             'BACKEND': 'redis_cache.RedisCache',
@@ -541,7 +536,7 @@ CMSPLUGIN_CASCADE = {
 
 CKEDITOR_SETTINGS = {
     'language': '{{ language }}',
-    'skin': 'moono-lisa',
+    'skin': 'moono',
     'toolbar': 'CMS',
     'toolbar_HTMLField': [
         ['Undo', 'Redo'],
@@ -561,7 +556,7 @@ CKEDITOR_SETTINGS = {
 
 CKEDITOR_SETTINGS_CAPTION = {
     'language': '{{ language }}',
-    'skin': 'moono-lisa',
+    'skin': 'moono',
     'height': 70,
     'toolbar_HTMLField': [
         ['Undo', 'Redo'],
@@ -573,7 +568,7 @@ CKEDITOR_SETTINGS_CAPTION = {
 
 CKEDITOR_SETTINGS_DESCRIPTION = {
     'language': '{{ language }}',
-    'skin': 'moono-lisa',
+    'skin': 'moono',
     'height': 250,
     'toolbar_HTMLField': [
         ['Undo', 'Redo'],

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.core.exceptions import PermissionDenied
 from django.forms.fields import CharField
 from django.forms import widgets
 from django.template import engines
@@ -30,6 +30,7 @@ from cmsplugin_cascade.plugin_base import TransparentContainer
 from cmsplugin_cascade.bootstrap3.buttons import BootstrapButtonMixin
 
 from shop.conf import app_settings
+from shop.forms.checkout import AcceptConditionForm
 from shop.models.cart import CartModel
 from shop.modifiers.pool import cart_modifiers_pool
 from .plugin_base import ShopPluginBase, ShopButtonPluginBase, DialogFormPluginBase
@@ -111,7 +112,7 @@ class CustomerFormPlugin(CustomerFormPluginBase):
     if customer declared himself as registered.
     """
     name = _("Customer Form")
-    form_class = app_settings.SHOP_CASCADE_FORMS['CustomerForm']
+    form_class = 'shop.forms.checkout.CustomerForm'
 
     def render(self, context, instance, placeholder):
         if not context['request'].customer.is_registered():
@@ -128,7 +129,7 @@ class GuestFormPlugin(CustomerFormPluginBase):
     himself as guest.
     """
     name = _("Guest Form")
-    form_class = app_settings.SHOP_CASCADE_FORMS['GuestForm']
+    form_class = 'shop.forms.checkout.GuestForm'
 
     def render(self, context, instance, placeholder):
         if not context['customer'].is_guest():
@@ -142,7 +143,7 @@ DialogFormPluginBase.register_plugin(GuestFormPlugin)
 class CheckoutAddressPlugin(DialogFormPluginBase):
     name = _("Checkout Address Form")
     glossary_field_order = ['address_form', 'render_type', 'allow_multiple', 'allow_use_primary', 'headline_legend']
-    form_classes = [app_settings.SHOP_CASCADE_FORMS['ShippingAddressForm'], app_settings.SHOP_CASCADE_FORMS['BillingAddressForm']]
+    form_classes = ['shop.forms.checkout.ShippingAddressForm', 'shop.forms.checkout.BillingAddressForm']
     ADDRESS_CHOICES = [('shipping', _("Shipping")), ('billing', _("Billing"))]
 
     address_form = GlossaryField(
@@ -231,7 +232,7 @@ DialogFormPluginBase.register_plugin(CheckoutAddressPlugin)
 
 class PaymentMethodFormPlugin(DialogFormPluginBase):
     name = _("Payment Method Form")
-    form_class = app_settings.SHOP_CASCADE_FORMS['PaymentMethodForm']
+    form_class = 'shop.forms.checkout.PaymentMethodForm'
     template_leaf_name = 'payment-method-{}.html'
 
     show_additional_charge = GlossaryField(
@@ -262,7 +263,7 @@ if cart_modifiers_pool.get_payment_modifiers():
 
 class ShippingMethodFormPlugin(DialogFormPluginBase):
     name = _("Shipping Method Form")
-    form_class = app_settings.SHOP_CASCADE_FORMS['ShippingMethodForm']
+    form_class = 'shop.forms.checkout.ShippingMethodForm'
     template_leaf_name = 'shipping-method-{}.html'
 
     show_additional_charge = GlossaryField(
@@ -293,7 +294,7 @@ if cart_modifiers_pool.get_shipping_modifiers():
 
 class ExtraAnnotationFormPlugin(DialogFormPluginBase):
     name = _("Extra Annotation Form")
-    form_class = app_settings.SHOP_CASCADE_FORMS['ExtraAnnotationForm']
+    form_class = 'shop.forms.checkout.ExtraAnnotationForm'
     template_leaf_name = 'extra-annotation-{}.html'
 
     def get_form_data(self, context, instance, placeholder):
@@ -306,8 +307,49 @@ class ExtraAnnotationFormPlugin(DialogFormPluginBase):
 DialogFormPluginBase.register_plugin(ExtraAnnotationFormPlugin)
 
 
+class AcceptConditionFormPlugin(DialogFormPluginBase):
+    """
+    Deprecated. Use AcceptConditionPlugin instead.
+    """
+    name = _("Accept Condition (deprecated)")
+    form_class = 'shop.forms.checkout.AcceptConditionForm'
+    template_leaf_name = 'accept-condition.html'
+    html_parser = HTMLParser()
+    change_form_template = 'cascade/admin/text_plugin_change_form.html'
+
+    @classmethod
+    def get_identifier(cls, instance):
+        html_content = cls.html_parser.unescape(instance.glossary.get('html_content', ''))
+        html_content = strip_tags(html_content)
+        html_content = Truncator(html_content).words(3, truncate=' ...')
+        return mark_safe(html_content)
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            html_content = self.html_parser.unescape(obj.glossary.get('html_content', ''))
+            obj.glossary.update(html_content=html_content)
+            text_editor_widget = TextEditorWidget(installed_plugins=[TextLinkPlugin], pk=obj.pk,
+                                           placeholder=obj.placeholder, plugin_language=obj.language)
+            kwargs['glossary_fields'] = (
+                GlossaryField(text_editor_widget, label=_("HTML content"), name='html_content'),
+            )
+        return super(AcceptConditionFormPlugin, self).get_form(request, obj, **kwargs)
+
+    def render(self, context, instance, placeholder):
+        self.super(AcceptConditionFormPlugin, self).render(context, instance, placeholder)
+        accept_condition_form = context['accept_condition_form.plugin_{}'.format(instance.id)]
+        html_content = self.html_parser.unescape(instance.glossary.get('html_content', ''))
+        html_content = plugin_tags_to_user_html(html_content, context)
+        # transfer the stored HTML content into the widget's label
+        accept_condition_form['accept'].field.widget.choice_label = mark_safe(html_content)
+        context['accept_condition_form'] = accept_condition_form
+        return context
+
+# DialogFormPluginBase.register_plugin(AcceptConditionFormPlugin)
+
 class AcceptConditionMixin(object):
     render_template = 'shop/checkout/accept-condition.html'
+    FormClass = AcceptConditionForm
 
     def render(self, context, instance, placeholder):
         """
@@ -320,13 +362,8 @@ class AcceptConditionMixin(object):
         except CartModel.DoesNotExist:
             cart = None
         request._plugin_order = getattr(request, '_plugin_order', 0) + 1
-        try:
-            FormClass = import_string(app_settings.SHOP_CASCADE_FORMS['AcceptConditionForm'])
-        except ImportError:
-            msg = "Can not import Form class. Please check your settings directive SHOP_CASCADE_FORMS['AcceptConditionForm']."
-            raise ImproperlyConfigured(msg)
         form_data = {'cart': cart, 'initial': dict(plugin_id=instance.pk, plugin_order=request._plugin_order)}
-        bound_form = FormClass(**form_data)
+        bound_form = self.FormClass(**form_data)
         context[bound_form.form_name] = bound_form
         super(AcceptConditionMixin, self).render(context, instance, placeholder)
         accept_condition_form = context['accept_condition_form.plugin_{}'.format(instance.pk)]
