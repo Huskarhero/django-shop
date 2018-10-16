@@ -258,7 +258,7 @@ class DefaultSettings(object):
     def SHOP_DIALOG_FORMS(self):
         """
         Specify a list of dialog forms available in our :class:`shop.views.checkout.CheckoutViewSet`.
-        This allows us to use its endpoint ``resolve('shop:checkout-upload')`` in a generic way.
+        This allows the usage of the endpoint ``resolve('shop:checkout-upload')`` in a generic way.
 
         If Cascade plugins are used for the forms in the checkout view, this list can be empty.
         """
@@ -271,7 +271,7 @@ class DefaultSettings(object):
         checkout view. Override this map, if the Cascade plugins shall use a Form other than the
         ones provided.
         """
-        cascade_forms = {
+        default_cascade_forms = {
             'CustomerForm': 'shop.forms.checkout.CustomerForm',
             'GuestForm': 'shop.forms.checkout.GuestForm',
             'ShippingAddressForm': 'shop.forms.checkout.ShippingAddressForm',
@@ -281,8 +281,7 @@ class DefaultSettings(object):
             'ExtraAnnotationForm': 'shop.forms.checkout.ExtraAnnotationForm',
             'AcceptConditionForm': 'shop.forms.checkout.AcceptConditionForm',
         }
-        cascade_forms.update(self._setting('SHOP_CASCADE_FORMS', {}))
-        return cascade_forms
+        return self._setting('SHOP_CASCADE_FORMS', default_cascade_forms)
 
     def __getattr__(self, key):
         if not key.startswith('SHOP_'):
