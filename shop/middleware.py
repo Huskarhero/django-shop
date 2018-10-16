@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import warnings
 
-from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.utils import timezone
 
@@ -16,7 +15,7 @@ def get_customer(request, force=False):
     return request._cached_customer
 
 
-class CustomerMiddleware(MiddlewareMixin):
+class CustomerMiddleware(object):
     """
     Similar to Django's AuthenticationMiddleware, which adds the user object to the request,
     this middleware adds the customer object to the request.
@@ -42,7 +41,7 @@ class CustomerMiddleware(MiddlewareMixin):
         return response
 
 
-class MethodOverrideMiddleware(MiddlewareMixin):
+class MethodOverrideMiddleware(object):
     """
     TODO: Remove this deprecated class.
     This middleware is required to emulate methods PUT and DELETE using a HTTP method POST
