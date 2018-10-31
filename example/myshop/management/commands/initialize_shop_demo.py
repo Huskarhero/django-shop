@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import os
+from distutils.version import LooseVersion
 import requests
 try:
     from StringIO import StringIO
@@ -16,10 +17,11 @@ try:
     import czipfile as zipfile
 except ImportError:
     import zipfile
+from cms import __version__ as CMS_VERSION
 
 
 class Command(BaseCommand):
-    version = 13
+    version = 13 if LooseVersion(CMS_VERSION) < LooseVersion('3.5') else 14
     help = _("Initialize the workdir to run the demo of myshop.")
     download_url = 'http://downloads.django-shop.org/django-shop-workdir_{tutorial}-{version}.zip'
     pwd = b'z7xv'
@@ -60,7 +62,7 @@ class Command(BaseCommand):
         from compressor.conf import settings
 
         cache_dir = os.path.join(settings.STATIC_ROOT, settings.COMPRESS_OUTPUT_DIR)
-        if settings.COMPRESS_ENABLED is False or os.listdir(cache_dir) != []:
+        if settings.COMPRESS_ENABLED is False or not os.path.isdir(cache_dir) or os.listdir(cache_dir) != []:
             return
         try:
             caches['compressor'].clear()
@@ -88,8 +90,8 @@ class Command(BaseCommand):
                 return
 
         extract_to = os.path.join(settings.WORK_DIR, os.pardir)
-        msg = "Downloading workdir and extracting to {}. Please wait ..."
-        self.stdout.write(msg.format(extract_to))
+        msg = "Downloading version {} and extracting to {}. Please wait ..."
+        self.stdout.write(msg.format(self.version, extract_to))
         download_url = self.download_url.format(tutorial=settings.SHOP_TUTORIAL, version=self.version)
         response = requests.get(download_url, stream=True)
         zip_ref = zipfile.ZipFile(StringIO(response.content))
