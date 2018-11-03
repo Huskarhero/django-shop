@@ -79,8 +79,11 @@ plugin_pool.register_plugin(ShopAddToCartPlugin)
 
 
 class ProductGalleryForm(ModelForm):
-    product = ProductSelectField(required=False, label=_("Related Product"),
-        help_text=_("Choose related product"))
+    product = ProductSelectField(
+        required=False,
+        label=_("Related Product"),
+        help_text=_("Choose related product"),
+    )
 
     class Meta:
         exclude = ('glossary',)
