@@ -29,7 +29,7 @@ class RegisterUserForm(NgModelFormMixin, NgFormValidationMixin, UniqueEmailValid
 
     preset_password = fields.BooleanField(
         label=_("Preset password"),
-        widget=widgets.CheckboxInput(attrs={'class': 'form-check-input'}),
+        widget=widgets.CheckboxInput(),
         required=False,
         help_text=_("Send a randomly generated password to your e-mail address."),
     )
