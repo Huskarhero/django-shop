@@ -79,11 +79,8 @@ plugin_pool.register_plugin(ShopAddToCartPlugin)
 
 
 class ProductGalleryForm(ModelForm):
-    product = ProductSelectField(
-        required=False,
-        label=_("Related Product"),
-        help_text=_("Choose related product"),
-    )
+    product = ProductSelectField(required=False, label=_("Related Product"),
+        help_text=_("Choose related product"))
 
     class Meta:
         exclude = ('glossary',)
@@ -156,8 +153,7 @@ class ShopProductGallery(WithSortableInlineElementsMixin, ShopPluginBase):
         queryset = ProductModel.objects.filter(pk__in=product_ids, active=True)
         serializer_class = app_settings.PRODUCT_SUMMARY_SERIALIZER
         serialized = serializer_class(queryset, many=True, context={'request': context['request']})
-        # sort the products according to the order provided by `sortinline_elements`.
-        context['products'] = [product for id in product_ids for product in serialized.data if product['id'] == id]
+        context['products'] = serialized.data
         return context
 
 plugin_pool.register_plugin(ShopProductGallery)

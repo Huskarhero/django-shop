@@ -7,10 +7,10 @@
 <form name="{{ form_name }}" djng-endpoint="{% url 'shop:register-user' %}" role="form" novalidate>
 	{% include "./form-messages.html" %}
 
-	<div class="form-group has-feedback">
+	<div class="form-group has-feedback" style="margin-bottom: 20px">
 		{{ register_user_form.email.label_tag }}
 		<div class="input-group" ng-class="hasError('email')">
-			<div class="input-group-prepend"><i class="input-group-text fa fa-envelope-o"></i></div>
+			<span class="input-group-addon"><i class="fa fa-envelope-o fa-fw"></i></span>
 			{{ register_user_form.email }}
 		</div>
 		<ul ng-show="register_user_form.email.$dirty && register_user_form.email.$touched" class="djng-field-errors" ng-cloak>
@@ -20,16 +20,16 @@
 		</ul>
 	</div>
 
-	<div class="form-group form-check">
+	<div class="form-group">
 		{{ register_user_form.preset_password }}
-		<label class="form-check-label" for="preset_password"> {{ register_user_form.preset_password.help_text }}</label>
+		<span class="help-block">{{ register_user_form.preset_password.help_text }}</span>
 	</div>
 
-	<div ng-if="!form_data.preset_password">
+	<div ng-if="!form_data.preset_password" style="margin-top: 20px;">
 		<div class="form-group has-feedback">
 			{{ register_user_form.password1.label_tag }}
 			<div class="input-group" ng-class="hasError('password1')">
-				<div class="input-group-prepend"><i class="input-group-text fa fa-key"></i></div>
+				<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>
 				{{ register_user_form.password1 }}
 			</div>
 			<ul ng-show="register_user_form.password1.$dirty && register_user_form.password1.$touched" class="djng-field-errors" ng-cloak>
@@ -37,13 +37,13 @@
 				<li ng-show="register_user_form.password1.$error.minlength" class="invalid">{% trans "Password is too short" %}</li>
 				<li ng-show="register_user_form.password1.$valid" class="valid"></li>
 			</ul>
-			<small class="form-text text-muted">{{ register_user_form.password1.help_text|striptags }}</small>
+			<span class="help-block">{{ register_user_form.password1.help_text|safe }}</span>
 		</div>
 
 		<div class="form-group has-feedback">
 			{{ register_user_form.password2.label_tag }}
 			<div class="input-group" ng-class="hasError('password2')">
-				<div class="input-group-prepend"><i class="input-group-text fa fa-key"></i></div>
+				<span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>
 				{{ register_user_form.password2 }}
 			</div>
 			<ul ng-show="register_user_form.password2.$dirty && register_user_form.password2.$touched" class="djng-field-errors" ng-cloak>
@@ -51,14 +51,12 @@
 				<li ng-show="register_user_form.password2.$error.minlength" class="invalid">{% trans "Password is too short" %}</li>
 				<li ng-show="register_user_form.password2.$valid" class="valid"></li>
 			</ul>
-			<small class="form-text text-muted">{{ register_user_form.password2.help_text|striptags }}</small>
+			<span class="help-block">{{ register_user_form.password2.help_text|safe }}</span>
 		</div>
 	</div>
 
 	<div class="form-group">
-		<button type="button" ng-click="{% include './proceed-with.html' with proceed_delay=1000 %}" ng-disabled="isDisabled()" class="btn btn-primary">
-			{% trans "Register" %}&emsp;<i class="fa fa-user-plus"></i>
-		</button>
+		<button type="button" ng-click="{% include './proceed-with.html' with proceed_delay=1000 %}" ng-disabled="isDisabled()" class="btn btn-primary">{% trans "Register" %}</button>
 	</div>
 </form>
 {% endblock form-content %}
