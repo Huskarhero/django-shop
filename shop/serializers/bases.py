@@ -57,10 +57,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def render_html(self, product, postfix):
         """
-        Return a HTML snippet containing a rendered summary for the given product.
-        This HTML snippet typically contains a ``<figure>`` element with a sample image
-        ``<img src="..." >`` and a ``<figcaption>`` containing a short description of the product.
-
+        Return a HTML snippet containing a rendered summary for this product.
         Build a template search path with `postfix` distinction.
         """
         if not self.label:
@@ -76,7 +73,6 @@ class ProductSerializer(serializers.ModelSerializer):
         params = [
             (app_label, self.label, product.product_model, postfix),
             (app_label, self.label, 'product', postfix),
-            ('shop', self.label, product.product_model, postfix),
             ('shop', self.label, 'product', postfix),
         ]
         try:

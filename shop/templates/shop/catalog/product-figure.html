@@ -1,15 +1,14 @@
-{% load i18n %}{% spaceless %}
 {# This template is shared between Django and AngularJS #}
-<figure class="figure">
+{% load i18n djng_tags %}
+{% angularjs ng %}
+<figure>
 	<a href="{{ product.product_url }}">
-		<h5>{{ product.product_name }}</h5>
+		<h4>{{ product.product_name }}</h4>
 		<div{% if ng %} ng-bind-html="product.media"{% endif %}>{{ product.media }}</div>
 	</a>
-	<figcaption class="figure-caption mt-2">
-	{% block figcaption %}
-		<div class="lead">{% trans "Price" %}: <strong{% if ng %} ng-bind="product.price"{% endif %}>{{ product.price }}</strong></div>
-		<div{% if ng %} ng-bind-html="product.caption"{% endif %}>{{ product.caption|safe }}</div>
-	{% endblock figcaption %}
+	<figcaption>
+		<strong>{% trans "Price" %}: {{ product.price }}</strong>
+		{% if ng %}<ng-bind-html ng-bind-html="product.caption"></ng-bind-html>{% else %}{{ product.caption|safe }}{% endif %}
 	</figcaption>
 </figure>
-{% endspaceless %}
+{% endangularjs %}

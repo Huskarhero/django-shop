@@ -18,7 +18,7 @@ from .plugin_base import ShopPluginBase
 
 
 class ShopCartPlugin(LeftRightExtensionMixin, TransparentWrapper, ShopPluginBase):
-    name = _("Shopping Cart")
+    name = _("Cart")
     require_parent = True
     parent_classes = ('BootstrapColumnPlugin',)
     cache = False
