@@ -91,7 +91,7 @@ class BaseOrderAdmin(FSMTransitionMixin, admin.ModelAdmin):
     list_filter = [StatusListFilter]
     fsm_field = ['status']
     date_hierarchy = 'created_at'
-    inlines = [OrderItemInline, OrderPaymentInline]
+    inlines = [OrderItemInline]
     readonly_fields = ['get_number', 'status_name', 'get_total', 'get_subtotal',
                        'get_customer_link', 'get_outstanding_amount', 'created_at', 'updated_at',
                        'render_as_html_extra', 'stored_request']
@@ -160,6 +160,13 @@ class BaseOrderAdmin(FSMTransitionMixin, admin.ModelAdmin):
             pass
         return search_fields
 
+    def get_form(self, request, obj=None, **kwargs):
+        ModelForm = super(BaseOrderAdmin, self).get_form(request, obj, **kwargs)
+        if obj:
+            # store the requested transition inside the instance, so that the model's `clean()` method can access it
+            obj._fsm_requested_transition = self._get_requested_transition(request)
+        return ModelForm
+
 
 class PrintOrderAdminMixin(object):
     """
@@ -224,18 +231,3 @@ class PrintOrderAdminMixin(object):
                 *button)
         return ''
     print_out.short_description = pgettext_lazy('admin', "Print out")
-
-
-class OrderAdmin(BaseOrderAdmin):
-    """
-    Admin class to be used with `shop.models.defauls.order`
-    """
-    def get_fields(self, request, obj=None):
-        fields = list(super(OrderAdmin, self).get_fields(request, obj))
-        fields.extend(['shipping_address_text', 'billing_address_text'])
-        return fields
-
-    def get_search_fields(self, request):
-        search_fields = list(super(OrderAdmin, self).get_search_fields(request))
-        search_fields.extend(['number', 'shipping_address_text', 'billing_address_text'])
-        return search_fields

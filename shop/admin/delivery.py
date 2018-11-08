@@ -107,20 +107,35 @@ class OrderItemInlineDelivery(OrderItemInline):
     show_ready.short_description = _("Ready for delivery")
 
 
+class DeliveryForm(models.ModelForm):
+    class Meta:
+        model = DeliveryModel
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super(DeliveryForm, self).__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if app_settings.SHOP_MANUAL_SHIPPING_ID and instance and instance.shipped_at:
+            self['shipping_id'].field.widget.attrs.update(readonly='readonly')
+        if app_settings.SHOP_OVERRIDE_SHIPPING_METHOD:
+            choices = [sm.get_choice() for sm in cart_modifiers_pool.get_shipping_modifiers()]
+            self['shipping_method'].field.widget = widgets.Select(choices=choices)
+
+    def has_changed(self):
+        """Force form to changed"""
+        return True
+
+
 class DeliveryInline(admin.TabularInline):
     model = DeliveryModel
     extra = 0
-    fields = ('shipping_id', 'shipping_method', 'delivered_items', 'print_out', 'fulfilled',)
-    readonly_fields = ('delivered_items', 'print_out', 'fulfilled',)
-
-    def get_formset(self, request, obj=None, **kwargs):
-        """
-        Convert the field `shipping_method` into a select box with all possible shipping methods.
-        """
-        choices = [sm.get_choice() for sm in cart_modifiers_pool.get_shipping_modifiers()]
-        kwargs.update(widgets={'shipping_method': widgets.Select(choices=choices)})
-        formset = super(DeliveryInline, self).get_formset(request, obj, **kwargs)
-        return formset
+    fields = ['shipping_id', 'shipping_method' if app_settings.SHOP_OVERRIDE_SHIPPING_METHOD else 'get_shipping_method',
+              'delivered_items', 'print_out', 'fulfilled', 'shipped']
+    readonly_fields = ['delivered_items', 'print_out', 'fulfilled', 'shipped']
+    if not app_settings.SHOP_MANUAL_SHIPPING_ID:
+        readonly_fields.append('shipping_id')
+    if not app_settings.SHOP_OVERRIDE_SHIPPING_METHOD:
+        readonly_fields.append('get_shipping_method')
 
     def get_max_num(self, request, obj=None, **kwargs):
         qs = self.model.objects.filter(order=obj)
@@ -181,12 +196,15 @@ class DeliveryOrderAdminMixin(object):
         return HttpResponse(content)
 
     def get_inline_instances(self, request, obj=None):
+        """
+        Replace `OrderItemInline` by `OrderItemInlineDelivery` for that instance.
+        """
         inline_instances = [
             OrderItemInlineDelivery(self.model, self.admin_site) if isinstance(instance, OrderItemInline) else instance
             for instance in super(DeliveryOrderAdminMixin, self).get_inline_instances(request, obj)
         ]
-        if obj.status in ('pick_goods', 'pack_goods',):
-            inline_instances.append(DeliveryInline(self.model, self.admin_site))
+        # TODO: add DeliveryInline only if status requires to edit them
+        inline_instances.append(DeliveryInline(self.model, self.admin_site))
         return inline_instances
 
     def save_related(self, request, form, formsets, change):
