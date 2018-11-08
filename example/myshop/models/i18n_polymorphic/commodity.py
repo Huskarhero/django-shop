@@ -37,9 +37,3 @@ class Commodity(Product):
 
     def get_price(self, request):
         return self.unit_price
-
-    def get_weight(self):
-        """
-        Gross weight in kg
-        """
-        return 1.5

@@ -50,7 +50,9 @@ class BaseAddress(models.Model):
             'shop/address.txt',
         ]
         template = select_template(template_names)
-        return template.render({'address': self})
+        context = {'address': self}
+        return template.render(context)
+    as_text.short_description = _("Address")
 
 
 class BaseShippingAddress(with_metaclass(deferred.ForeignKeyBuilder, BaseAddress)):

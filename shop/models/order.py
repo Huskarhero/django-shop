@@ -137,10 +137,7 @@ class WorkflowMixinMetaclass(deferred.ForeignKeyBuilder):
             attrs.update(_transition_targets={}, _auto_transitions={})
             for b in reversed(bases):
                 TRANSITION_TARGETS = getattr(b, 'TRANSITION_TARGETS', {})
-                try:
-                    delattr(b, 'TRANSITION_TARGETS')
-                except AttributeError:
-                    pass
+                delattr(b, 'TRANSITION_TARGETS')
                 if set(TRANSITION_TARGETS.keys()).intersection(attrs['_transition_targets']):
                     msg = "Mixin class {} already contains a transition named '{}'"
                     raise ImproperlyConfigured(msg.format(b.__name__, ', '.join(TRANSITION_TARGETS.keys())))
@@ -381,11 +378,6 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
     def refund_payment(self):
         """
         Hook to handle payment refunds.
-        """
-
-    def withdraw_from_delivery(self):
-        """
-        Hook to withdraw shipping order.
         """
 
     @classmethod

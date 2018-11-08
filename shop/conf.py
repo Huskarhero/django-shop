@@ -175,7 +175,7 @@ class DefaultSettings(object):
         from django.utils.module_loading import import_string
 
         cart_modifiers = self._setting('SHOP_CART_MODIFIERS', ['shop.modifiers.defaults.DefaultCartModifier'])
-        return [import_string(mc) for mc in cart_modifiers]
+        return tuple(import_string(mc) for mc in cart_modifiers)
 
     @property
     def SHOP_VALUE_ADDED_TAX(self):
@@ -234,29 +234,6 @@ class DefaultSettings(object):
         The default is ``False``.
         """
         return self._setting('SHOP_GUEST_IS_ACTIVE_USER', False)
-
-    @property
-    def SHOP_MANUAL_SHIPPING_ID(self):
-        """
-        If this directive is ``True``, the merchant is allowed to set the shipping ID manually, otherwise
-        this ID is set by the shipping provider.
-
-        The default is ``True``.
-        """
-        return self._setting('SHOP_MANUAL_SHIPPING_ID', True)
-
-    @property
-    def SHOP_OVERRIDE_SHIPPING_METHOD(self):
-        """
-        If this directive is ``True``, the merchant is allowed to override the shipping method the
-        customer has chosen while performing the checkout.
-
-        Note that if alternative shipping is more expensive, usually the merchant has to come up
-        for the additional costs.
-
-        The default is ``False``.
-        """
-        return self._setting('SHOP_OVERRIDE_SHIPPING_METHOD', False)
 
     @property
     def SHOP_CACHE_DURATIONS(self):

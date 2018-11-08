@@ -177,19 +177,7 @@ if os.getenv('POSTGRES_DB') and os.getenv('POSTGRES_USER'):
 
 LANGUAGE_CODE = 'en'
 
-if SHOP_TUTORIAL.startswith('sendcloud_'):
-    INSTALLED_APPS.insert(INSTALLED_APPS.index('django_select2'), 'phonenumber_field')
-    INSTALLED_APPS.insert(INSTALLED_APPS.index('shop'), 'shop_sendcloud')
-    SHOP_TUTORIAL = SHOP_TUTORIAL[10:]
-
-if SHOP_TUTORIAL.startswith('partdel_'):
-    SHOP_PARTIAL_DELIVERY = True
-    SHOP_TUTORIAL = SHOP_TUTORIAL[8:]
-else:
-    SHOP_PARTIAL_DELIVERY = False
-
-if SHOP_TUTORIAL.startswith('i18n_'):
-    SHOP_TUTORIAL = SHOP_TUTORIAL[5:]
+if SHOP_TUTORIAL in ['i18n_smartcard', 'i18n_commodity', 'i18n_polymorphic']:
     USE_I18N = True
 
     LANGUAGES = (
@@ -645,15 +633,14 @@ SHOP_CART_MODIFIERS.extend([
     'shop.modifiers.taxes.CartExcludedTaxModifier',
     'myshop.modifiers.PostalShippingModifier',
     'myshop.modifiers.CustomerPickupModifier',
-    'shop.payment.modifiers.PayInAdvanceModifier',
-    'shop.modifiers.defaults.WeightedCartModifier',
+    'shop.modifiers.defaults.PayInAdvanceModifier',
 ])
 
 SHOP_EDITCART_NG_MODEL_OPTIONS = "{updateOn: 'default blur', debounce: {'default': 2500, 'blur': 0}}"
 
 SHOP_ORDER_WORKFLOWS = [
-    'shop.payment.workflows.ManualPaymentWorkflowMixin',
-    'shop.payment.workflows.CancelOrderWorkflowMixin',
+    'shop.payment.defaults.ManualPaymentWorkflowMixin',
+    'shop.payment.defaults.CancelOrderWorkflowMixin',
 ]
 
 if 'shop_stripe' in INSTALLED_APPS:
@@ -661,26 +648,13 @@ if 'shop_stripe' in INSTALLED_APPS:
     SHOP_ORDER_WORKFLOWS.append('shop_stripe.payment.OrderWorkflowMixin')
 
 if 'shop_sendcloud' in INSTALLED_APPS:
-    SHOP_MANUAL_SHIPPING_ID = False
-    SHOP_CART_MODIFIERS.append('shop_sendcloud.modifiers.SendcloudShippingModifiers')
-    if SHOP_PARTIAL_DELIVERY:
-        SHOP_ORDER_ITEM_SERIALIZER = 'shop_sendcloud.serializers.OrderItemSerializer'
-        SHOP_ORDER_WORKFLOWS.extend([
-            'shop_sendcloud.workflows.CommonOrderWorkflowMixin',
-            'shop.shipping.workflows.PartialDeliveryWorkflowMixin',
-        ])
-    else:
-        SHOP_ORDER_WORKFLOWS.extend([
-            'shop_sendcloud.workflows.SingularOrderWorkflowMixin',
-            'shop.shipping.workflows.CommissionGoodsWorkflowMixin',
-        ])
-else:
-    SHOP_CART_MODIFIERS.append('myshop.modifiers.PostalShippingModifier')
+    SHOP_CART_MODIFIERS.append('shop_sendcloud.modifiers.SendcloudShippingModifier')
+    SHOP_ORDER_WORKFLOWS.append('shop_sendcloud.shipping.OrderWorkflowMixin')
 
 if SHOP_TUTORIAL in ['i18n_polymorphic', 'polymorphic']:
-    SHOP_ORDER_WORKFLOWS.append('shop.shipping.workflows.PartialDeliveryWorkflowMixin')
+    SHOP_ORDER_WORKFLOWS.append('shop.shipping.delivery.PartialDeliveryWorkflowMixin')
 else:
-    SHOP_ORDER_WORKFLOWS.append('shop.shipping.workflows.CommissionGoodsWorkflowMixin')
+    SHOP_ORDER_WORKFLOWS.append('shop.shipping.defaults.CommissionGoodsWorkflowMixin')
 
 SHOP_STRIPE = {
     'PUBKEY': 'pk_test_HlEp5oZyPonE21svenqowhXp',

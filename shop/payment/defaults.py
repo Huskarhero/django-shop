@@ -3,10 +3,9 @@ from __future__ import unicode_literals
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
-from django_fsm import transition, RETURN_VALUE
-from shop.models.order import BaseOrder
 
-''' check if this is somewhere else
+from django_fsm import transition, RETURN_VALUE
+
 from shop.models.order import BaseOrder, OrderModel
 from .base import PaymentProvider
 
@@ -28,7 +27,6 @@ class ForwardFundPayment(PaymentProvider):
         order.save()
         thank_you_url = OrderModel.objects.get_latest_url()
         return 'window.location.href="{}";'.format(thank_you_url)
-'''
 
 
 class ManualPaymentWorkflowMixin(object):
@@ -51,6 +49,9 @@ class ManualPaymentWorkflowMixin(object):
                                                             'no_payment_required'])
         super(ManualPaymentWorkflowMixin, self).__init__(*args, **kwargs)
 
+    def is_fully_paid(self):
+        return super(ManualPaymentWorkflowMixin, self).is_fully_paid()
+
     @transition(field='status', source=['created'], target='no_payment_required')
     def no_payment_required(self):
         """
@@ -64,18 +65,22 @@ class ManualPaymentWorkflowMixin(object):
         Invoked by ForwardFundPayment.get_payment_request.
         """
 
-    def payment_deposited(self):
-        return self.amount_paid > 0
+    def deposited_too_little(self):
+        return self.amount_paid > 0 and self.amount_paid < self.total
 
-    @transition(field='status', source=['awaiting_payment'],
-                target=RETURN_VALUE('awaiting_payment', 'prepayment_deposited'),
-                conditions=[payment_deposited],
-                custom=dict(admin=True, button_name=_("Payment Received")))
-    def prepayment_deposited(self):
+    @transition(field='status', source=['awaiting_payment'], target='awaiting_payment',
+                conditions=[deposited_too_little], custom=dict(admin=True, button_name=_("Deposited too little")))
+    def prepayment_partially_deposited(self):
         """
-        Signals that the current Order received a payment.
+        Signals that the current Order received a payment, which was not enough.
         """
-        return 'prepayment_deposited' if self.is_fully_paid() else 'awaiting_payment'
+
+    @transition(field='status', source=['awaiting_payment'], target='prepayment_deposited',
+                conditions=[is_fully_paid], custom=dict(admin=True, button_name=_("Mark as Paid")))
+    def prepayment_fully_deposited(self):
+        """
+        Signals that the current Order received a payment, which fully covers the requested sum.
+        """
 
     @transition(field='status', source=['prepayment_deposited', 'no_payment_required'],
                 custom=dict(auto=True))
@@ -99,7 +104,7 @@ class CancelOrderWorkflowMixin(object):
     Add this class to `settings.SHOP_ORDER_WORKFLOWS` to mix it into your `OrderModel`.
     It adds all the methods required for state transitions, to cancel an order.
     """
-    CANCELABLE_SOURCES = {'new', 'created', 'payment_confirmed', 'payment_declined', 'ready_for_delivery'}
+    CANCELABLE_SOURCES = {'new', 'created', 'payment_confirmed', 'payment_declined'}
     TRANSITION_TARGETS = {
         'refund_payment': _("Refund payment"),
         'order_canceled': _("Order Canceled"),
@@ -114,7 +119,6 @@ class CancelOrderWorkflowMixin(object):
         """
         Signals that an Order shall be canceled.
         """
-        self.withdraw_from_delivery()
         if self.amount_paid:
             self.refund_payment()
         return 'refund_payment' if self.amount_paid else 'order_canceled'

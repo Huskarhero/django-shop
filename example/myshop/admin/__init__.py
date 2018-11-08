@@ -8,6 +8,7 @@ from shop.admin.defaults import customer
 from shop.admin.defaults.order import OrderAdmin
 from shop.models.defaults.order import Order
 from shop.admin.order import PrintOrderAdminMixin
+from shop.admin.delivery import DeliveryOrderAdminMixin
 
 
 # models defined by the myshop instance itself
@@ -17,20 +18,13 @@ if settings.SHOP_TUTORIAL in ['commodity', 'i18n_commodity']:
 else:
     from . import manufacturer
 
-if settings.SHOP_PARTIAL_DELIVERY:
-    from shop.admin.delivery import DeliveryOrderAdminMixin
+    if settings.SHOP_TUTORIAL in ['i18n_smartcard', 'smartcard']:
+        class OrderAdmin(PrintOrderAdminMixin, OrderAdmin):
+            pass
 
-    class OrderAdmin(PrintOrderAdminMixin, DeliveryOrderAdminMixin, OrderAdmin):
-        pass
-else:
-    class OrderAdmin(PrintOrderAdminMixin, OrderAdmin):
-        pass
-
-if 'shop_sendcloud' in settings.INSTALLED_APPS:
-    from shop_sendcloud.admin import SendCloudOrderAdminMixin
-
-    class OrderAdmin(SendCloudOrderAdminMixin, OrderAdmin):
-        pass
+    elif settings.SHOP_TUTORIAL in ['i18n_polymorphic', 'polymorphic']:
+        class OrderAdmin(PrintOrderAdminMixin, DeliveryOrderAdminMixin, OrderAdmin):
+            pass
 
 admin.site.register(Order, OrderAdmin)
 
