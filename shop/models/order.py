@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from six import with_metaclass
 from decimal import Decimal
-import logging
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
@@ -127,7 +126,7 @@ class OrderManager(models.Manager):
 
 class WorkflowMixinMetaclass(deferred.ForeignKeyBuilder):
     """
-    Add configured Workflow mixin classes to ``OrderModel`` and ``OrderPayment`` to customize
+    Add configured Workflow mixin classes to `OrderModel` and `OrderPayment` to customize
     all kinds of state transitions in a pluggable manner.
     """
 
@@ -232,10 +231,6 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
     class Meta:
         abstract = True
 
-    def __init__(self, *args, **kwargs):
-        super(BaseOrder, self).__init__(*args, **kwargs)
-        self.logger = logging.getLogger('shop.order')
-
     def __str__(self):
         return self.get_number()
 
@@ -301,8 +296,6 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         Override this method, in case a customized cart has some fields which have to be transfered
         to the cart.
         """
-        assert hasattr(cart, 'subtotal') and hasattr(cart, 'total'), \
-            "Did you forget to invoke 'cart.update(request)' before populating from cart?"
         for cart_item in cart.items.all():
             cart_item.update(request)
             order_item = OrderItemModel(order=self)
@@ -375,7 +368,6 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
         Change status to `payment_confirmed`. This status code is known globally and can be used
         by all external plugins to check, if an Order object has been fully paid.
         """
-        self.logger.info("Acknowledge payment by user %s", by)
 
     def cancelable(self):
         """
