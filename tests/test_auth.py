@@ -124,6 +124,7 @@ def test_password_reset(settings, registered_customer, api_client, api_rf):
         }
     }
     body_begin = "You're receiving this email because you requested a password reset for your user\naccount 'admin@example.com' at example.com."
+    assert len(mail.outbox) == 1
     assert mail.outbox[0].body.startswith(body_begin)
     matches = re.search(PasswordResetRequestSerializer.invalid_password_reset_confirm_url + r'([^/]+)/([0-9A-Za-z-]+)',
                         mail.outbox[0].body)
@@ -163,3 +164,78 @@ def test_password_reset_fail(api_rf):
     response = PasswordResetConfirmView.as_view()(request, uidb64='INV', token='alid')
     assert response.status_code == 422
     assert response.data == {'password_reset_confirm_form': {'uid': ['Invalid value']}}
+
+
+@pytest.mark.django_db
+def test_register_user_with_password(api_client):
+    """
+    Test if a new user can register himself providing his own new password.
+    """
+    from tests.testshop.models import Customer
+    register_user_url = reverse('shop:register-user')
+    data = {
+        'form_data': {
+            'email': 'newby@example.com',
+            'password1': 'secret',
+            'password2': 'secret',
+            'preset_password': False,
+        }
+    }
+    response = api_client.post(register_user_url, data, format='json')
+    assert response.status_code == 200
+    assert response.json() == {'register_user_form': {'success_message': 'Successfully registered yourself.'}}
+    customer = Customer.objects.get(user__email='newby@example.com')
+    assert customer is not None
+
+
+@pytest.mark.django_db
+def test_register_user_generate_password(settings, api_client):
+    """
+    Test if a new user can register himself and django-SHOP send a generated password by email.
+    """
+    settings.EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+    from tests.testshop.models import Customer
+    register_user_url = reverse('shop:register-user')
+    data = {
+        'form_data': {
+            'email': 'newby@example.com',
+            'password1': '',
+            'password2': '',
+            'preset_password': True,
+        }
+    }
+    response = api_client.post(register_user_url, data, format='json')
+    assert response.status_code == 200
+    assert response.json() == {'register_user_form': {'success_message': 'Successfully registered yourself.'}}
+    customer = Customer.objects.get(user__email='newby@example.com')
+    assert customer is not None
+    body_begin = "You're receiving this e-mail because you or someone else has requested an auto-generated password"
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].body.startswith(body_begin)
+    matches = re.search('please use username newby@example.com with password ([0-9A-Za-z]+)', mail.outbox[0].body)
+    assert matches
+    password = matches.group(1)
+    assert api_client.login(username=customer.email, password=password) is True
+
+
+@pytest.mark.django_db
+def test_register_user_fail(registered_customer, api_client):
+    """
+    Test if a new user cannot register himself, if that user already exists.
+    """
+    register_user_url = reverse('shop:register-user')
+    data = {
+        'form_data': {
+            'email': registered_customer.email,
+            'password1': '',
+            'password2': '',
+            'preset_password': True,
+        }
+    }
+    response = api_client.post(register_user_url, data, format='json')
+    assert response.status_code == 422
+    assert response.json() == {
+        'register_user_form': {
+            '__all__': ["A customer with the e-mail address 'admin@example.com' already exists.\nIf you have used this address previously, try to reset the password."]
+        }
+    }
