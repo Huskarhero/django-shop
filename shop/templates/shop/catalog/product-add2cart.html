@@ -57,12 +57,10 @@
 				<i class="fa" ng-class="context.is_in_cart ? 'fa-heart' : 'fa-heart-o'"></i>
 			</button>
 		{% url "shop:cart-list" as cart_endpoint %}{% trans "The product has been successfully placed in the shopping cart:" as modal_title %}
-		{% with use_modal_dialog=instance.glossary.use_modal_dialog %}
 			<button class="btn btn-primary" ng-click="{% if use_modal_dialog %}do(openModal('{{ modal_title }}')).then(addToCart('{{ cart_endpoint }}')).then(redirectTo()){% else %}do(addToCart('{{ cart_endpoint }}')).then(emit('shop.cart.change')){% endif %}">
 				{% trans "Add to cart" %}
 				<i class="fa fa-cart-arrow-down"></i>
 			</button>
-		{% endwith %}
 		</div>
 	</div>
 	{% endblock add-product-to-cart-footer %}
