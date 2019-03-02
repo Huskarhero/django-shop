@@ -13,8 +13,6 @@ for modifier in cart_modifiers_pool.get_payment_modifiers():
         namespace = modifier.payment_provider.namespace
         regexp = r'^{}/'.format(namespace)
         urls = modifier.payment_provider.get_urls()
-        provider_url = url(regexp, include(urls, namespace=namespace))
-        if provider_url.describe() not in [u.describe() for u in urlpatterns]:
-            urlpatterns.append(provider_url)
+        urlpatterns.append(url(regexp, include(urls, namespace=namespace)))
     except AttributeError as err:
         warnings.warn(err.message)

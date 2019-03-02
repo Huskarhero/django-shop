@@ -50,7 +50,9 @@ class BaseAddress(models.Model):
             'shop/address.txt',
         ]
         template = select_template(template_names)
-        return template.render({'address': self})
+        context = {'address': self}
+        return template.render(context)
+    as_text.short_description = _("Address")
 
 
 class BaseShippingAddress(with_metaclass(deferred.ForeignKeyBuilder, BaseAddress)):
@@ -70,7 +72,7 @@ class BaseBillingAddress(with_metaclass(deferred.ForeignKeyBuilder, BaseAddress)
 
 BillingAddressModel = deferred.MaterializedModel(BaseBillingAddress)
 
-ISO_3166_CODES = [
+ISO_3166_CODES = (
     ('AF', _("Afghanistan")),
     ('AX', _("Aland Islands")),
     ('AL', _("Albania")),
@@ -319,7 +321,7 @@ ISO_3166_CODES = [
     ('YE', _("Yemen")),
     ('ZM', _("Zambia")),
     ('ZW', _("Zimbabwe")),
-]
+)
 
 class CountryField(models.CharField):
     """

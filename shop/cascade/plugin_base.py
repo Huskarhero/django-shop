@@ -150,6 +150,7 @@ class CatalogLinkPluginBase(LinkPluginBase):
     ring_plugin = 'ShopLinkPlugin'
 
     class Media:
+        css = {'all': ['shop/css/admin/editplugin.css']}
         js = ['shop/js/admin/shoplinkplugin.js']
 
 

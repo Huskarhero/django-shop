@@ -78,13 +78,13 @@ class DefaultSettings(object):
         Depending on the materialized customer model, use this directive to configure the
         customer serializer.
 
-        Defaults to :class:`shop.serializers.defaults.customer.CustomerSerializer`.
+        Defaults to :class:`shop.serializers.defaults.CustomerSerializer`.
         """
         from django.core.exceptions import ImproperlyConfigured
         from django.utils.module_loading import import_string
         from shop.serializers.bases import BaseCustomerSerializer
 
-        s = self._setting('SHOP_CUSTOMER_SERIALIZER', 'shop.serializers.defaults.customer.CustomerSerializer')
+        s = self._setting('SHOP_CUSTOMER_SERIALIZER', 'shop.serializers.defaults.CustomerSerializer')
         CustomerSerializer = import_string(s)
         if not issubclass(CustomerSerializer, BaseCustomerSerializer):
             raise ImproperlyConfigured(
@@ -98,18 +98,25 @@ class DefaultSettings(object):
         This serialized data then is used for Catalog List Views, Cart List Views and Order List
         Views.
 
-        Defaults to :class:`shop.serializers.defaults.product_summary.ProductSummarySerializer`.
+        Defaults to a minimalistic Product serializer.
         """
         from django.core.exceptions import ImproperlyConfigured
         from django.utils.module_loading import import_string
         from shop.serializers.bases import ProductSerializer
 
-        s = self._setting('SHOP_PRODUCT_SUMMARY_SERIALIZER',
-                          'shop.serializers.defaults.product_summary.ProductSummarySerializer')
-        ProductSummarySerializer = import_string(s)
-        if not issubclass(ProductSummarySerializer, ProductSerializer):
-            msg = "class {} specified in SHOP_PRODUCT_SUMMARY_SERIALIZER must inherit from 'ProductSerializer'."
-            raise ImproperlyConfigured(msg.format(s))
+        pss = self._setting('SHOP_PRODUCT_SUMMARY_SERIALIZER')
+        if pss:
+            ProductSummarySerializer = import_string(pss)
+            if not issubclass(ProductSummarySerializer, ProductSerializer):
+                raise ImproperlyConfigured(
+                    "Serializer class must inherit from 'ProductSerializer'.")
+        else:
+            class ProductSummarySerializer(ProductSerializer):
+                """
+                Fallback serializer for the summary of our Product model.
+                """
+                class Meta(ProductSerializer.Meta):
+                    fields = ['id', 'product_name', 'product_url', 'product_model', 'price']
         return ProductSummarySerializer
 
     @property
@@ -123,17 +130,25 @@ class DefaultSettings(object):
         from django.utils.module_loading import import_string
 
         s = self._setting('SHOP_PRODUCT_SELECT_SERIALIZER',
-                          'shop.serializers.defaults.product_select.ProductSelectSerializer')
+                          'shop.serializers.defaults.ProductSelectSerializer')
         ProductSelectSerializer = import_string(s)
         return ProductSelectSerializer
 
     @property
-    def SHOP_LINK_TO_EMPTY_CART(self):
+    def SHOP_CART_ICON_CAPTION_SERIALIZER(self):
         """
-        If ``True`` the link on the cart-icon pointing to the cart is enabled, even if there are no
-        items are in the cart.
+        This serializer is used to provide the data required to render the information nearby the
+        cart icon symbol. Since this icon normally is visible all the time, and hence updated quite
+        frequently, only add fields which are necessary.
+
+        Defaults to :class:`shop.serializers.cart.CartIconCaptionSerializer`.
         """
-        return self._setting('SHOP_LINK_TO_EMPTY_CART', True)
+        from django.utils.module_loading import import_string
+
+        s = self._setting('SHOP_CART_ICON_CAPTION_SERIALIZER',
+                          'shop.serializers.cart.CartIconCaptionSerializer')
+        CartIconCaptionSerializer = import_string(s)
+        return CartIconCaptionSerializer
 
     @property
     def SHOP_ORDER_ITEM_SERIALIZER(self):
@@ -148,7 +163,7 @@ class DefaultSettings(object):
         from shop.serializers.bases import BaseOrderItemSerializer
 
         s = self._setting('SHOP_ORDER_ITEM_SERIALIZER',
-                          'shop.serializers.defaults.order_item.OrderItemSerializer')
+                          'shop.serializers.defaults.OrderItemSerializer')
         OrderItemSerializer = import_string(s)
         if not issubclass(OrderItemSerializer, BaseOrderItemSerializer):
             raise ImproperlyConfigured(
@@ -167,7 +182,7 @@ class DefaultSettings(object):
         from django.utils.module_loading import import_string
 
         cart_modifiers = self._setting('SHOP_CART_MODIFIERS', ['shop.modifiers.defaults.DefaultCartModifier'])
-        return [import_string(mc) for mc in cart_modifiers]
+        return tuple(import_string(mc) for mc in cart_modifiers)
 
     @property
     def SHOP_VALUE_ADDED_TAX(self):
@@ -228,19 +243,6 @@ class DefaultSettings(object):
         return self._setting('SHOP_GUEST_IS_ACTIVE_USER', False)
 
     @property
-    def SHOP_OVERRIDE_SHIPPING_METHOD(self):
-        """
-        If this directive is ``True``, the merchant is allowed to override the shipping method the
-        customer has chosen while performing the checkout.
-
-        Note that if alternative shipping is more expensive, usually the merchant has to come up
-        for the additional costs.
-
-        The default is ``False``.
-        """
-        return self._setting('SHOP_OVERRIDE_SHIPPING_METHOD', False)
-
-    @property
     def SHOP_CACHE_DURATIONS(self):
         """
         In the product's list views, HTML snippets are created for the summary representation of
@@ -256,7 +258,7 @@ class DefaultSettings(object):
     def SHOP_DIALOG_FORMS(self):
         """
         Specify a list of dialog forms available in our :class:`shop.views.checkout.CheckoutViewSet`.
-        This allows the usage of the endpoint ``resolve('shop:checkout-upload')`` in a generic way.
+        This allows us to use its endpoint ``resolve('shop:checkout-upload')`` in a generic way.
 
         If Cascade plugins are used for the forms in the checkout view, this list can be empty.
         """
@@ -285,6 +287,6 @@ class DefaultSettings(object):
     def __getattr__(self, key):
         if not key.startswith('SHOP_'):
             key = 'SHOP_' + key
-        return self.__getattribute__(key)
+        return getattr(self, key)
 
 app_settings = DefaultSettings()

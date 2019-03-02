@@ -14,7 +14,6 @@ from django.db import models, DEFAULT_DB_ALIAS
 from django.db.models.fields import FieldDoesNotExist
 from django.dispatch import receiver
 from django.utils import timezone
-from django.utils.deprecation import CallableBool, CallableFalse, CallableTrue
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import ugettext_lazy as _, ugettext_noop
@@ -122,7 +121,7 @@ class CustomerManager(models.Manager):
         return qs
 
     def create(self, *args, **kwargs):
-        if 'user' in kwargs and kwargs['user'].is_authenticated:
+        if 'user' in kwargs and kwargs['user'].is_authenticated():
             kwargs.setdefault('recognized', CustomerState.REGISTERED)
         customer = super(CustomerManager, self).create(*args, **kwargs)
         return customer
@@ -143,7 +142,7 @@ class CustomerManager(models.Manager):
         """
         Return an Customer object for the current User object.
         """
-        if request.user.is_anonymous and request.session.session_key:
+        if request.user.is_anonymous() and request.session.session_key:
             # the visitor is determined through the session key
             user = self._get_visiting_user(request.session.session_key)
         else:
@@ -153,7 +152,7 @@ class CustomerManager(models.Manager):
                 return user.customer
         except AttributeError:
             pass
-        if request.user.is_authenticated:
+        if request.user.is_authenticated():
             customer, created = self.get_or_create(user=user)
             if created:  # `user` has been created by another app than shop
                 customer.recognize_as_registered(request)
@@ -162,7 +161,7 @@ class CustomerManager(models.Manager):
         return customer
 
     def get_or_create_from_request(self, request):
-        if request.user.is_authenticated:
+        if request.user.is_authenticated():
             user = request.user
             recognized = CustomerState.REGISTERED
         else:
@@ -268,30 +267,26 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     def groups(self):
         return self.user.groups
 
-    @property
     def is_anonymous(self):
-        return CallableBool(self.recognized in (CustomerState.UNRECOGNIZED, CustomerState.GUEST))
+        return self.recognized in (CustomerState.UNRECOGNIZED, CustomerState.GUEST)
 
-    @property
     def is_authenticated(self):
-        return CallableBool(self.recognized is CustomerState.REGISTERED)
+        return self.recognized is CustomerState.REGISTERED
 
-    @property
     def is_recognized(self):
         """
         Return True if the customer is associated with a User account.
         Unrecognized customers have accessed the shop, but did not register
         an account nor declared themselves as guests.
         """
-        return CallableBool(self.recognized is not CustomerState.UNRECOGNIZED)
+        return self.recognized is not CustomerState.UNRECOGNIZED
 
-    @property
     def is_guest(self):
         """
         Return true if the customer isn't associated with valid User account, but declared
         himself as a guest, leaving their email address.
         """
-        return CallableBool(self.recognized is CustomerState.GUEST)
+        return self.recognized is CustomerState.GUEST
 
     def recognize_as_guest(self, request=None, commit=True):
         """
@@ -303,12 +298,11 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
                 self.save(update_fields=['recognized'])
             customer_recognized.send(sender=self.__class__, customer=self, request=request)
 
-    @property
     def is_registered(self):
         """
         Return true if the customer has registered himself.
         """
-        return CallableBool(self.recognized is CustomerState.REGISTERED)
+        return self.recognized is CustomerState.REGISTERED
 
     def recognize_as_registered(self, request=None, commit=True):
         """
@@ -320,30 +314,27 @@ class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
                 self.save(update_fields=['recognized'])
             customer_recognized.send(sender=self.__class__, customer=self, request=request)
 
-    @property
     def is_visitor(self):
         """
         Always False for instantiated Customer objects.
         """
-        return CallableFalse
+        return False
 
-    @property
     def is_expired(self):
         """
         Return True if the session of an unrecognized customer expired or is not decodable.
         Registered customers never expire.
         Guest customers only expire, if they failed fulfilling the purchase.
         """
-        is_expired = False
         if self.recognized is CustomerState.UNRECOGNIZED:
             try:
                 session_key = CustomerManager.decode_session_key(self.user.username)
-                is_expired = not SessionStore.exists(session_key)
+                return not SessionStore.exists(session_key)
             except KeyError:
                 msg = "Unable to decode username '{}' as session key"
                 warnings.warn(msg.format(self.user.username))
-                is_expired = True
-        return CallableBool(is_expired)
+                return True
+        return False
 
     def get_or_assign_number(self):
         """
@@ -396,29 +387,23 @@ class VisitingCustomer(object):
     def email(self, value):
         pass
 
-    @property
     def is_anonymous(self):
-        return CallableTrue
+        return True
 
-    @property
     def is_authenticated(self):
-        return CallableFalse
+        return False
 
-    @property
     def is_recognized(self):
-        return CallableFalse
+        return False
 
-    @property
     def is_guest(self):
-        return CallableFalse
+        return False
 
-    @property
     def is_registered(self):
-        return CallableFalse
+        return False
 
-    @property
     def is_visitor(self):
-        return CallableTrue
+        return True
 
     def save(self, **kwargs):
         pass
@@ -430,7 +415,7 @@ def handle_customer_login(sender, **kwargs):
     Update request.customer to an authenticated Customer
     """
     try:
-        kwargs['request'].customer = kwargs['user'].customer
+        kwargs['request'].customer = kwargs['request'].user.customer
     except (AttributeError, ObjectDoesNotExist):
         kwargs['request'].customer = SimpleLazyObject(lambda: CustomerModel.objects.get_from_request(kwargs['request']))
 

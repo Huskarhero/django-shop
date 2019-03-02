@@ -13,15 +13,14 @@ from shop.models.product import ProductModel
 from shop.rest.filters import CMSPagesFilterBackend
 from shop.rest.renderers import CMSPageRenderer
 from shop.rest.money import JSONRenderer
-from shop.views.catalog import ProductListView, ProductListPagination, AddFilterContextMixin
+from shop.views.catalog import ProductListView, AddFilterContextMixin
 
 
 class SearchView(ListModelMixin, HaystackGenericAPIView):
     """
     A generic view to be used for rendering the result list while searching.
     """
-    renderer_classes = [CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer]
-    pagination_class = ProductListPagination
+    renderer_classes = (CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer)
     serializer_class = None  # to be set by SearchView.as_view(serializer_class=...)
 
     def get(self, request, *args, **kwargs):

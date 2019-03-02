@@ -6,8 +6,7 @@ from django.db import transaction
 from django.utils.module_loading import import_string
 
 from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -16,7 +15,7 @@ from cms.plugin_pool import plugin_pool
 from shop.conf import app_settings
 from shop.models.cart import CartModel
 from shop.serializers.checkout import CheckoutSerializer
-from shop.serializers.cart import CartSerializer
+from shop.serializers.cart import CartSummarySerializer
 from shop.modifiers.pool import cart_modifiers_pool
 
 
@@ -26,7 +25,7 @@ class CheckoutViewSet(GenericViewSet):
     """
     serializer_label = 'checkout'
     serializer_class = CheckoutSerializer
-    cart_serializer_class = CartSerializer
+    cart_serializer_class = CartSummarySerializer
 
     def __init__(self, **kwargs):
         super(CheckoutViewSet, self).__init__(**kwargs)
@@ -45,7 +44,7 @@ class CheckoutViewSet(GenericViewSet):
                     if hasattr(p, 'form_class'):
                         self.dialog_forms.add(import_string(p.form_class))
 
-    @action(methods=['put'], detail=False, url_path='upload')
+    @list_route(methods=['put'], url_path='upload')
     def upload(self, request):
         """
         Use this REST endpoint to upload the payload of all forms used to setup the checkout
@@ -91,7 +90,7 @@ class CheckoutViewSet(GenericViewSet):
         else:
             return Response(errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    @action(methods=['get'], detail=False, url_path='digest')
+    @list_route(methods=['get'], url_path='digest')
     def digest(self, request):
         """
         Returns the summaries of the cart and various checkout forms to be rendered in non-editable fields.
@@ -107,7 +106,7 @@ class CheckoutViewSet(GenericViewSet):
         }
         return Response(data=response_data)
 
-    @action(methods=['post'], detail=False, url_path='purchase')
+    @list_route(methods=['post'], url_path='purchase')
     def purchase(self, request):
         """
         This is the final step on converting a cart into an order object. It normally is used in
@@ -119,14 +118,12 @@ class CheckoutViewSet(GenericViewSet):
         cart.save()
 
         response_data = {}
-        try:
-            # Iterate over the registered modifiers, and search for the active payment service provider
-            for modifier in cart_modifiers_pool.get_payment_modifiers():
-                if modifier.is_active(cart.extra.get('payment_modifier')):
-                    expression = modifier.payment_provider.get_payment_request(cart, request)
+        # Iterate over the registered modifiers, and search for the active payment service provider
+        for modifier in cart_modifiers_pool.get_payment_modifiers():
+            if modifier.is_active(cart):
+                payment_provider = getattr(modifier, 'payment_provider', None)
+                if payment_provider:
+                    expression = payment_provider.get_payment_request(cart, request)
                     response_data.update(expression=expression)
-                    break
-        except ValidationError as err:
-            response_data = {'purchasing_error_message': '. '.join(err.detail)}
-            return Response(data=response_data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+                break
         return Response(data=response_data)

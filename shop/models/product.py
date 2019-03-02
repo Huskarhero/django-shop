@@ -2,16 +2,14 @@
 from __future__ import unicode_literals
 
 from datetime import datetime
-from distutils.version import LooseVersion
 from functools import reduce
 import operator
-from cms import __version__ as CMS_VERSION
 from django.db import models
 from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.six.moves.urllib.parse import urljoin
 from django.utils.translation import ugettext_lazy as _
-from polymorphic.managers import PolymorphicManager
+from polymorphic.manager import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 from shop import deferred
 
@@ -41,7 +39,7 @@ class BaseProductManager(PolymorphicManager):
 class PolymorphicProductMetaclass(deferred.PolymorphicForeignKeyBuilder):
 
     @classmethod
-    def perform_meta_model_check(cls, Model):
+    def perform_model_checks(cls, Model):
         """
         Perform some safety checks on the ProductModel being created.
         """
@@ -77,10 +75,10 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
 
     Some attributes for this class are mandatory. They shall be implemented as property method.
     The following fields MUST be implemented by the inheriting class:
-    ``product_name``: Return the pronounced name for this product in its localized language.
+    `product_name`: Return the pronounced name for this product in its localized language.
 
-    Additionally the inheriting class MUST implement the following methods ``get_absolute_url()``
-    and ``get_price()``. See below for details.
+    Additionally the inheriting class MUST implement the following methods `get_absolute_url()`
+    and `get_price()`. See below for details.
 
     Unless each product variant offers it's own product code, it is strongly recommended to add
     a field ``product_code = models.CharField(_("Product code"), max_length=255, unique=True)``
@@ -165,27 +163,23 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
         Checks if the current product is already in the given cart, and if so, returns the
         corresponding cart_item.
 
-        :param watched (bool): This is used to determine if this check shall only be performed
-            for the watch-list.
+        Args:
+            watched (bool): This is used to determine if this check shall only be performed
+                for the watch-list.
 
-        :param **kwargs: Optionally one may pass arbitrary information about the product being looked
-            up. This can be used to determine if a product with variations shall be considered
-            equal to the same cart item, resulting in an increase of it's quantity, or if it
-            shall be considered as a separate cart item, resulting in the creation of a new item.
+            **kwargs: Optionally one may pass arbitrary information about the product being looked
+                 up. This can be used to determine if a product with variations shall be considered
+                 equal to the same cart item, resulting in an increase of it's quantity, or if it
+                 shall be considered as a separate cart item, resulting in the creation of a new
+                 item.
 
-        :returns: The cart item (of type CartItem) containing the product considered as equal to the
-            current one, or ``None`` if no product matches in the cart.
+        Returns:
+            The cart_item containing the product considered as equal to the current one, or
+            ``None`` if it is not available.
         """
         from .cart import CartItemModel
         cart_item_qs = CartItemModel.objects.filter(cart=cart, product=self)
         return cart_item_qs.first()
-
-    def get_weight(self):
-        """
-        Optional hook to return the product's gross weight in kg. This information is required to
-        estimate the shipping costs. The merchants product model shall override this method.
-        """
-        return 0
 
 ProductModel = deferred.MaterializedModel(BaseProduct)
 
@@ -204,10 +198,7 @@ class CMSPageReferenceMixin(object):
         """
         # sorting by highest level, so that the canonical URL
         # associates with the most generic category
-        if LooseVersion(CMS_VERSION) < LooseVersion('3.5'):
-            cms_page = self.cms_pages.order_by('depth').last()
-        else:
-            cms_page = self.cms_pages.order_by('node__path').last()
+        cms_page = self.cms_pages.order_by('depth').last()
         if cms_page is None:
             return urljoin('/category-not-assigned/', self.slug)
         return urljoin(cms_page.get_absolute_url(), self.slug)

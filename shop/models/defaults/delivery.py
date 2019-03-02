@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from shop.models.delivery import BaseDelivery
+from shop.models.delivery import BaseDelivery, BaseDeliveryItem
 
 
 class Delivery(BaseDelivery):
     """Default materialized model for OrderShipping"""
-    class Meta:
-        verbose_name = _("Delivery")
-        verbose_name_plural = _("Deliveries")
+
+
+class DeliveryItem(BaseDeliveryItem):
+    """Default materialized model for ShippedItem"""
+    quantity = models.IntegerField(_("Delivered quantity"), default=0)
