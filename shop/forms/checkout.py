@@ -2,14 +2,12 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth import get_user_model
-from django.forms import widgets
+from django.contrib.staticfiles.finders import find as find_static_file
+from django.forms import widgets, Media
 from django.forms.utils import ErrorDict
 from django.utils.translation import ugettext_lazy as _
-from django.utils.functional import cached_property
-
 from djng.forms import fields
-from djng.styling.bootstrap3.forms import Bootstrap3ModelForm
-
+from sass_processor.processor import sass_processor
 from shop.forms.widgets import CheckboxInput, RadioSelect, Select
 from shop.models.address import ShippingAddressModel, BillingAddressModel
 from shop.models.customer import CustomerModel
@@ -35,6 +33,13 @@ class CustomerForm(DialogModelForm):
         assert instance is not None
         initial.update(dict((f, getattr(instance, f)) for f in self.Meta.custom_fields))
         super(CustomerForm, self).__init__(initial=initial, instance=instance, *args, **kwargs)
+
+    @property
+    def media(self):
+        scss_file = '{}/css/customer.scss'.format(CustomerModel._meta.app_label)
+        if not find_static_file(scss_file):
+            scss_file = 'shop/css/customer.scss'
+        return Media(css={'all': [sass_processor(scss_file)]})
 
     def save(self, commit=True):
         for f in self.Meta.custom_fields:
@@ -92,7 +97,7 @@ class AddressForm(DialogModelForm):
     plugin_fields = ['plugin_id', 'plugin_order', 'use_primary_address']
 
     class Meta:
-        exclude = ('customer', 'priority',)
+        exclude = ['customer', 'priority']
 
     def __init__(self, initial=None, instance=None, cart=None, *args, **kwargs):
         self.cart = cart
@@ -107,17 +112,16 @@ class AddressForm(DialogModelForm):
                 initial['use_primary_address'] = cart.billing_address is None
         super(AddressForm, self).__init__(initial=initial, instance=instance, *args, **kwargs)
 
+    @property
+    def media(self):
+        scss_file = '{}/css/address.scss'.format(self.get_model()._meta.app_label)
+        if not find_static_file(scss_file):
+            scss_file = 'shop/css/address.scss'
+        return Media(css={'all': [sass_processor(scss_file)]})
+
     @classmethod
     def get_model(cls):
         return cls.Meta.model
-
-    @cached_property
-    def field_css_classes(self):
-        css_classes = {'*': getattr(Bootstrap3ModelForm, 'field_css_classes')}
-        for name, field in self.fields.items():
-            if not field.widget.is_hidden:
-                css_classes[name] = ['has-feedback', 'form-group', 'shop-address-{}'.format(name)]
-        return css_classes
 
     @classmethod
     def form_factory(cls, request, data, cart):
@@ -297,8 +301,8 @@ class PaymentMethodForm(DialogForm):
         cart.update(request)
         payment_method_form = cls(data=data, cart=cart)
         if payment_method_form.is_valid():
-            cart.extra.update(payment_method_form.cleaned_data,
-                payment_extra_data=data.get('payment_data', {}))
+            payment_data = data.get('payment_data') or {}
+            cart.extra.update(payment_method_form.cleaned_data, payment_extra_data=payment_data)
         return payment_method_form
 
 

@@ -6,7 +6,6 @@ be used on a generic CMS page to describe anything.
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
@@ -23,9 +22,7 @@ from shop.money.fields import MoneyField
 
 
 if settings.USE_I18N:
-    if 'parler' not in settings.INSTALLED_APPS:
-        raise ImproperlyConfigured("Requires `django-parler`, if configured as multilingual project")
-
+    assert 'parler' in settings.INSTALLED_APPS, "Requires `django-parler`, if configured as multilingual project"
     from parler.managers import TranslatableManager, TranslatableQuerySet
     from parler.models import TranslatableModelMixin, TranslatedFieldsModel
     from parler.fields import TranslatedField
@@ -46,18 +43,43 @@ if settings.USE_I18N:
         attributes and just required a placeholder field to add arbitrary data.
         """
         # common product fields
-        product_code = models.CharField(_("Product code"), max_length=255, unique=True)
-        unit_price = MoneyField(_("Unit price"), decimal_places=3,
-                                help_text=_("Net price for this product"))
+        product_code = models.CharField(
+            _("Product code"),
+            max_length=255,
+            unique=True,
+        )
+
+        unit_price = MoneyField(
+            _("Unit price"),
+            decimal_places=3,
+            help_text=_("Net price for this product"),
+        )
 
         # controlling the catalog
-        order = models.PositiveIntegerField(verbose_name=_("Sort by"), db_index=True)
-        cms_pages = models.ManyToManyField('cms.Page', through=ProductPage,
-            help_text=_("Choose list view this product shall appear on."))
-        sample_image = image.FilerImageField(verbose_name=_("Sample Image"), blank=True, null=True,
-            help_text=_("Sample image used in the catalog's list view."))
-        show_breadcrumb = models.BooleanField(_("Show Breadcrumb"), default=True,
-            help_text=_("Shall the detail page show the product's breadcrumb."))
+        order = models.PositiveIntegerField(
+            verbose_name=_("Sort by"),
+            db_index=True,
+        )
+
+        cms_pages = models.ManyToManyField(
+            'cms.Page',
+            through=ProductPage,
+            help_text=_("Choose list view this product shall appear on."),
+        )
+
+        sample_image = image.FilerImageField(
+            verbose_name=_("Sample Image"),
+            blank=True,
+            null=True,
+            help_text=_("Sample image used in the catalog's list view."),
+        )
+
+        show_breadcrumb = models.BooleanField(
+            _("Show Breadcrumb"),
+            default=True,
+            help_text=_("Shall the detail page show the product's breadcrumb."),
+        )
+
         placeholder = PlaceholderField("Commodity Details")
 
         # translatable fields for the catalog's list- and detail views
@@ -66,13 +88,13 @@ if settings.USE_I18N:
         caption = TranslatedField()
 
         # filter expression used to search for a product item using the Select2 widget
-        lookup_fields = ('product_code__startswith', 'product_name__icontains',)
+        lookup_fields = ['product_code__startswith', 'product_name__icontains']
 
         objects = ProductManager()
 
         class Meta:
             app_label = app_settings.APP_LABEL
-            ordering = ('order',)
+            ordering = ['order']
             verbose_name = _("Commodity")
             verbose_name_plural = _("Commodities")
 
@@ -84,11 +106,25 @@ if settings.USE_I18N:
 
 
     class CommodityTranslation(TranslatedFieldsModel):
-        master = models.ForeignKey(Commodity, related_name='translations', null=True)
-        product_name = models.CharField(max_length=255, verbose_name=_("Product Name"))
+        master = models.ForeignKey(
+            Commodity,
+            related_name='translations',
+            null=True,
+        )
+
+        product_name = models.CharField(
+            max_length=255,
+            verbose_name=_("Product Name"),
+        )
+
         slug = models.SlugField(verbose_name=_("Slug"))
-        caption = HTMLField(verbose_name=_("Caption"), blank=True, null=True,
-                            help_text=_("Short description for the catalog list view."))
+
+        caption = HTMLField(
+            verbose_name=_("Caption"),
+            blank=True,
+            null=True,
+            help_text=_("Short description for the catalog list view."),
+        )
 
         class Meta:
             app_label = app_settings.APP_LABEL
@@ -103,28 +139,62 @@ else:
         attributes and just required a placeholder field to add arbitrary data.
         """
         # common product fields
-        product_name = models.CharField(max_length=255, verbose_name=_("Product Name"))
-        product_code = models.CharField(_("Product code"), max_length=255, unique=True)
-        unit_price = MoneyField(_("Unit price"), decimal_places=3,
-                                help_text=_("Net price for this product"))
+        product_name = models.CharField(
+            max_length=255,
+            verbose_name=_("Product Name"),
+        )
+
+        product_code = models.CharField(
+            _("Product code"),
+            max_length=255,
+            unique=True,
+        )
+
+        unit_price = MoneyField(
+            _("Unit price"),
+            decimal_places=3,
+            help_text=_("Net price for this product"),
+        )
 
         # controlling the catalog
-        order = models.PositiveIntegerField(verbose_name=_("Sort by"), db_index=True)
-        cms_pages = models.ManyToManyField('cms.Page', through=ProductPage,
-            help_text=_("Choose list view this product shall appear on."))
-        sample_image = image.FilerImageField(verbose_name=_("Sample Image"), blank=True, null=True,
-            help_text=_("Sample image used in the catalog's list view."))
-        show_breadcrumb = models.BooleanField(_("Show Breadcrumb"), default=True,
-            help_text=_("Shall the detail page show the product's breadcrumb."))
+        order = models.PositiveIntegerField(
+            verbose_name=_("Sort by"),
+            db_index=True,
+        )
+
+        cms_pages = models.ManyToManyField(
+            'cms.Page',
+            through=ProductPage,
+            help_text=_("Choose list view this product shall appear on."),
+        )
+
+        sample_image = image.FilerImageField(
+            verbose_name=_("Sample Image"),
+            blank=True,
+            null=True,
+            help_text=_("Sample image used in the catalog's list view."),
+        )
+
+        show_breadcrumb = models.BooleanField(
+            _("Show Breadcrumb"),
+            default=True,
+            help_text=_("Shall the detail page show the product's breadcrumb."),
+        )
+
         placeholder = PlaceholderField("Commodity Details")
 
         # common fields for the catalog's list- and detail views
         slug = models.SlugField(verbose_name=_("Slug"))
-        caption = HTMLField(verbose_name=_("Caption"), blank=True, null=True,
-                            help_text=_("Short description for the catalog list view."))
+
+        caption = HTMLField(
+            verbose_name=_("Caption"),
+            blank=True,
+            null=True,
+            help_text=_("Short description for the catalog list view."),
+        )
 
         # filter expression used to search for a product item using the Select2 widget
-        lookup_fields = ('product_code__startswith', 'product_name__icontains',)
+        lookup_fields = ['product_code__startswith', 'product_name__icontains']
 
         objects = BaseProductManager()
 
