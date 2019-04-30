@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import pytest
 from django.db import models
-from django.utils import six
 from shop.models.fields import ChoiceEnum, ChoiceEnumField
 
 
@@ -45,11 +44,7 @@ def test_str_enum():
     assert MyColor.BLUE.label == "Pure blue"
     assert MyColor.BLUE == MyColor('#0000ff')
     assert str(MyColor.BLUE) == "Pure blue"
-    if six.PY2:
-        # Python-2 sorts members by value
-        assert MyColor.choices == [('#0000ff', "Pure blue"), ('#ff0000', "Pure red")]
-    else:
-        assert MyColor.choices == [('#ff0000', "Pure red"), ('#0000ff', "Pure blue")]
+    assert MyColor.choices == [('#ff0000', "Pure red"), ('#0000ff', "Pure blue")]
 
 
 def test_to_python():
