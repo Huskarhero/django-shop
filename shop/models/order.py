@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from decimal import Decimal
 import logging
 from six import with_metaclass
+from django.core import checks
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models, transaction
 from django.db.models.aggregates import Sum
@@ -516,22 +517,24 @@ class BaseOrderItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         return self.product_name
 
     @classmethod
-    def perform_model_check(cls):
+    def check(cls, **kwargs):
+        errors = super(BaseOrderItem, cls).check(**kwargs)
         for cart_field in CartItemModel._meta.fields:
             if cart_field.attname == 'quantity':
                 break
         else:
             msg = "Class `{}` must implement a field named `quantity`."
-            raise ImproperlyConfigured(msg.format(CartItemModel.__name__))
+            errors.append(checks.Error(msg.format(CartItemModel.__name__)))
         for order_field in OrderItemModel._meta.fields:
             if order_field.attname == 'quantity':
                 break
         else:
             msg = "Class `{}` must implement a field named `quantity`."
-            raise ImproperlyConfigured(msg.format(OrderItemModel.__name__))
+            errors.append(checks.Error(msg.format(OrderItemModel.__name__)))
         if order_field.get_internal_type() != cart_field.get_internal_type():
             msg = "Field `{}.quantity` must be of one same type `{}.quantity`."
-            raise ImproperlyConfigured(msg.format(CartItemModel.__name__, OrderItemModel.__name__))
+            errors.append(checks.Error(msg.format(CartItemModel.__name__, OrderItemModel.__name__)))
+        return errors
 
     @property
     def unit_price(self):
@@ -545,12 +548,11 @@ class BaseOrderItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         """
         From a given cart item, populate the current order item.
         If the operation was successful, the given item shall be removed from the cart.
-        If an exception of type :class:`CartItem.DoesNotExist` is raised, discard the order item.
+        If a CartItem.DoesNotExist exception is raised, discard the order item.
         """
         if cart_item.quantity == 0:
             raise CartItemModel.DoesNotExist("Cart Item is on the Wish List")
         self.product = cart_item.product
-        self.product.deduct_from_stock(cart_item.quantity, **cart_item.extra)
         # for historical integrity, store the product's name and price at the moment of purchase
         self.product_name = cart_item.product.product_name
         self.product_code = cart_item.product_code

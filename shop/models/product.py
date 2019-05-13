@@ -1,103 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from decimal import Decimal
+from datetime import datetime
 from distutils.version import LooseVersion
 from functools import reduce
 import operator
 from cms import __version__ as CMS_VERSION
-from django.core.exceptions import ImproperlyConfigured
+from django.core import checks
 from django.db import models
-from django.db.models.aggregates import Sum
-from django.db.models.functions import Coalesce
 from django.utils import six
-from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.six.moves.urllib.parse import urljoin
 from django.utils.translation import ugettext_lazy as _
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 from shop import deferred
-from shop.conf import app_settings
-
-
-class Availability(object):
-    """
-    Contains the currently available quantity for a given product and period.
-    """
-    def __init__(self, **kwargs):
-        """
-        :param earliest: Point in time from when this product will be available.
-        :param latest: Point in time until this product will be available.
-        :param quantity: Number of available items.
-        :param sell_short: Sell the product, even though it's not in stock. It
-            will be shipped at the ``earliest`` point in time.
-        :param limited_offer: Sell the product until the ``latest`` point in time.
-        """
-        self.earliest = kwargs.get('earliest', timezone.datetime.min)
-        self.latest = kwargs.get('latest', timezone.datetime.max)
-        quantity = kwargs.get('quantity', app_settings.MAX_PURCHASE_QUANTITY)
-        self.quantity = min(quantity, app_settings.MAX_PURCHASE_QUANTITY)
-        self.sell_short = bool(kwargs.get('sell_short', False))
-        self.limited_offer = bool(kwargs.get('limited_offer', False))
-
-
-class AvailableProductMixin(object):
-    """
-    Add this mixin class to the product models declaration, wanting to keep track on the
-    current amount of products in stock. In comparison to
-    :class:`shop.models.product.ReserveProductMixin`, this mixin does not reserve items in pending
-    carts, with the risk for overselling. It thus is suited for products kept in the cart
-    for a long period.
-
-    The product class must implement a field named ``quantity`` accepting numerical values.
-    """
-    def get_availability(self, request, **extra):
-        """
-        Returns the current available quantity for this product.
-
-        If other customers have pending carts containing this same product, the quantity
-        is not not adjusted. This may result in a situation, where someone adds a product
-        to the cart, but then is unable to purchase, because someone else bought it in the
-        meantime.
-        """
-        if not isinstance(getattr(self, 'quantity', None), (int, float, Decimal)):
-            msg = "Product model class {product_model} must contain a numeric model field named `quantity`"
-            raise ImproperlyConfigured(msg.format(product_model=self.__class__.__name__))
-        return Availability(quantity=self.quantity)
-
-    def deduct_from_stock(self, quantity, **extra):
-        self.quantity -= quantity
-        self.save(update_fields=['quantity'])
-
-
-class ReserveProductMixin(AvailableProductMixin):
-    """
-    Add this mixin class to the product models declaration, wanting to keep track on the
-    current amount of products in stock.  In comparison to
-    :class:`shop.models.product.AvailableProductMixin`, this mixin reserves items in pending
-    carts, without the no risk for overselling. On the other hand, the shop may run out of sellable
-    items, if customers keep products in the cart for a long period, without proceeding to checkout.
-    Use this mixin for products kept for a short period until checking out the cart, for
-    instance for ticket sales. Ensure that pending carts are flushed regularly.
-
-    The product class must implement a field named ``quantity`` accepting numerical values.
-    """
-    def get_availability(self, request, **extra):
-        """
-        Returns the current available quantity for this product.
-
-        If other customers have pending carts containing this same product, the quantity
-        is adjusted accordingly. Therefore make sure to invalidate carts, which were not
-        converted into an order after a determined period of time. Otherwise the quantity
-        returned by this function might be considerably lower, than what it could be.
-        """
-        from shop.models.cart import CartItemModel
-
-        availability = super(ReserveProductMixin, self).get_availability(request)
-        cart_items = CartItemModel.objects.filter(product=self).values('quantity')
-        availability.quantity -= cart_items.aggregate(sum=Coalesce(Sum('quantity'), 0))['sum']
-        return availability
 
 
 class BaseProductManager(PolymorphicManager):
@@ -216,24 +133,22 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
         """
         Hook for returning the variant of a product using parameters passed in by **kwargs.
         If the product has no variants, then return the product itself.
-
-        :param **kwargs: A dictionary describing the product's variations.
         """
         return self
 
-    def get_availability(self, request, **kwargs):
+    def get_availability(self, request):
         """
-        Hook for checking the availability of a product.
-
-        :param request:
-            Optionally used to vary the availability according to the logged in user,
-            its country code or language.
-
-        :param **kwargs:
-            Extra arguments passed to the underlying method. Useful for products with
-            variations.
+        Hook for checking the availability of a product. It returns a list of tuples with this
+        notation:
+        - Number of items available for this product until the specified period expires.
+          If this value is ``True``, then infinitely many items are available.
+        - Until which timestamp, in UTC, the specified number of items are available.
+        This function can return more than one tuple. If the list is empty, then the product is
+        considered as not available.
+        Use the `request` object to vary the availability according to the logged in user,
+        its country code or language.
         """
-        return Availability()
+        return [(True, datetime.max)]  # Infinite number of products available until eternity
 
     def is_in_cart(self, cart, watched=False, **kwargs):
         """
@@ -255,17 +170,6 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
         cart_item_qs = CartItemModel.objects.filter(cart=cart, product=self)
         return cart_item_qs.first()
 
-    def deduct_from_stock(self, quantity, **kwargs):
-        """
-        Hook to deduct a number of items of the current product from the stock's inventory.
-
-        :param quantity: Number of items to deduct.
-
-        :param **kwargs:
-            Extra arguments passed to the underlying method. Useful for products with
-            variations.
-        """
-
     def get_weight(self):
         """
         Optional hook to return the product's gross weight in kg. This information is required to
@@ -274,12 +178,14 @@ class BaseProduct(six.with_metaclass(PolymorphicProductMetaclass, PolymorphicMod
         return 0
 
     @classmethod
-    def perform_model_check(cls):
+    def check(cls, **kwargs):
+        errors = super(BaseProduct, cls).check(**kwargs)
         try:
             cls.product_name
         except AttributeError:
             msg = "Class `{}` must provide a model field implementing `product_name`"
-            raise NotImplementedError(msg.format(cls.__name__))
+            errors.append(checks.Error(msg.format(cls.__name__)))
+        return errors
 
 ProductModel = deferred.MaterializedModel(BaseProduct)
 
