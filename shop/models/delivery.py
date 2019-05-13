@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 from six import with_metaclass
-from django.core import checks
 from django.db import models
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from shop import deferred
@@ -55,15 +55,13 @@ class BaseDelivery(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         return _("Delivery ID: {}").format(self.id)
 
     @classmethod
-    def check(cls, **kwargs):
-        errors = super(BaseDelivery, cls).check(**kwargs)
+    def perform_model_check(cls):
         for field in OrderItemModel._meta.fields:
             if field.attname == 'canceled' and field.get_internal_type() == 'BooleanField':
                 break
         else:
              msg = "Class `{}` must implement a `BooleanField` named `canceled`, if used in combination with a Delivery model."
-             errors.append(checks.Error(msg.format(OrderItemModel.__name__)))
-        return errors
+             raise ImproperlyConfigured(msg.format(OrderItemModel.__name__))
 
     def clean(self):
         if self.order._fsm_requested_transition == ('status', 'ship_goods') and not self.shipped_at:
@@ -108,23 +106,21 @@ class BaseDeliveryItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model))
         verbose_name_plural = _("Deliver items")
 
     @classmethod
-    def check(cls, **kwargs):
-        errors = super(BaseDeliveryItem, cls).check(**kwargs)
+    def perform_model_check(cls):
         for order_field in OrderItemModel._meta.fields:
             if order_field.attname == 'quantity':
                 break
         else:
             msg = "Class `{}` must implement a field named `quantity`."
-            errors.append(checks.Error(msg.format(OrderItemModel.__name__)))
+            raise ImproperlyConfigured(msg.format(OrderItemModel.__name__))
         for deliver_field in OrderItemModel._meta.fields:
             if deliver_field.attname == 'quantity':
                 break
         else:
             msg = "Class `{}` must implement a field named `quantity`."
-            errors.append(checks.Error(msg.format(cls.__name__)))
+            raise ImproperlyConfigured(msg.format(cls.__name__))
         if order_field.get_internal_type() != deliver_field.get_internal_type():
             msg = "Field `{}.quantity` must be of one same type `{}.quantity`."
-            errors.append(checks.Error(msg.format(cls.__name__, OrderItemModel.__name__)))
-        return errors
+            raise ImproperlyConfigured(msg.format(cls.__name__, OrderItemModel.__name__))
 
 DeliveryItemModel = deferred.MaterializedModel(BaseDeliveryItem)

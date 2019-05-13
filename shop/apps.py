@@ -22,5 +22,6 @@ class ShopConfig(AppConfig):
 
         # perform some sanity checks
         ForeignKeyBuilder.check_for_pending_mappings()
+        ForeignKeyBuilder.perform_model_checks()
 
         cms_tags.register.tags['page_attribute'] = PageAttribute
