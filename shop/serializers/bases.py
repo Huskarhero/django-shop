@@ -25,12 +25,19 @@ class BaseCustomerSerializer(serializers.ModelSerializer):
         fields = ['number', 'first_name', 'last_name', 'email']
 
 
+class AvailabilitySerializer(serializers.Serializer):
+    earliest = serializers.DateTimeField()
+    latest = serializers.DateTimeField()
+    quantity = serializers.ReadOnlyField()
+    sell_short = serializers.BooleanField()
+    limited_offer = serializers.BooleanField()
+
+
 class ProductSerializer(serializers.ModelSerializer):
     """
     Common serializer for our product model.
     """
     price = serializers.SerializerMethodField()
-    availability = serializers.SerializerMethodField()
     product_type = serializers.CharField(read_only=True)
     product_model = serializers.CharField(read_only=True)
     product_url = serializers.URLField(source='get_absolute_url', read_only=True)
@@ -49,9 +56,6 @@ class ProductSerializer(serializers.ModelSerializer):
         if six.PY2:
             return u'{:f}'.format(price)
         return '{:f}'.format(price)
-
-    def get_availability(self, product):
-        return product.get_availability(self.context['request'])
 
     def render_html(self, product, postfix):
         """
