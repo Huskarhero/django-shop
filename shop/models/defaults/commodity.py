@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-In django-SHOP, a commodity is considered a very basic product without any attributes, which can
-be used on a generic CMS page to describe anything.
+In django-SHOP, a Commodity product-model is considered a very basic product without any attributes,
+which can be used on a generic CMS page to describe anything.
 """
 from __future__ import unicode_literals
 
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
@@ -14,9 +15,17 @@ from filer.fields import image
 from djangocms_text_ckeditor.fields import HTMLField
 from polymorphic.query import PolymorphicQuerySet
 from shop.conf import app_settings
-from shop.models.product import BaseProduct, BaseProductManager, CMSPageReferenceMixin
+from shop.models.product import BaseProduct, BaseProductManager, CMSPageReferenceMixin, AvailableProductMixin
 from shop.models.defaults.mapping import ProductPage
 from shop.money.fields import MoneyField
+
+
+class CommodityMixin(AvailableProductMixin):
+    """
+    Common methods used by both default Commodity models.
+    """
+    def get_price(self, request):
+        return self.unit_price
 
 
 if settings.USE_I18N:
@@ -35,7 +44,7 @@ if settings.USE_I18N:
 
 
     @python_2_unicode_compatible
-    class Commodity(CMSPageReferenceMixin, TranslatableModelMixin, BaseProduct):
+    class Commodity(CMSPageReferenceMixin, TranslatableModelMixin, CommodityMixin, BaseProduct):
         """
         Generic Product Commodity to be used whenever the merchant does not require product specific
         attributes and just required a placeholder field to add arbitrary data.
@@ -80,6 +89,13 @@ if settings.USE_I18N:
 
         placeholder = PlaceholderField("Commodity Details")
 
+        quantity = models.PositiveIntegerField(
+            _("Quantity"),
+            default=0,
+            validators=[MinValueValidator(0)],
+            help_text=_("Available quantity in stock")
+        )
+
         # translatable fields for the catalog's list- and detail views
         product_name = TranslatedField()
         slug = TranslatedField()
@@ -98,9 +114,6 @@ if settings.USE_I18N:
 
         def __str__(self):
             return self.product_code
-
-        def get_price(self, request):
-            return self.unit_price
 
 
     class CommodityTranslation(TranslatedFieldsModel):
@@ -131,7 +144,7 @@ if settings.USE_I18N:
 else:
 
     @python_2_unicode_compatible
-    class Commodity(CMSPageReferenceMixin, BaseProduct):
+    class Commodity(CMSPageReferenceMixin, CommodityMixin, BaseProduct):
         """
         Generic Product Commodity to be used whenever the merchant does not require product specific
         attributes and just required a placeholder field to add arbitrary data.
@@ -181,6 +194,13 @@ else:
 
         placeholder = PlaceholderField("Commodity Details")
 
+        quantity = models.PositiveIntegerField(
+            _("Quantity"),
+            default=0,
+            validators=[MinValueValidator(0)],
+            help_text=_("Available quantity in stock")
+        )
+
         # common fields for the catalog's list- and detail views
         slug = models.SlugField(verbose_name=_("Slug"))
 
@@ -204,12 +224,3 @@ else:
 
         def __str__(self):
             return self.product_code
-
-        def get_price(self, request):
-            return self.unit_price
-
-        def save(self, *args, **kwargs):
-            if self.order is None:
-                aggr = self._meta.model.objects.aggregate(max=models.Max('order'))
-                self.order = 1 if aggr['max'] is None else aggr['max'] + 1
-            return super(Commodity, self).save(*args, **kwargs)
