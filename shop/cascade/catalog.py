@@ -77,13 +77,9 @@ class ShopAddToCartPlugin(ShopPluginBase):
         templates = []
         if instance.glossary.get('render_template'):
             templates.append(instance.glossary['render_template'])
-        if context['product'].managed_availability():
-            template_prefix = 'available-'
-        else:
-            template_prefix = ''
         templates.extend([
-            '{}/catalog/{}product-add2cart.html'.format(app_settings.APP_LABEL, template_prefix),
-            'shop/catalog/{}product-add2cart.html'.format(template_prefix),
+            '{}/catalog/product-add2cart.html'.format(app_settings.APP_LABEL),
+            'shop/catalog/product-add2cart.html',
         ])
         return select_template(templates)
 
