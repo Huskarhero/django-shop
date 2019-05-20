@@ -7,13 +7,10 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/djangoSHOP.svg?style=social&label=djangoSHOP)](https://twitter.com/djangoSHOP)
 
 
+**Release 1.0 has been released!**
+
 **Django-SHOP** aims to be a the easy, fun and fast e-commerce counterpart to
 [django-CMS](https://www.django-cms.org/).
-
-
-## Version 1.1 has been released!
-
-See below on how to install it using the Cookiecutter template.
 
 
 ## Build the database model out of the product's properties – not vice versa
