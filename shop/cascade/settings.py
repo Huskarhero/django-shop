@@ -20,6 +20,9 @@ def set_defaults(config):
     config['plugins_with_extra_mixins'].setdefault('ShopCancelOrderButtonPlugin', BootstrapUtilities(
         BootstrapUtilities.margins, BootstrapUtilities.floats,
     ))
+    config['plugins_with_extra_mixins'].setdefault('ProcessNextStepPlugin', BootstrapUtilities(
+        BootstrapUtilities.margins, BootstrapUtilities.floats,
+    ))
     config['plugins_with_extra_mixins'].setdefault('ShopProceedButton', BootstrapUtilities(
         BootstrapUtilities.margins, BootstrapUtilities.floats,
     ))

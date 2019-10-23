@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from django.utils.html import format_html_join
 from django.utils.translation import ugettext_lazy as _
+
 from shop.admin.customer import CustomerProxy, CustomerInlineAdminBase, CustomerAdminBase
 
 
@@ -31,10 +32,7 @@ class CustomerInlineAdmin(CustomerInlineAdminBase):
 
 @admin.register(CustomerProxy)
 class CustomerAdmin(CustomerAdminBase):
-    class Media:
-        css = {'all': ['shop/css/admin/customer.css']}
-
-    inlines = [CustomerInlineAdmin]
+    inlines = (CustomerInlineAdmin,)
 
     def get_list_display(self, request):
         list_display = list(super(CustomerAdmin, self).get_list_display(request))
