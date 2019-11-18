@@ -2,15 +2,15 @@
 from __future__ import unicode_literals
 
 from collections import OrderedDict
+from datetime import datetime
 from django import template
 from django.conf import settings
 from django.template import Node, TemplateSyntaxError
 from django.template.loader import select_template
 from django.utils import formats
-from django.utils.encoding import force_text
+from django.utils.html import force_text
 from django.utils.safestring import mark_safe
 from django.utils.dateformat import format, time_format
-from django.utils.timezone import datetime
 from shop.conf import app_settings
 from shop.models.cart import CartModel
 from shop.serializers.cart import CartSerializer, CartItems

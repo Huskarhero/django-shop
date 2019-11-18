@@ -1,10 +1,10 @@
 (function(angular, undefined) {
 'use strict';
 
-var djangoShopModule = angular.module('django.shop.digest', []);
+var module = angular.module('django.shop.digest', []);
 
 
-djangoShopModule.provider('checkoutDigest', function() {
+module.provider('checkoutDigest', function() {
 	var isDirty = false, initialDigest = {}, endpointURL;
 
 	this.setEndpoint = function(url) {
@@ -48,7 +48,7 @@ djangoShopModule.provider('checkoutDigest', function() {
 // as a wrapper around all checkout forms and the cart summary. It enriches the scope with objects
 // `cart` and `checkout_digest`. They contain the current state of the cart and the checkout
 // digest tags.
-djangoShopModule.directive('shopCheckoutDigest', ['checkoutDigest', function(checkoutDigest) {
+module.directive('shopCheckoutDigest', ['checkoutDigest', function(checkoutDigest) {
 	return {
 		restrict: 'E',
 		scope: true,
