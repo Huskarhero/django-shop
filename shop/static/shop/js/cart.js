@@ -58,13 +58,14 @@ djangoShopModule.directive('shopCartItem', function() {
 					data: cartItem
 				}).then(function(response) {
 					$rootScope.$broadcast('shop.cart.change', response.data.cart);
+					$rootScope.$broadcast('shop.messages.fetch');
 					deferred.resolve(response);
 				});
 				return deferred.promise;
 			}
 
 			function refreshCart(cart) {
-				$scope.cart.extra_rows = cart.extra_rows;
+				angular.extend($scope.cart.extra_rows, cart.extra_rows);
 				$scope.cart.total_quantity = cart.total_quantity;
 				$scope.cart.num_items = cart.num_items;
 				$scope.cart.subtotal = cart.subtotal;
