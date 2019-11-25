@@ -11,13 +11,13 @@ from shop.conf import app_settings
 
 
 class DeferredRelatedField(object):
-    def __init__(self, to, on_delete, **kwargs):
+    def __init__(self, to, **kwargs):
         try:
             self.abstract_model = to._meta.object_name
         except AttributeError:
             assert isinstance(to, six.string_types), "%s(%r) is invalid. First parameter must be either a model or a model name" % (self.__class__.__name__, to)
             self.abstract_model = to
-        self.options = dict(on_delete=on_delete, **kwargs)
+        self.options = kwargs
 
 
 class OneToOneField(DeferredRelatedField):

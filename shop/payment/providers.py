@@ -43,8 +43,8 @@ class ForwardFundPayment(PaymentProvider):
     namespace = 'forward-fund-payment'
 
     def __init__(self):
-        if (not (callable(getattr(OrderModel, 'no_payment_required', None)) and callable(
-                getattr(OrderModel, 'awaiting_payment', None)))):
+        if (not callable(getattr(OrderModel, 'no_payment_required', None)) or
+            not callable(getattr(OrderModel, 'awaiting_payment', None))):
             msg = "Missing methods in Order model. Add 'shop.payment.workflows.ManualPaymentWorkflowMixin' to SHOP_ORDER_WORKFLOWS."
             raise ImproperlyConfigured(msg)
         super(ForwardFundPayment, self).__init__()

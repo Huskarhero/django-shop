@@ -21,39 +21,27 @@
 	{% block add-product-to-cart-body %}
 	<div class="card-body pb-0">
 		<div class="d-flex justify-content-between">
-		{% block available-quantity-in-stock %}{% endblock %}
-		{% block change-purchasing-quantity %}
 			<div class="d-flex flex-column w-25">
 				<label for="quantity">{% trans "Quantity" %}</label>
 				<div class="form-group">
 					<input class="form-control" name="quantity" type="number" min="1" ng-model="context.quantity" ng-model-options="{{ ADD2CART_NG_MODEL_OPTIONS }}" ng-change="updateContext()" />
 				</div>
 			</div>
-		{% endblock %}
-		{% block product-unit-price %}
 			<div class="d-flex flex-column">
 				<span class="label">{% trans "Unit Price" %}</span>
-				<div class="lead mt-1" ng-cloak>
+				<div class="lead mt-1">
 				{% verbatim %}{{ context.unit_price }}{% endverbatim %}
 				</div>
 			</div>
-		{% endblock %}
-		{% block purchase-item-subtotal %}
 			<div class="d-flex flex-column">
 				<span class="label">{% trans "Subtotal" %}</span>
-				<div class="lead mt-1 font-weight-bold" ng-cloak>
+				<div class="lead mt-1 font-weight-bold">
 				{% verbatim %}{{ context.subtotal }}<sup>*</sup>{% endverbatim %}
 				</div>
 			</div>
-		{% endblock %}
 		</div>
-		<div class="d-flex justify-content-between">
-		{% block limited-availability %}{% endblock %}
-		{% block unmentioned-costs %}
-			<div class="flex-grow-1 text-muted text-right mb-3">
-				<small><sup>*</sup>&nbsp;{% trans "incl. VAT, plus shipping costs." %}</small>
-			</div>
-		{% endblock %}
+		<div class="text-muted text-right mb-3">
+			<small><sup>*</sup>&nbsp;incl. VAT, plus shipping costs</small>
 		</div>
 	</div>
 	{% endblock add-product-to-cart-body %}
@@ -66,7 +54,7 @@
 				<i class="fa" ng-class="context.is_in_cart ? 'fa-heart' : 'fa-heart-o'"></i>
 			</button>
 		{% url "shop:cart-list" as cart_endpoint %}{% trans "The product has been successfully placed in the shopping cart:" as modal_title %}
-			<button class="btn btn-primary m-1" ng-disabled="!context.availability.quantity" ng-click="{% if use_modal_dialog %}do(openModal('{{ modal_title }}')).then(addToCart('{{ cart_endpoint }}')).then(redirectTo()){% else %}do(addToCart('{{ cart_endpoint }}')).then(emit('shop.cart.change')){% endif %}">
+			<button class="btn btn-primary m-1" ng-click="{% if use_modal_dialog %}do(openModal('{{ modal_title }}')).then(addToCart('{{ cart_endpoint }}')).then(redirectTo()){% else %}do(addToCart('{{ cart_endpoint }}')).then(emit('shop.cart.change')){% endif %}">
 				{% trans "Add to cart" %}
 				<i class="fa fa-cart-arrow-down"></i>
 			</button>
@@ -91,7 +79,7 @@
 	{% endblock add-to-cart-modal-header %}
 
 	{% block add-to-cart-modal-body %}
-	<div class="modal-body" ng-cloak>
+	<div class="modal-body">
 		{% verbatim %}{{ context.quantity|number }} &times; {% endverbatim %}{{ product.product_name }}
 		{% trans "for {{ context.unit_price }} per piece: {{ context.subtotal }}" %}
 	</div>

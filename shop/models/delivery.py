@@ -16,10 +16,7 @@ class BaseDelivery(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     """
     Shipping provider to keep track on each delivery.
     """
-    order = deferred.ForeignKey(
-        BaseOrder,
-        on_delete=models.CASCADE,
-    )
+    order = deferred.ForeignKey(BaseOrder)
 
     shipping_id = models.CharField(
         _("Shipping ID"),
@@ -95,14 +92,12 @@ class BaseDeliveryItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model))
     delivery = deferred.ForeignKey(
         BaseDelivery,
         verbose_name=_("Delivery"),
-        on_delete=models.CASCADE,
         related_name='items',
         help_text=_("Refer to the shipping provider used to ship this item"),
     )
 
     item = deferred.ForeignKey(
         BaseOrderItem,
-        on_delete=models.CASCADE,
         related_name='deliver_item',
         verbose_name=_("Ordered item"),
     )
