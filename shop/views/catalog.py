@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import os
-import warnings
 from distutils.version import LooseVersion
 
 from django.db import models
@@ -224,7 +223,6 @@ class AddToCartView(views.APIView):
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-        warnings.warn("Deprecated endpoint")
         context = self.get_context(request, **kwargs)
         serializer = self.serializer_class(data=request.data, context=context)
         if serializer.is_valid():

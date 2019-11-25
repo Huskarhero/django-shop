@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages.storage import default_storage
 from django.utils import six
 from shop.conf import app_settings
 from shop.models.cart import CartModel
@@ -25,7 +26,7 @@ def test_add_to_cart(commodity_factory, api_client, rf):
     assert response.status_code == 201
     assert response.data['quantity'] == 2
     assert response.data['unit_price'] == six.text_type(product.unit_price)
-    assert response.data['line_total'] == six.text_type(data['quantity'] * product.unit_price)
+    assert response.data['line_total'] == six.text_type(2 * product.unit_price)
 
     # verify that the product is in the cart
     request = rf.get('/my-cart')
@@ -38,7 +39,7 @@ def test_add_to_cart(commodity_factory, api_client, rf):
     items = filled_cart.items.all()
     assert items[0].product == product
     assert items[0].quantity == 2
-    assert filled_cart.subtotal == product.unit_price * data['quantity']
+    assert filled_cart.subtotal == 2 * product.unit_price
     return filled_cart
 
 
@@ -76,9 +77,24 @@ def test_change_quantity(api_rf, filled_cart):
 
 
 @pytest.mark.django_db
+def test_too_greedy(session, api_rf, filled_cart):
+    product = filled_cart.items.all()[0].product
+    data = {'quantity': 10, 'product': product.id}
+    request = api_rf.put('/shop/api/cart', data)
+    request.customer = filled_cart.customer
+    request.session = session
+    request._messages = default_storage(request)
+    response = CartViewSet.as_view({'put': 'update'})(request, pk=product.id)
+    assert response.status_code == 200
+    filled_cart.refresh_from_db()
+    assert filled_cart.num_items == 1
+    assert filled_cart.items.all()[0].quantity == 5  # not 10, as requested
+
+
+@pytest.mark.django_db
 def test_remove_item(api_rf, filled_cart):
     product = filled_cart.items.all()[0].product
-    request = api_rf.delete('/shop/api/cart')
+    request = api_rf.delete(reverse('shop:cart-list'))
     request.customer = filled_cart.customer
     response = CartViewSet.as_view({'delete': 'destroy'})(request, pk=product.id)
     assert response.status_code == 200
