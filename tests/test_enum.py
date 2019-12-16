@@ -1,3 +1,6 @@
+# -*- coding: utf-8
+from __future__ import unicode_literals
+
 import pytest
 from django.db import models
 from django.utils import six
@@ -71,9 +74,9 @@ def test_deconstruct():
 
 def test_from_db_value():
     f = ChoiceEnumField(enum_type=MyChoices)
-    assert f.from_db_value(0, None, None) is MyChoices.A
-    assert f.from_db_value(1, None, None) is MyChoices.B
-    assert f.from_db_value(2, None, None) is 2
+    assert f.from_db_value(0, None, None, None) is MyChoices.A
+    assert f.from_db_value(1, None, None, None) is MyChoices.B
+    assert f.from_db_value(2, None, None, None) is 2
 
 
 def test_get_prep_value():

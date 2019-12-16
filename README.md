@@ -11,7 +11,7 @@
 
 Here you can find the [full documentation for django-SHOP](https://django-shop.readthedocs.io/en/latest/).
 
-## Version 1.1 has been released!
+## Version 1.1 is about to be released soon!
 
 See below on how to install it using the Cookiecutter template.
 

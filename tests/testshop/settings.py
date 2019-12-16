@@ -1,4 +1,6 @@
-from django.urls import reverse_lazy
+from __future__ import unicode_literals
+
+from django.core.urlresolvers import reverse_lazy
 from django.utils.text import format_lazy
 
 DEBUG = True
@@ -56,7 +58,7 @@ TEMPLATES = [{
     }
 }]
 
-MIDDLEWARE = [
+MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -64,14 +66,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.gzip.GZipMiddleware',
-    'cms.middleware.language.LanguageCookieMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'cms.middleware.user.CurrentUserMiddleware',
     'cms.middleware.page.CurrentPageMiddleware',
-    'cms.middleware.utils.ApphookReloadMiddleware',
     'cms.middleware.toolbar.ToolbarMiddleware',
+    'cms.middleware.language.LanguageCookieMiddleware',
 ]
-
 
 INSTALLED_APPS = [
     'django.contrib.auth',
@@ -96,7 +96,6 @@ INSTALLED_APPS = [
     'cms',
     'adminsortable2',
     'djangocms_text_ckeditor',
-    'django_select2',
     'cmsplugin_cascade',
     'cmsplugin_cascade.clipboard',
     'cmsplugin_cascade.extra_fields',
@@ -113,8 +112,6 @@ USE_I18N = False
 USE_L10N = True
 
 USE_TZ = True
-
-TIME_ZONE = 'UTC'
 
 LANGUAGES = [
     ('en', 'English'),
@@ -147,6 +144,7 @@ CMSPLUGIN_CASCADE_PLUGINS = [
 CMSPLUGIN_CASCADE = {
     'link_plugin_classes': [
         'shop.cascade.plugin_base.CatalogLinkPluginBase',
+        'cmsplugin_cascade.link.plugin_base.LinkElementMixin',
         'shop.cascade.plugin_base.CatalogLinkForm',
     ],
     'alien_plugins': ['TextPlugin', 'TextLinkPlugin', 'AcceptConditionPlugin'],

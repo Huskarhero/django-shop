@@ -1,3 +1,6 @@
+# -*- coding: utf-8
+from __future__ import unicode_literals
+
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils import six
@@ -45,23 +48,6 @@ def test_get_add_to_cart(commodity_factory, customer_factory, rf):
     assert response.data['unit_price'] == six.text_type(product.unit_price)
     assert response.data['product_code'] == product.product_code
     assert response.data['is_in_cart'] is False
-
-
-@pytest.mark.django_db
-def test_too_greedy(commodity_factory, customer_factory, rf):
-    """
-    Add more products to the cart than quantity in stock
-    """
-    product = commodity_factory()
-    data = {'quantity': 10, 'product': product.id}
-    request = rf.post(product.get_absolute_url() + '/add-to-cart', data=data)
-    request.current_page = product.cms_pages.first()
-    request.customer = customer_factory()
-    response = AddToCartView.as_view()(request, slug=product.slug)
-    assert response.status_code == 202
-    assert response.data['quantity'] == 5  # not 10, as requested
-    assert response.data['unit_price'] == six.text_type(product.unit_price)
-    assert response.data['subtotal'] == six.text_type(5 * product.unit_price)
 
 
 @pytest.mark.django_db
