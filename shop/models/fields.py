@@ -6,7 +6,7 @@ import six
 from django.conf import settings
 from django.db import models
 from django.utils.six import python_2_unicode_compatible, string_types
-from django.utils.text import force_text
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -23,7 +23,7 @@ else:
 
 class JSONField(_JSONField):
     def __init__(self, *args, **kwargs):
-        kwargs.update({'default': {}})
+        kwargs.update({'default': dict})
         super(JSONField, self).__init__(*args, **kwargs)
 
     def deconstruct(self):
@@ -121,7 +121,7 @@ class ChoiceEnumField(models.PositiveSmallIntegerField):
             kwargs['default'] = kwargs['default'].value
         return name, path, args, kwargs
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection):
         try:
             return self.enum_type(value)
         except ValueError:
