@@ -3,11 +3,10 @@ from __future__ import unicode_literals
 
 from django.utils import six
 from rest_framework import serializers
+from drf_haystack.serializers import HaystackSerializer
 
-raise NotImplementedError("Deprecated")
 
-
-class ProductSearchSerializer(serializers.Serializer):
+class ProductSearchSerializer(HaystackSerializer):
     """
     The base serializer to represent one or more product fields for being returned as a
     result list during searches.
