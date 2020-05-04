@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 from django.utils.translation import ugettext_lazy as _
 
 # Dictionary of currency representations:
@@ -34,5 +32,6 @@ CURRENCIES = {
     'UAH': ('980', 2, '₴', _("Ukrainian Hryvnia")),
     'USD': ('840', 2, '$', _("US Dollar")),
     'SEK': ('752', 2, 'kr', _("Swedish Kronor")),
+    'ZAR': ('710', 2, 'R', _("South African Rand")),
     # feel free to add more currencies, alphabetically ordered
 }
