@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from django.core import checks
 from django.db import models
 from django.db.models.aggregates import Sum
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 from shop.conf import app_settings
 from shop.models.product import Availability, BaseReserveProductMixin
 from shop.exceptions import ProductNotAvailable

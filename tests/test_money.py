@@ -7,6 +7,7 @@ except ImportError:
     import pickle
 import json
 
+from django.utils.six import text_type
 from rest_framework import serializers
 from shop.money.money_maker import AbstractMoney, MoneyMaker, _make_money
 from shop.rest.money import MoneyField, JSONRenderer
@@ -75,28 +76,28 @@ def test_str_with_too_much_precision():
 
 def test_thousand_separator(settings):
     value = EUR()
-    assert str(value) == "€ –"
+    assert text_type(value) == "€ –"
     value = EUR('999999.99')
     settings.USE_THOUSAND_SEPARATOR = False
-    assert str(value) == "€ 999999.99"
+    assert text_type(value) == "€ 999999.99"
     settings.USE_THOUSAND_SEPARATOR = True
-    assert str(value) == "€ 999,999.99"
+    assert text_type(value) == "€ 999,999.99"
     settings.LANGUAGE_CODE = 'de'
-    assert str(value) == "€ 999.999,99"
+    assert text_type(value) == "€ 999.999,99"
     settings.USE_THOUSAND_SEPARATOR = False
-    assert str(value) == "€ 999999,99"
+    assert text_type(value) == "€ 999999,99"
 
 def test_check_rounding():
     value = EUR('999999.995')
-    assert str(value) == "€ 1000000.00"
+    assert text_type(value) == "€ 1000000.00"
     value = EUR('-111111.114')
-    assert str(value) == "-€ 111111.11"
+    assert text_type(value) == "-€ 111111.11"
 
 
 def test_check_formatting_currency():
     value = -EUR('111111.11')
     value.MONEY_FORMAT='{minus}{amount} {code}'
-    assert str(value) == "-111111.11 EUR"
+    assert text_type(value) == "-111111.11 EUR"
 
 
 def test_reduce():

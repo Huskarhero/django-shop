@@ -1,11 +1,12 @@
-from decimal import Decimal
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django import forms
 from django.db import models
 from django.utils.html import format_html
-from django.utils.translation import gettext_lazy as _
-
+from django.utils.translation import ugettext_lazy as _
 from shop.conf import app_settings
 from shop.money.iso4217 import CURRENCIES
 from shop.money.money_maker import MoneyMaker, AbstractMoney
@@ -98,7 +99,7 @@ class MoneyField(models.DecimalField):
         value = super(models.DecimalField, self).get_prep_value(value)
         return super(MoneyField, self).to_python(value)
 
-    def from_db_value(self, value, expression, connection):
+    def from_db_value(self, value, expression, connection, context=None):
         if value is None:
             return
         if isinstance(value, float):

@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from functools import reduce
 import operator
-
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
 from rest_framework.filters import BaseFilterBackend

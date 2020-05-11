@@ -1,8 +1,13 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import enum
+import six
 from django.conf import settings
 from django.db import models
-from django.utils.encoding import force_str
-from django.utils.translation import gettext_lazy as _
+from django.utils.six import python_2_unicode_compatible, string_types
+from django.utils.encoding import force_text
+from django.utils.translation import ugettext_lazy as _
 
 
 postgresql_engine_names = [
@@ -29,7 +34,7 @@ class JSONField(_JSONField):
 
 class ChoiceEnumMeta(enum.EnumMeta):
     def __call__(cls, value, *args, **kwargs):
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             try:
                 value = cls.__members__[value]
             except KeyError:
@@ -38,7 +43,11 @@ class ChoiceEnumMeta(enum.EnumMeta):
 
     def __new__(metacls, classname, bases, classdict):
         labels = {}
-        for key in classdict._member_names:
+        if six.PY2:
+            member_names = [k for k in classdict.keys() if k not in ['__module__', '__str__', '__doc__']]
+        else:
+            member_names = classdict._member_names
+        for key in member_names:
             source_value = classdict[key]
             if isinstance(source_value, (list, tuple)):
                 try:
@@ -68,7 +77,8 @@ class ChoiceEnumMeta(enum.EnumMeta):
             return None
 
 
-class ChoiceEnum(enum.Enum, metaclass=ChoiceEnumMeta):
+@python_2_unicode_compatible
+class ChoiceEnum(six.with_metaclass(ChoiceEnumMeta, enum.Enum)):
     """
     Utility class to handle choices in Django model and/or form fields.
     Usage:
@@ -87,7 +97,7 @@ class ChoiceEnum(enum.Enum, metaclass=ChoiceEnumMeta):
     )
     """
     def __str__(self):
-        return force_str(self.label)
+        return force_text(self.label)
 
 
 class ChoiceEnumField(models.PositiveSmallIntegerField):
@@ -111,7 +121,7 @@ class ChoiceEnumField(models.PositiveSmallIntegerField):
             kwargs['default'] = kwargs['default'].value
         return name, path, args, kwargs
 
-    def from_db_value(self, value, expression, connection):
+    def from_db_value(self, value, expression, connection, context=None):
         try:
             return self.enum_type(value)
         except ValueError:

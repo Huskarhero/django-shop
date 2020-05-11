@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.utils.six import with_metaclass
+from django.utils.translation import ugettext_lazy as _
 
 from filer.fields import image
 
@@ -9,7 +13,7 @@ from shop import deferred
 from shop.models.product import BaseProduct
 
 
-class BaseProductPage(models.Model, metaclass=deferred.ForeignKeyBuilder):
+class BaseProductPage(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     """
     ManyToMany relation from the polymorphic Product to the CMS Page.
     This in practice is the category.
@@ -33,7 +37,7 @@ class BaseProductPage(models.Model, metaclass=deferred.ForeignKeyBuilder):
 ProductPageModel = deferred.MaterializedModel(BaseProductPage)
 
 
-class BaseProductImage(models.Model, metaclass=deferred.ForeignKeyBuilder):
+class BaseProductImage(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     """
     ManyToMany relation from the polymorphic Product to a set of images.
     """

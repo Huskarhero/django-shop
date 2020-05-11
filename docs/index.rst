@@ -48,7 +48,7 @@ Reference to classes and concepts used in **django-SHOP**
     reference/deferred-models
     reference/money-types
     reference/product-models
-    reference/inventory
+    reference/stock-management
     reference/catalog
     reference/search
     reference/filters

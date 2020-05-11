@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import string
 from importlib import import_module
 import warnings
@@ -11,8 +14,10 @@ from django.db import models, DEFAULT_DB_ALIAS
 from django.db.models.fields import FieldDoesNotExist
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import SimpleLazyObject
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
+from django.utils.six import with_metaclass
 
 from shop import deferred
 from shop.models.fields import JSONField
@@ -175,7 +180,8 @@ class CustomerManager(models.Manager):
         return customer
 
 
-class BaseCustomer(models.Model, metaclass=deferred.ForeignKeyBuilder):
+@python_2_unicode_compatible
+class BaseCustomer(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
     """
     Base class for shop customers.
 
@@ -187,6 +193,7 @@ class BaseCustomer(models.Model, metaclass=deferred.ForeignKeyBuilder):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         primary_key=True,
+        related_name='customer',
     )
 
     recognized = ChoiceEnumField(

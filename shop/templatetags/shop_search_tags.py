@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from cms.plugin_rendering import ContentRenderer
 from cms.models.placeholdermodel import Placeholder
 from cms.templatetags.cms_tags import RenderPlaceholder as DefaultRenderPlaceholder
@@ -5,6 +8,7 @@ from django import template
 from django.contrib.auth.models import AnonymousUser
 from django.http.request import HttpRequest
 from django.utils.html import strip_tags
+from django.utils.six import string_types
 from sekizai.context_processors import sekizai
 
 register = template.Library()
@@ -33,7 +37,7 @@ class RenderPlaceholder(DefaultRenderPlaceholder):
         placeholder = kwargs.get('placeholder')
         if not placeholder:
             return ''
-        if isinstance(placeholder, str):
+        if isinstance(placeholder, string_types):
             placeholder = Placeholder.objects.get(slot=placeholder)
         content = renderer.render_placeholder(
             placeholder=placeholder,
@@ -47,6 +51,7 @@ class RenderPlaceholder(DefaultRenderPlaceholder):
 
     def get_value(self, context, **kwargs):
         context.update(sekizai())
+        context['product'] = context['object']
         try:
             language_code = context['product']._current_language
         except (KeyError, AttributeError):

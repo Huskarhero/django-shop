@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 """
 See PEP 386 (http://www.python.org/dev/peps/pep-0386/)
 
@@ -13,6 +15,6 @@ Release logic:
  8. python setup.py sdist
 10. twine upload dist/django-shop-{new version}.tar.gz
 """
-__version__ = '1.2.dev'
+__version__ = '1.1.4'
 
 default_app_config = 'shop.apps.ShopConfig'

@@ -1,8 +1,10 @@
-from urllib.parse import urlparse
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 from django.contrib.auth.models import AnonymousUser
 from django.db import models
 from django.http.request import HttpRequest
+from django.utils.six.moves.urllib.parse import urlparse
 from post_office import mail
 from post_office.models import EmailTemplate
 from shop.conf import app_settings

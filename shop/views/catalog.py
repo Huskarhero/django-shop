@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import os
-from urllib.parse import urlsplit
+from distutils.version import LooseVersion
 
 from django.db import models
 from django.http.response import Http404, HttpResponseRedirect
@@ -7,6 +10,7 @@ from django.http.request import QueryDict
 from django.shortcuts import get_object_or_404
 from django.utils.cache import add_never_cache_headers
 from django.utils.encoding import force_str
+from django.utils.six.moves.urllib import parse as urlparse
 from django.utils.translation import get_language_from_request
 
 from rest_framework import generics
@@ -17,6 +21,7 @@ from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework.utils.urls import replace_query_param
 
+from cms import __version__ as CMS_VERSION
 from cms.views import details
 
 from shop.conf import app_settings
@@ -52,7 +57,7 @@ class ProductListPagination(pagination.LimitOffsetPagination):
     def adjust_offset(self, url, page_offset):
         if url is None:
             return
-        (scheme, netloc, path, query, fragment) = urlsplit(force_str(url))
+        (scheme, netloc, path, query, fragment) = urlparse.urlsplit(force_str(url))
         query_dict = QueryDict(query)
         try:
             offset = pagination._positive_int(
@@ -88,13 +93,13 @@ class ProductListView(generics.ListAPIView):
     responsible for rendering the catalog's list view.
     ```
     urlpatterns = [
-        ...
-        url(r'^(?P<slug>[\w-]+)/?$', ProductRetrieveView.as_view(**params)),  # see below
         url(r'^$', ProductListView.as_view()),
+        url(r'^(?P<slug>[\w-]+)/?$', ProductRetrieveView.as_view()),  # see below
+        ...
     ]
     ```
 
-    These attributes can be added to the ``as_view(**params)`` method:
+    You may add these attributes to the ``as_view()`` method:
 
     :param renderer_classes: A list or tuple of REST renderer classes.
 
@@ -112,6 +117,7 @@ class ProductListView(generics.ListAPIView):
     :param redirect_to_lonely_product: If ``True``, redirect onto a lonely product in the
         catalog. Defaults to ``False``.
     """
+
     renderer_classes = (CMSPageRenderer, JSONRenderer, BrowsableAPIRenderer)
     product_model = ProductModel
     serializer_class = app_settings.PRODUCT_SUMMARY_SERIALIZER
@@ -233,9 +239,9 @@ class ProductRetrieveView(generics.RetrieveAPIView):
     and used by the CMS pages responsible for rendering the catalog's list.
     ```
     urlpatterns = [
+        url(r'^$', ProductListView.as_view()),  # see above
+        url(r'^(?P<slug>[\w-]+)/?$', ProductRetrieveView.as_view()),
         ...
-        url(r'^(?P<slug>[\w-]+)', ProductRetrieveView.as_view()),
-        url(r'^', ProductListView.as_view()),  # see above
     ]
     ```
     You may add these attributes to the ``as_view()`` method:
@@ -279,7 +285,11 @@ class ProductRetrieveView(generics.RetrieveAPIView):
         try:
             return super(ProductRetrieveView, self).dispatch(request, *args, **kwargs)
         except Http404:
-            if request.current_page.node.is_root():
+            if LooseVersion(CMS_VERSION) < LooseVersion('3.5'):
+                is_root = request.current_page.is_root()
+            else:
+                is_root = request.current_page.node.is_root()
+            if is_root:
                 return details(request, kwargs.get('slug'))
             raise
         except:
@@ -288,7 +298,7 @@ class ProductRetrieveView(generics.RetrieveAPIView):
     def get_template_names(self):
         product = self.get_object()
         app_label = product._meta.app_label.lower()
-        basename = '{}-detail.html'.format(product._meta.model_name)
+        basename = '{}-detail.html'.format(product.__class__.__name__.lower())
         return [
             os.path.join(app_label, 'catalog', basename),
             os.path.join(app_label, 'catalog/product-detail.html'),

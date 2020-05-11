@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+
 class DefaultSettings(object):
     def _setting(self, name, default=None):
         from django.conf import settings

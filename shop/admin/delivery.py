@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from django.conf.urls import url
 from django.contrib import admin
 from django.db.models import Sum
@@ -7,7 +10,7 @@ from django.template.loader import select_template
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 from shop.conf import app_settings
 from shop.admin.order import OrderItemInline
 from shop.models.order import OrderItemModel

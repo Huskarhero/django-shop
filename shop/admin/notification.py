@@ -1,9 +1,13 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from collections import OrderedDict
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.forms import fields, models, widgets
-from django.utils.translation import gettext_lazy as _
+from django.utils import six
+from django.utils.translation import ugettext_lazy as _
 
 from django_fsm import RETURN_VALUE
 
@@ -42,7 +46,7 @@ class NotificationForm(models.ModelForm):
     def get_transition_choices(self):
         choices = OrderedDict()
         for transition in OrderModel.get_all_transitions():
-            if isinstance(transition.target, str):
+            if isinstance(transition.target, six.string_types):
                 choices[transition.target] = OrderModel.get_transition_name(transition.target)
             elif isinstance(transition.target, RETURN_VALUE):
                 for target in transition.target.allowed_states:

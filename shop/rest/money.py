@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.utils import six
+
 from rest_framework import renderers
 from rest_framework import serializers
 from rest_framework.utils import encoders
@@ -9,6 +14,8 @@ class JSONEncoder(encoders.JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, AbstractMoney):
+            if six.PY2:
+                return u'{:f}'.format(obj)
             return '{:f}'.format(obj)
         return super(JSONEncoder, self).default(obj)
 
@@ -25,4 +32,6 @@ class MoneyField(serializers.Field):
         super(MoneyField, self).__init__(*args, **kwargs)
 
     def to_representation(self, obj):
+        if six.PY2:
+            return u'{:f}'.format(obj)
         return '{:f}'.format(obj)

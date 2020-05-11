@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.conf import settings
 from django.template.loader import select_template
 from django.urls import NoReverseMatch, reverse
