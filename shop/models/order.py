@@ -1,18 +1,15 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from decimal import Decimal
 import logging
-from six import with_metaclass
+from urllib.parse import urljoin
+
 from django.core import checks
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models, transaction
 from django.db.models.aggregates import Sum
 from django.urls import NoReverseMatch, reverse
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext_lazy as _, pgettext_lazy, get_language_from_request
-from django.utils.six.moves.urllib.parse import urljoin
+from django.utils.translation import gettext_lazy as _, pgettext_lazy, get_language_from_request
+
 from django_fsm import FSMField, transition
 from ipware.ip import get_ip
 from cms.models import Page
@@ -138,8 +135,7 @@ class WorkflowMixinMetaclass(deferred.ForeignKeyBuilder):
         return result
 
 
-@python_2_unicode_compatible
-class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
+class BaseOrder(models.Model, metaclass=WorkflowMixinMetaclass):
     """
     An Order is the "in process" counterpart of the shopping cart, which freezes the state of the
     cart on the moment of purchase. It also holds stuff like the shipping and billing addresses,
@@ -414,8 +410,7 @@ class BaseOrder(with_metaclass(WorkflowMixinMetaclass, models.Model)):
 OrderModel = deferred.MaterializedModel(BaseOrder)
 
 
-@python_2_unicode_compatible
-class OrderPayment(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
+class OrderPayment(models.Model, metaclass=deferred.ForeignKeyBuilder):
     """
     A model to hold received payments for a given order.
     """
@@ -455,8 +450,7 @@ class OrderPayment(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
         return _("Payment ID: {}").format(self.id)
 
 
-@python_2_unicode_compatible
-class BaseOrderItem(with_metaclass(deferred.ForeignKeyBuilder, models.Model)):
+class BaseOrderItem(models.Model, metaclass=deferred.ForeignKeyBuilder):
     """
     An item for an order.
     """

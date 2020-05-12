@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
@@ -8,7 +5,7 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.contrib import admin
 from django.utils.encoding import force_str
 from django.utils.timezone import localtime
-from django.utils.translation import pgettext_lazy, ugettext_lazy as _
+from django.utils.translation import pgettext_lazy, gettext_lazy as _
 
 from shop.models.customer import CustomerModel, CustomerState
 
